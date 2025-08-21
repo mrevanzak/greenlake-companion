@@ -9,9 +9,9 @@ import SwiftUI
 
 @main
 struct greenlake_companionApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  var body: some Scene {
+    WindowGroup {
+      MapsView()
     }
+  }
 }
