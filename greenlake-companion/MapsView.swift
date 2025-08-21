@@ -11,27 +11,23 @@ import SwiftUI
 /// Main Maps view replicating Apple Maps interface and functionality
 struct MapsView: View {
   @StateObject private var locationManager = LocationManager()
+  @State private var showSheet = true
 
   var body: some View {
     ZStack(alignment: .bottom) {
-      // MARK: - Main Map View
-      MapViewRepresentable(
-        locationManager: locationManager
-      )
-      .ignoresSafeArea()
-
+      MapViewRepresentable(locationManager: locationManager)
+        .ignoresSafeArea()
+    }
+    .adaptiveSheet(isPresented: $showSheet) {
+      DefaultBottomSheetContent()
+        .presentationDetents([.height(100), .medium])
+        .presentationDragIndicator(.visible)
+        .presentationBackgroundInteraction(.enabled)
+        .interactiveDismissDisabled()
     }
     .environmentObject(locationManager)
     .onAppear {
       setupInitialState()
-    }
-    // Native sheets
-    .sheet(isPresented: .constant(true)) {
-      DefaultBottomSheetContent()
-        .presentationDetents([.height(100), .medium, .large])
-        .presentationDragIndicator(.visible)
-        .presentationBackgroundInteraction(.enabled)
-        .interactiveDismissDisabled()
     }
   }
 

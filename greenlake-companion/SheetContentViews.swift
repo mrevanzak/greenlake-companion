@@ -8,6 +8,14 @@
 import MapKit
 import SwiftUI
 
+// MARK: - Quick Action Model
+
+struct QuickAction {
+  let icon: String
+  let title: String
+  let action: () -> Void
+}
+
 // MARK: - Default Bottom Sheet Content
 
 struct DefaultBottomSheetContent: View {
@@ -15,47 +23,69 @@ struct DefaultBottomSheetContent: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      // Quick actions
+      // Horizontal stack for iPhone bottom sheet
       HStack(spacing: 20) {
-        QuickActionButton(
-          icon: "location.fill",
-          title: "My Location",
-          action: {
-            locationManager.requestLocation()
-          }
-        )
-
-        QuickActionButton(
-          icon: "car.fill",
-          title: "Directions",
-          action: {
-            // TODO: Open directions from current location
-          }
-        )
-
-        QuickActionButton(
-          icon: "star.fill",
-          title: "Favorites",
-          action: {
-            // TODO: Show favorites
-          }
-        )
-
-        QuickActionButton(
-          icon: "clock.fill",
-          title: "Recents",
-          action: {
-            // TODO: Show recent locations
-          }
-        )
+        ForEach(quickActions.indices, id: \.self) { index in
+          QuickActionButton(
+            icon: quickActions[index].icon,
+            title: quickActions[index].title,
+            action: quickActions[index].action
+          )
+        }
       }
-      .padding(.horizontal, 20)
+      .padding()
 
       Spacer()
     }
-    .padding(.top, 8)
+  }
+
+  private var quickActions: [QuickAction] {
+    [
+      QuickAction(icon: "location.fill", title: "My Location") {
+        locationManager.requestLocation()
+      },
+      QuickAction(icon: "car.fill", title: "Directions") {
+        // TODO: Open directions from current location
+      },
+      QuickAction(icon: "star.fill", title: "Favorites") {
+        // TODO: Show favorites
+      },
+      QuickAction(icon: "clock.fill", title: "Recents") {
+        // TODO: Show recent locations
+      },
+    ]
   }
 }
+
+// MARK: - iPad-Optimized Action Row
+
+struct QuickActionRow: View {
+  let action: QuickAction
+
+  var body: some View {
+    Button(action: action.action) {
+      HStack(spacing: 12) {
+        Image(systemName: action.icon)
+          .font(.system(size: 18, weight: .medium))
+          .foregroundColor(.accentColor)
+          .frame(width: 32, height: 32)
+          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+
+        Text(action.title)
+          .font(.body)
+          .foregroundColor(.primary)
+
+        Spacer()
+      }
+      .padding(.vertical, 8)
+      .padding(.horizontal, 12)
+      .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+    }
+    .buttonStyle(.plain)
+  }
+}
+
+// MARK: - iPhone Quick Action Button
 
 struct QuickActionButton: View {
   let icon: String
