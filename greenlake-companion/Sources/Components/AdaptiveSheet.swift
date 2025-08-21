@@ -27,7 +27,7 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
 
   func body(content: Content) -> some View {
     ZStack {
-      //your own stuff will go in here!
+      // your own stuff will go in here!
       content
 
       CustomBottomSheet(
@@ -45,7 +45,7 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
     }
   }
 
-  //device orientation change? fret not :D
+  // device orientation change? fret not :D
   private func handleSizeClassChange(
     from old: UserInterfaceSizeClass?, to new: UserInterfaceSizeClass?
   ) {
@@ -68,8 +68,8 @@ private struct CustomBottomSheet<Content: View>: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Binding var sheetPosition: SheetPosition
 
-  //we use a dragOffset to apply real-time movement,
-  //and update the final position when the drag ends.
+  // we use a dragOffset to apply real-time movement,
+  // and update the final position when the drag ends.
   @State private var dragOffset: CGFloat = 0
 
   let content: () -> Content
@@ -77,7 +77,7 @@ private struct CustomBottomSheet<Content: View>: View {
   var body: some View {
     GeometryReader { geometry in
       VStack {
-        //See 4. for the Handle design :)
+        // See 4. for the Handle design :)
         DragHandle { value in
           dragOffset = value
         } onDragEnded: { value in
@@ -111,14 +111,14 @@ private struct CustomBottomSheet<Content: View>: View {
     .edgesIgnoringSafeArea(.bottom)
   }
 
-  //the drag logic checks if you're dragging up or down,
+  // the drag logic checks if you're dragging up or down,
   private func handleDragEnd(translation: CGFloat, height: CGFloat) {
     let threshold: CGFloat = 100
     let collapsedY = calculatedOffset(for: .collapsed, height: height)
     let expandedY = calculatedOffset(for: .fullyExpanded, height: height)
     let currentY = collapsedY + dragOffset
 
-    //and chooses the closest snap point:
+    // and chooses the closest snap point:
     let newPosition: SheetPosition = {
       if translation > threshold { return .collapsed }
       if translation < -threshold { return .fullyExpanded }
@@ -126,15 +126,15 @@ private struct CustomBottomSheet<Content: View>: View {
       return currentY > midpoint ? .collapsed : .fullyExpanded
     }()
 
-    //a springy feedback
+    // a springy feedback
     withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
       sheetPosition = newPosition
       dragOffset = 0
     }
   }
 
-  //my magic numbers, but feel free to adjust :)
-  //offset here basically means distance from top on both states
+  // my magic numbers, but feel free to adjust :)
+  // offset here basically means distance from top on both states
   private func calculatedOffset(for position: SheetPosition, height: CGFloat) -> CGFloat {
     let compactOffsetPosition: CGFloat = 180
     let regularOffsetPosition: CGFloat = 80
@@ -155,14 +155,14 @@ private struct DragHandle: View {
   let onDragEnded: (CGFloat) -> Void
 
   var body: some View {
-    //where the design goes
+    // where the design goes
     Capsule()
       .frame(width: 40, height: 6)
       .foregroundColor(.gray)
       .padding(10)
       .contentShape(Rectangle())
       .gesture(
-        //actual gesture handling
+        // actual gesture handling
         DragGesture()
           .onChanged { value in onDragChanged(value.translation.height) }
           .onEnded { value in onDragEnded(value.translation.height) }

@@ -8,14 +8,6 @@
 import MapKit
 import SwiftUI
 
-// MARK: - Quick Action Model
-
-struct QuickAction {
-  let icon: String
-  let title: String
-  let action: () -> Void
-}
-
 // MARK: - Default Bottom Sheet Content
 
 struct DefaultBottomSheetContent: View {

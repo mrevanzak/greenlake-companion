@@ -37,15 +37,6 @@ struct MapsView: View {
     // Request location permission and start tracking
     locationManager.requestLocation()
   }
-
-}
-
-// MARK: - Extensions
-
-extension CLLocationCoordinate2D {
-  var location: CLLocation {
-    return CLLocation(latitude: latitude, longitude: longitude)
-  }
 }
 
 // MARK: - Preview
