@@ -18,12 +18,11 @@ struct MapsView: View {
       MapViewRepresentable(locationManager: locationManager)
         .ignoresSafeArea()
     }
-    .adaptiveSheet(isPresented: $showSheet) {
+    .adaptiveSheet(
+      isPresented: $showSheet,
+      configuration: AdaptiveSheetConfiguration(detents: [.height(100), .medium, .large])
+    ) {
       DefaultBottomSheetContent()
-        .presentationDetents([.height(100), .medium])
-        .presentationDragIndicator(.visible)
-        .presentationBackgroundInteraction(.enabled)
-        .interactiveDismissDisabled()
     }
     .environmentObject(locationManager)
     .onAppear {
