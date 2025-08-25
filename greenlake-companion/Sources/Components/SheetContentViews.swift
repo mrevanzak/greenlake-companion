@@ -102,3 +102,58 @@ struct QuickActionButton: View {
     .frame(maxWidth: .infinity)
   }
 }
+
+// MARK: - Custom Tile Bottom Sheet Content
+
+struct CustomTileBottomSheetContent: View {
+  @EnvironmentObject var locationManager: LocationManager
+  @Binding var useCustomTiles: Bool
+
+  var body: some View {
+    VStack(spacing: 16) {
+      // Toggle for custom tiles
+      HStack {
+        Label("Custom Tiles", systemImage: "map")
+          .font(.headline)
+
+        Spacer()
+
+        Toggle("", isOn: $useCustomTiles)
+          .labelsHidden()
+      }
+      .padding(.horizontal)
+
+      // Quick actions row
+      HStack(spacing: 20) {
+        ForEach(quickActions.indices, id: \.self) { index in
+          QuickActionButton(
+            icon: quickActions[index].icon,
+            title: quickActions[index].title,
+            action: quickActions[index].action
+          )
+        }
+      }
+      .padding(.horizontal)
+
+      Spacer()
+    }
+    .padding(.top)
+  }
+
+  private var quickActions: [QuickAction] {
+    [
+      QuickAction(icon: "location.fill", title: "My Location") {
+        locationManager.requestLocation()
+      },
+      QuickAction(icon: "car.fill", title: "Directions") {
+        // TODO: Open directions from current location
+      },
+      QuickAction(icon: "star.fill", title: "Favorites") {
+        // TODO: Show favorites
+      },
+      QuickAction(icon: "clock.fill", title: "Recents") {
+        // TODO: Show recent locations
+      },
+    ]
+  }
+}

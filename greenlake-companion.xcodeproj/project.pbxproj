@@ -13,6 +13,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C5D989EB2E56C324000AD3E6 /* greenlake-companion */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFolders = (
+				Sources/Resources/tiles,
+			);
 			path = "greenlake-companion";
 			sourceTree = "<group>";
 		};

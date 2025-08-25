@@ -8,21 +8,18 @@
 import MapKit
 import SwiftUI
 
-/// Main Maps view replicating Apple Maps interface and functionality
+/// Main Maps view replicating Apple Maps interface and functionality with custom tile support
 struct MapsView: View {
   @StateObject private var locationManager = LocationManager()
-  @State private var showSheet = true
+  @Binding var useCustomTiles: Bool
 
   var body: some View {
     ZStack(alignment: .bottom) {
-      MapViewRepresentable(locationManager: locationManager)
-        .ignoresSafeArea()
-    }
-    .adaptiveSheet(
-      isPresented: $showSheet,
-      configuration: AdaptiveSheetConfiguration(detents: [.height(100), .medium, .large])
-    ) {
-      DefaultBottomSheetContent()
+      MapViewRepresentable(
+        locationManager: locationManager,
+        useCustomTiles: useCustomTiles,
+      )
+      .ignoresSafeArea()
     }
     .environmentObject(locationManager)
     .onAppear {
@@ -41,5 +38,5 @@ struct MapsView: View {
 // MARK: - Preview
 
 #Preview {
-  MapsView()
+  MapsView(useCustomTiles: .constant(true))
 }
