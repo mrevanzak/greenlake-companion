@@ -121,7 +121,6 @@ struct CustomTileBottomSheetContent: View {
         Toggle("", isOn: $useCustomTiles)
           .labelsHidden()
       }
-      .padding(.horizontal)
 
       // Quick actions row
       HStack(spacing: 20) {
@@ -133,11 +132,9 @@ struct CustomTileBottomSheetContent: View {
           )
         }
       }
-      .padding(.horizontal)
 
       Spacer()
     }
-    .padding(.top)
   }
 
   private var quickActions: [QuickAction] {
