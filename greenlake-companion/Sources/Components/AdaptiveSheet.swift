@@ -225,42 +225,20 @@ private struct CustomBottomSheet<Content: View>: View {
           .padding(.top, 8)
       }
       .frame(
-        width: horizontalSizeClass == .compact ? geometry.size.width : 350,
+        width: horizontalSizeClass == .compact ? geometry.size.width : 400,
         height: geometry.size.height,
         alignment: .top
       )
       .background(
-        // Liquid glass effect using ultraThinMaterial with enhanced styling
-        ZStack {
-          // Primary liquid glass background
-          RoundedRectangle(cornerRadius: 24)
-            .fill(.ultraThinMaterial)
-
-          // Subtle gradient overlay for depth
-          RoundedRectangle(cornerRadius: 24)
-            .fill(
-              LinearGradient(
-                colors: [
-                  .white.opacity(0.1),
-                  .clear,
-                  .black.opacity(0.05),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-              )
-            )
-
-          // Subtle border for definition
-          RoundedRectangle(cornerRadius: 24)
-            .stroke(.quaternary.opacity(0.3), lineWidth: 0.5)
-        }
+        RoundedRectangle(cornerRadius: 18)
+          .fill(.thickMaterial)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 24))
+      .clipShape(RoundedRectangle(cornerRadius: 18))
       .shadow(
-        color: .black.opacity(0.15),
-        radius: 20,
+        color: .black.opacity(0.18),
+        radius: 14,
         x: 0,
-        y: 8
+        y: 6
       )
       .offset(
         x: horizontalSizeClass == .compact ? 0 : geometry.size.width * 0.05,
@@ -361,18 +339,10 @@ private struct CustomBottomSheet<Content: View>: View {
 
 private struct DragHandle: View {
   var body: some View {
-    VStack(spacing: 4) {
-      // Main handle with liquid glass effect
-      Capsule()
-        .fill(.quaternary.opacity(0.6))
-        .frame(width: 36, height: 5)
-
-      // Secondary subtle indicator
-      Capsule()
-        .fill(.quaternary.opacity(0.3))
-        .frame(width: 24, height: 3)
-    }
-    .padding(.top, 12)
-    .padding(.bottom, 8)
+    Capsule()
+      .fill(.quaternary.opacity(0.6))
+      .frame(width: 36, height: 5)
+      .padding(.top, 12)
+      .padding(.bottom, 8)
   }
 }

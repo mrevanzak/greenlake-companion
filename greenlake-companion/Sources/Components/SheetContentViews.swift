@@ -2,155 +2,142 @@
 //  SheetContentViews.swift
 //  greenlake-companion
 //
-//  Created by AI Assistant on 21/08/25.
+//  Created by Revan on 26/08/25.
 //
 
 import MapKit
 import SwiftUI
+import SwiftUIX
 
-// MARK: - Default Bottom Sheet Content
-
-struct DefaultBottomSheetContent: View {
-  @EnvironmentObject var locationManager: LocationManager
+struct BottomSheetContent: View {
+  @State private var searchText = ""
 
   var body: some View {
-    VStack(spacing: 16) {
-      // Horizontal stack for iPhone bottom sheet
-      HStack(spacing: 20) {
-        ForEach(quickActions.indices, id: \.self) { index in
-          QuickActionButton(
-            icon: quickActions[index].icon,
-            title: quickActions[index].title,
-            action: quickActions[index].action
-          )
+    ScrollView(showsIndicators: false) {
+      LazyVStack(alignment: .leading, spacing: 16, pinnedViews: .sectionHeaders) {
+        Section(
+          header:
+            SearchBar("Cari tanaman atau pekerjaan", text: $searchText)
+            .background(.ultraThickMaterial)
+            .cornerRadius(12)
+        ) {
+          VStack(spacing: 12) {
+            HStack {
+              Text("Pruning").font(.title3.weight(.semibold))
+              Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+              Spacer()
+              Image(systemName: "chevron.down").foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+
+            HStack {
+              Text("Tanaman Sakit").font(.title3.weight(.semibold))
+              Image(systemName: "triangle.fill").foregroundStyle(.orange)
+              Spacer()
+              Image(systemName: "chevron.down").foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+          }
+
+          Text("Informasi Tanaman")
+            .font(.headline)
+            .foregroundStyle(.secondary)
+
+          RoundedRectangle(cornerRadius: 18)
+            .fill(
+              LinearGradient(
+                colors: [Color.gray.opacity(0.25), Color.gray.opacity(0.15)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing)
+            )
+            .frame(height: 220)
+            .overlay(
+              Image(systemName: "photo").font(.system(size: 40)).foregroundStyle(.secondary))
+
+          // Plant information section
+          VStack(alignment: .leading, spacing: 6) {
+            Label("Jl. Citra Utama Lidah Kulon", systemImage: "mappin.and.ellipse")
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+
+            Text("Pine Tree").font(.largeTitle).bold()
+            Text("Pinus merkusii").font(.title3).italic().foregroundStyle(.secondary)
+          }
+
+          // Action button
+          Button(action: {}) {
+            Text("Catat Kondisi")
+              .font(.headline)
+              .foregroundStyle(.white)
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 14)
+          }
+          .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+          .padding(.top, 8)
+
+          // Add more content to demonstrate scrolling
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Riwayat Perawatan")
+              .font(.headline)
+              .foregroundStyle(.secondary)
+              .padding(.top, 16)
+
+            ForEach(historyItems, id: \.title) { item in
+              HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(item.title)
+                    .font(.subheadline.weight(.medium))
+                  Text(item.date)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+              .padding(12)
+              .background(Color.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+            }
+          }
+
+          // Additional content to ensure scrolling is needed
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Catatan Tambahan")
+              .font(.headline)
+              .foregroundStyle(.secondary)
+              .padding(.top, 16)
+
+            Text(
+              "Tanaman ini memerlukan perawatan rutin setiap 2 minggu. Perhatikan kondisi tanah dan pastikan drainase yang baik."
+            )
+            .font(.body)
+            .foregroundStyle(.secondary)
+            .padding(12)
+            .background(Color.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+          }
+
+          // Ensure there's enough bottom padding for scrolling
+          Spacer(minLength: 120)
         }
       }
-      .padding()
-
-      Spacer()
     }
+    .frame(maxHeight: .infinity)
   }
 
-  private var quickActions: [QuickAction] {
+  private struct HistoryItem {
+    let title: String
+    let date: String
+  }
+  private var historyItems: [HistoryItem] {
     [
-      QuickAction(icon: "location.fill", title: "My Location") {
-        locationManager.requestLocation()
-      },
-      QuickAction(icon: "car.fill", title: "Directions") {
-        // TODO: Open directions from current location
-      },
-      QuickAction(icon: "star.fill", title: "Favorites") {
-        // TODO: Show favorites
-      },
-      QuickAction(icon: "clock.fill", title: "Recents") {
-        // TODO: Show recent locations
-      },
+      .init(title: "Pruning", date: "20 Agustus 2025"),
+      .init(title: "Perawatan rutin", date: "14 Agustus 2025"),
+      .init(title: "Pruning", date: "10 Juli 2025"),
+      .init(title: "Pruning", date: "15 Juni 2025"),
     ]
   }
-}
 
-// MARK: - iPad-Optimized Action Row
-
-struct QuickActionRow: View {
-  let action: QuickAction
-
-  var body: some View {
-    Button(action: action.action) {
-      HStack(spacing: 12) {
-        Image(systemName: action.icon)
-          .font(.system(size: 18, weight: .medium))
-          .foregroundColor(.accentColor)
-          .frame(width: 32, height: 32)
-          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-
-        Text(action.title)
-          .font(.body)
-          .foregroundColor(.primary)
-
-        Spacer()
-      }
-      .padding(.vertical, 8)
-      .padding(.horizontal, 12)
-      .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-    }
-    .buttonStyle(.plain)
-  }
-}
-
-// MARK: - iPhone Quick Action Button
-
-struct QuickActionButton: View {
-  let icon: String
-  let title: String
-  let action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      VStack(spacing: 8) {
-        Image(systemName: icon)
-          .font(.system(size: 20, weight: .medium))
-          .foregroundColor(.accentColor)
-          .frame(width: 44, height: 44)
-          .background(.regularMaterial, in: Circle())
-
-        Text(title)
-          .font(.caption)
-          .foregroundColor(.primary)
-          .multilineTextAlignment(.center)
-      }
-    }
-    .frame(maxWidth: .infinity)
-  }
-}
-
-// MARK: - Custom Tile Bottom Sheet Content
-
-struct CustomTileBottomSheetContent: View {
-  @EnvironmentObject var locationManager: LocationManager
-  @Binding var useCustomTiles: Bool
-
-  var body: some View {
-    VStack(spacing: 16) {
-      // Toggle for custom tiles
-      HStack {
-        Label("Custom Tiles", systemImage: "map")
-          .font(.headline)
-
-        Spacer()
-
-        Toggle("", isOn: $useCustomTiles)
-          .labelsHidden()
-      }
-
-      // Quick actions row
-      HStack(spacing: 20) {
-        ForEach(quickActions.indices, id: \.self) { index in
-          QuickActionButton(
-            icon: quickActions[index].icon,
-            title: quickActions[index].title,
-            action: quickActions[index].action
-          )
-        }
-      }
-
-      Spacer()
-    }
-  }
-
-  private var quickActions: [QuickAction] {
-    [
-      QuickAction(icon: "location.fill", title: "My Location") {
-        locationManager.requestLocation()
-      },
-      QuickAction(icon: "car.fill", title: "Directions") {
-        // TODO: Open directions from current location
-      },
-      QuickAction(icon: "star.fill", title: "Favorites") {
-        // TODO: Show favorites
-      },
-      QuickAction(icon: "clock.fill", title: "Recents") {
-        // TODO: Show recent locations
-      },
-    ]
-  }
 }

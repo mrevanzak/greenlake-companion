@@ -17,7 +17,7 @@ struct HomeView: View {
         isPresented: .constant(true),
         configuration: AdaptiveSheetConfiguration(detents: [.height(100), .large])
       ) {
-        CustomTileBottomSheetContent(useCustomTiles: $useCustomTiles)
+        BottomSheetContent()
       }
   }
 }
