@@ -9,7 +9,7 @@ import MapKit
 import SwiftUI
 
 /// Main Maps view replicating Apple Maps interface and functionality with custom tile support
-struct MapsView: View {
+struct MapView: View {
   @StateObject private var locationManager = LocationManager()
   @Binding var useCustomTiles: Bool
 
@@ -38,5 +38,5 @@ struct MapsView: View {
 // MARK: - Preview
 
 #Preview {
-  MapsView(useCustomTiles: .constant(true))
+  MapView(useCustomTiles: .constant(true))
 }

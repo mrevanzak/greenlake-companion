@@ -12,7 +12,7 @@ struct HomeView: View {
   @State private var useCustomTiles = false
 
   var body: some View {
-    MapsView(useCustomTiles: $useCustomTiles)
+    MapView(useCustomTiles: $useCustomTiles)
       .adaptiveSheet(
         isPresented: .constant(true),
         configuration: AdaptiveSheetConfiguration(detents: [.height(100), .large])
