@@ -122,7 +122,10 @@ extension View {
           .presentationDetents(configuration.presentationDetents)
           .presentationBackgroundInteraction(.enabled)
           .interactiveDismissDisabled()
+          .presentationCornerRadius(18)
+          .presentationDragIndicator(.visible)
       }
+      .animation(.spring(response: 0.6, dampingFraction: 0.8))
     }
   }
 }
@@ -132,6 +135,9 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
   @Binding var isPresented: Bool
 
   @State private var currentDetent: PresentationDetent
+  @State private var sheetOffset: CGFloat = 1000
+  @State private var isVisible: Bool = false
+  @State private var isDismissing: Bool = false
 
   let sheetContent: () -> SheetContent
   let configuration: AdaptiveSheetConfiguration
@@ -156,18 +162,48 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
       // your own stuff will go in here!
       content
 
-      CustomBottomSheet(
-        currentDetent: $currentDetent,
-        configuration: configuration,
-        content: sheetContent
-      )
+      if isVisible {
+        CustomBottomSheet(
+          currentDetent: $currentDetent,
+          configuration: configuration,
+          content: sheetContent
+        )
+        .offset(y: sheetOffset)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+      }
     }
     .onChange(of: horizontalSizeClass) { old, new in
       handleSizeClassChange(from: old, to: new)
     }
     .onAppear {
-      if horizontalSizeClass == .regular {
-        isPresented = false
+      if isPresented {
+        isVisible = true
+        sheetOffset = 1000
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+          sheetOffset = 0
+        }
+      } else {
+        isVisible = false
+        sheetOffset = 1000
+      }
+    }
+    .onChange(of: isPresented) { _, newValue in
+      if newValue {
+        isVisible = true
+        sheetOffset = 1000
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+          sheetOffset = 0
+        }
+      } else {
+        isDismissing = true
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+          sheetOffset = 1000
+        }
+        let exitDuration = 0.2
+        DispatchQueue.main.asyncAfter(deadline: .now() + exitDuration) {
+          isVisible = false
+          isDismissing = false
+        }
       }
     }
   }
@@ -186,7 +222,9 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
       }
       let firstDetent = sortedSheetDetents.first ?? .medium
       currentDetent = isPresented ? .large : firstDetent.presentationDetent
-      isPresented = false
+      if isPresented {
+        isPresented = false
+      }
     }
   }
 
@@ -255,6 +293,7 @@ private struct CustomBottomSheet<Content: View>: View {
           }
       )
       .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
+      .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentSheetDetent)
       .onChange(of: currentDetent) { oldDetent, newDetent in
         // Convert presentation detent to sheet detent
         currentSheetDetent = DetentRegistry.shared.getSheetDetent(for: newDetent)
