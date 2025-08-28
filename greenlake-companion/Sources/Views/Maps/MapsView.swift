@@ -8,18 +8,14 @@
 import MapKit
 import SwiftUI
 
-/// Main Maps view replicating Apple Maps interface and functionality with custom tile support
+/// Main Maps view replicating Apple Maps interface and functionality
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
-  @Binding var useCustomTiles: Bool
 
   var body: some View {
     ZStack(alignment: .bottom) {
-      MapViewRepresentable(
-        locationManager: locationManager,
-        useCustomTiles: useCustomTiles,
-      )
-      .ignoresSafeArea()
+      MapViewRepresentable(locationManager: locationManager)
+        .ignoresSafeArea()
     }
     .environmentObject(locationManager)
     .onAppear {
@@ -38,5 +34,5 @@ struct MapView: View {
 // MARK: - Preview
 
 #Preview {
-  MapView(useCustomTiles: .constant(true))
+  MapView()
 }
