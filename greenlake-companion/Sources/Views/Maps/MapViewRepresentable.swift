@@ -9,54 +9,11 @@ import CoreLocation
 import MapKit
 import SwiftUI
 
-// MARK: - Map Constants
-
-/// Constants for map configuration and boundaries
-private enum MapConstants {
-  /// Central point for the map view and boundaries
-  static let centerCoordinate = CLLocationCoordinate2D(
-    latitude: -7.309203,
-    longitude: 112.656577
-  )
-
-  /// Maximum distance users can navigate from center (in coordinate degrees)
-  /// Approximately 10km radius from center
-  static let boundaryLatitudeDelta: CLLocationDegrees = 0.10  // ~10km north/south
-  static let boundaryLongitudeDelta: CLLocationDegrees = 0.10  // ~10km east/west
-
-  /// Initial map region span
-  static let initialRegionSpan = MKCoordinateSpan(
-    latitudeDelta: 0.01,  // ~1km north/south - city level zoom
-    longitudeDelta: 0.01  // ~1km east/west - city level zoom
-  )
-
-  /// Complete initial region for map setup
-  static var initialRegion: MKCoordinateRegion {
-    MKCoordinateRegion(center: centerCoordinate, span: initialRegionSpan)
-  }
-
-  /// Camera boundary region to limit user navigation
-  static var boundaryRegion: MKCoordinateRegion {
-    MKCoordinateRegion(
-      center: centerCoordinate,
-      span: MKCoordinateSpan(
-        latitudeDelta: boundaryLatitudeDelta * 2,
-        longitudeDelta: boundaryLongitudeDelta * 2
-      )
-    )
-  }
-
-  /// Camera boundary object for MKMapView
-  static var cameraBoundary: MKMapView.CameraBoundary? {
-    MKMapView.CameraBoundary(coordinateRegion: boundaryRegion)
-  }
-}
-
 /// SwiftUI wrapper for MKMapView
 struct MapViewRepresentable: UIViewRepresentable {
   @ObservedObject var locationManager: LocationManager
-  @Binding var pins: [MapPin]
-  @Binding var selectedPin: MapPin?
+  @Binding var plants: [PlantInstance]
+  @Binding var selectedPlant: PlantInstance?
 
   // MARK: - Initialization
 
@@ -67,12 +24,12 @@ struct MapViewRepresentable: UIViewRepresentable {
   ///   - selectedPin: Binding to the currently selected pin
   init(
     locationManager: LocationManager,
-    pins: Binding<[MapPin]>,
-    selectedPin: Binding<MapPin?>
+    plants: Binding<[PlantInstance]>,
+    selectedPlant: Binding<PlantInstance?>
   ) {
     self.locationManager = locationManager
-    self._pins = pins
-    self._selectedPin = selectedPin
+    self._plants = plants
+    self._selectedPlant = selectedPlant
   }
 
   // MARK: - UIViewRepresentable Implementation
@@ -99,7 +56,7 @@ struct MapViewRepresentable: UIViewRepresentable {
   }
 
   func updateUIView(_ mapView: MKMapView, context: Context) {
-    // Update annotations when pins change
+    // Update annotations when plants change
     updateAnnotations(on: mapView)
 
     // Update user location tracking if needed
@@ -159,14 +116,15 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.addGestureRecognizer(longPressGesture)
   }
 
-  /// Update map annotations when pins change
+  /// Update map annotations when plants change
   private func updateAnnotations(on mapView: MKMapView) {
     // Remove existing annotations
     let existingAnnotations = mapView.annotations.filter { !($0 is MKUserLocation) }
     mapView.removeAnnotations(existingAnnotations)
 
-    // Add new pin annotations
-    mapView.addAnnotations(pins)
+    // Add new plant annotations
+    let annotations = plants.map { PlantAnnotation(plant: $0) }
+    mapView.addAnnotations(annotations)
   }
 }
 
@@ -183,7 +141,7 @@ extension MapViewRepresentable {
 
     // MARK: - Long Press Handling
 
-    /// Handle long press gesture to add new pins
+    /// Handle long press gesture to add new plants
     @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
       guard gesture.state == .began else { return }
 
@@ -191,15 +149,15 @@ extension MapViewRepresentable {
       let point = gesture.location(in: mapView)
       let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
 
-      // Create a new pin at the pressed location
-      let newPin = MapPin(
+      // Create a new plant at the pressed location
+      let newPlant = PlantInstance(
         coordinate: coordinate,
-        title: "Pin \(parent.pins.count + 1)",
-        subtitle: "Added on \(Date().formatted(date: .abbreviated, time: .shortened))"
+        name: nil,
+        type: .tree
       )
 
-      // Add the new pin to the array
-      parent.pins.append(newPin)
+      // Add the new plant to the array
+      parent.plants.append(newPlant)
 
       // Provide haptic feedback
       let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -208,19 +166,23 @@ extension MapViewRepresentable {
 
     // MARK: - MKMapViewDelegate
 
-    /// Configure annotation views for pins
+    /// Configure annotation views for plants
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
       // Don't customize user location annotation
       guard !(annotation is MKUserLocation) else { return nil }
 
-      // Check if this is one of our custom pins
-      guard let mapPin = annotation as? MapPin else { return nil }
+      // Check if this is one of our plant annotations
+      guard let plantAnno = annotation as? PlantAnnotation else { return nil }
 
-      let identifier = "MapPin"
+      let identifier = "PlantAnnotation"
       let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
 
       // Configure the pin appearance
-      annotationView.pinTintColor = mapPin.pinColor.uiColor
+      switch plantAnno.plant.type {
+      case .tree: annotationView.pinTintColor = .systemGreen
+      case .groundCover: annotationView.pinTintColor = .systemTeal
+      case .bush: annotationView.pinTintColor = .systemMint
+      }
       annotationView.canShowCallout = true
       annotationView.calloutOffset = CGPoint(x: 0, y: -4)
 
@@ -236,10 +198,12 @@ extension MapViewRepresentable {
       _ mapView: MKMapView, annotationView view: MKAnnotationView,
       calloutAccessoryControlTapped control: UIControl
     ) {
-      guard let mapPin = view.annotation as? MapPin else { return }
+      guard let plantAnno = view.annotation as? PlantAnnotation else { return }
 
-      // Set the selected pin
-      parent.selectedPin = mapPin
+      // Set the selected plant by resolving back to value model
+      if let plant = parent.plants.first(where: { $0.id == plantAnno.id }) {
+        parent.selectedPlant = plant
+      }
 
       // Provide haptic feedback
       let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -248,13 +212,15 @@ extension MapViewRepresentable {
 
     /// Handle selection of annotations
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-      guard let mapPin = view.annotation as? MapPin else { return }
-      parent.selectedPin = mapPin
+      guard let plantAnno = view.annotation as? PlantAnnotation else { return }
+      if let plant = parent.plants.first(where: { $0.id == plantAnno.id }) {
+        parent.selectedPlant = plant
+      }
     }
 
     /// Handle deselection of annotations
     func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {
-      parent.selectedPin = nil
+      parent.selectedPlant = nil
     }
   }
 }
