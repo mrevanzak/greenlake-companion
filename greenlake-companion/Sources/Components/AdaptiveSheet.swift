@@ -125,7 +125,6 @@ extension View {
           .presentationCornerRadius(18)
           .presentationDragIndicator(.visible)
       }
-      .animation(.spring(response: 0.6, dampingFraction: 0.8))
     }
   }
 }
