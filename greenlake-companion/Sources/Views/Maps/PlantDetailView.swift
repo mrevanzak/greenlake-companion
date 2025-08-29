@@ -18,34 +18,40 @@ struct PlantDetailView: View {
 
   var body: some View {
     NavigationStack {
+      ZStack {
+        Color(.systemBackground)
+          .ignoresSafeArea()
 
-      Form {
-        Section(header: Text("Details")) {
-          TextField("Name", text: $nameInput)
-            .textInputAutocapitalization(.words)
-            .disableAutocorrection(true)
+        Form {
+          Section(header: Text("Details")) {
+            TextField("Name", text: $nameInput)
+              .textInputAutocapitalization(.words)
+              .disableAutocorrection(true)
 
-          Picker("Type", selection: $typeInput) {
-            ForEach(PlantType.allCases) { type in
-              Text(type.displayName).tag(type)
+            Picker("Type", selection: $typeInput) {
+              ForEach(PlantType.allCases) { type in
+                Text(type.displayName).tag(type)
+              }
             }
           }
+          .listRowBackground(Color.systemGray6)
         }
-      }
-      .scrollContentBackground(.hidden)
-      .background(.clear)
-      .onAppear {
-        nameInput = plant.name ?? ""
-        typeInput = plant.type
-      }
-      .navigationTitle(plant.name ?? "Plant Details")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button(action: { onDismiss() }) {
-            Image(systemName: "xmark")
-              .font(.body)
-              .foregroundColor(.secondary)
+        .contentMargins(.horizontal, 4)
+        .scrollContentBackground(.hidden)
+        .background(.clear)
+        .onAppear {
+          nameInput = plant.name ?? ""
+          typeInput = plant.type
+        }
+        .navigationTitle(plant.name ?? "Plant Details")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .topBarTrailing) {
+            Button(action: { onDismiss() }) {
+              Image(systemName: "xmark")
+                .font(.body)
+                .foregroundColor(.secondary)
+            }
           }
         }
       }

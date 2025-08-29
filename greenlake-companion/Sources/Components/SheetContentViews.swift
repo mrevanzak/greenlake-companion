@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftUIX
 
 struct BottomSheetContent: View {
+  @EnvironmentObject private var sheetViewModel: SheetViewModel
   @State private var searchText = ""
 
   var body: some View {
@@ -18,7 +19,8 @@ struct BottomSheetContent: View {
         Section(
           header:
             SearchBar("Cari tanaman atau pekerjaan", text: $searchText)
-            .background(.ultraThickMaterial)
+            .textFieldBackgroundColor(.systemGray6)
+            .background(.thickMaterial)
             .cornerRadius(12)
         ) {
           VStack(spacing: 12) {
@@ -124,6 +126,7 @@ struct BottomSheetContent: View {
         }
       }
     }
+    .scrollDisabled(sheetViewModel.isSmallest)
     .frame(maxHeight: .infinity)
   }
 
