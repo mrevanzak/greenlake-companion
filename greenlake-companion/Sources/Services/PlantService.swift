@@ -12,7 +12,8 @@ import Foundation
 protocol PlantServiceProtocol {
   func fetchPlants() async throws -> [PlantInstance]
   func createPlant(_ plant: PlantInstance) async throws -> PlantInstance
-  func updatePlant(_ id: UUID, name: String?, type: PlantType) async throws -> PlantInstance
+  func updatePlant(_ id: UUID, name: String?, type: PlantType, radius: Double?) async throws
+    -> PlantInstance
   func deletePlant(_ id: UUID) async throws
 }
 
@@ -43,14 +44,16 @@ class PlantService: PlantServiceProtocol {
     try await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
 
     // Simulate potential errors
-    if plant.coordinate.latitude == 0 && plant.coordinate.longitude == 0 {
+    if plant.location.latitude == 0 && plant.location.longitude == 0 {
       throw PlantError.invalidCoordinate
     }
 
     return plant
   }
 
-  func updatePlant(_ id: UUID, name: String?, type: PlantType) async throws -> PlantInstance {
+  func updatePlant(_ id: UUID, name: String?, type: PlantType, radius: Double?) async throws
+    -> PlantInstance
+  {
     // TODO: Replace with actual API call
     // For now, simulate network delay and return updated plant
     try await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
@@ -63,6 +66,7 @@ class PlantService: PlantServiceProtocol {
     var updatedPlant = existingPlant
     updatedPlant.name = name
     updatedPlant.type = type
+    updatedPlant.radius = radius
 
     return updatedPlant
   }
@@ -83,19 +87,21 @@ class PlantService: PlantServiceProtocol {
   private var mockPlants: [PlantInstance] {
     [
       PlantInstance(
-        coordinate: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.6550),
+        location: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.6550),
         name: "Douglas Fir",
         type: .tree,
-        createdAt: Date().addingTimeInterval(-86400)  // 1 day ago
+        createdAt: Date().addingTimeInterval(-86400),  // 1 day ago
+        radius: 8.0
       ),
       PlantInstance(
-        coordinate: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.660),
+        location: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.660),
         name: "Western Red Cedar",
         type: .tree,
-        createdAt: Date().addingTimeInterval(-172800)  // 2 days ago
+        createdAt: Date().addingTimeInterval(-172800),  // 2 days ago
+        radius: 12.0
       ),
       PlantInstance(
-        coordinate: CLLocationCoordinate2D(latitude: -7.308765, longitude: 112.656825),
+        location: CLLocationCoordinate2D(latitude: -7.308765, longitude: 112.656825),
         name: "Salal",
         type: .groundCover,
         createdAt: Date().addingTimeInterval(-259200)  // 3 days ago

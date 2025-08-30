@@ -29,23 +29,35 @@ enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
 /// Value-type domain model representing a plant on the map
 struct PlantInstance: Identifiable, Hashable, Codable {
   let id: UUID
-  var coordinate: CLLocationCoordinate2D
-  var name: String?
   var type: PlantType
+  var name: String?
+  var location: CLLocationCoordinate2D
   var createdAt: Date
+  var updatedAt: Date?
+
+  /// Tree radius in meters - only applicable for trees
+  var radius: Double?
 
   init(
     id: UUID = UUID(),
-    coordinate: CLLocationCoordinate2D,
+    location: CLLocationCoordinate2D,
     name: String? = nil,
     type: PlantType = .tree,
-    createdAt: Date = Date()
+    createdAt: Date = Date(),
+    radius: Double? = nil
   ) {
     self.id = id
-    self.coordinate = coordinate
+    self.location = location
     self.name = name
     self.type = type
     self.createdAt = createdAt
+
+    switch type {
+    case .tree:
+      self.radius = radius
+    case .groundCover, .bush:
+      self.radius = nil
+    }
   }
 }
 
@@ -59,6 +71,7 @@ extension PlantInstance {
     case name
     case type
     case createdAt
+    case radius
   }
 
   init(from decoder: Decoder) throws {
@@ -69,24 +82,27 @@ extension PlantInstance {
     let name = try container.decodeIfPresent(String.self, forKey: .name)
     let type = try container.decode(PlantType.self, forKey: .type)
     let createdAt = try container.decode(Date.self, forKey: .createdAt)
+    let radius = try container.decodeIfPresent(Double.self, forKey: .radius)
 
     self.init(
       id: id,
-      coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+      location: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
       name: name,
       type: type,
-      createdAt: createdAt
+      createdAt: createdAt,
+      radius: radius
     )
   }
 
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
-    try container.encode(coordinate.latitude, forKey: .latitude)
-    try container.encode(coordinate.longitude, forKey: .longitude)
+    try container.encode(location.latitude, forKey: .latitude)
+    try container.encode(location.longitude, forKey: .longitude)
     try container.encodeIfPresent(name, forKey: .name)
     try container.encode(type, forKey: .type)
     try container.encode(createdAt, forKey: .createdAt)
+    try container.encodeIfPresent(radius, forKey: .radius)
   }
 }
 
