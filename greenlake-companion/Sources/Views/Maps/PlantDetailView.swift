@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct PlantDetailView: View {
-  let plant: PlantInstance
+  let plant: PlantInstance?
+  let isCreationMode: Bool
   let onDelete: (PlantInstance) -> Void
   let onDismiss: () -> Void
-  let onSave: (UUID, String?, PlantType) -> Void
+  let onSave: (String?, PlantType) -> Void
 
   @State private var nameInput: String = ""
   @State private var typeInput: PlantType = .tree
@@ -23,7 +24,12 @@ struct PlantDetailView: View {
           .ignoresSafeArea()
 
         Form {
-          Section(header: Text("Details")) {
+          Section(
+            header: Text("Details"),
+            footer: Text(
+              "Coordinates: \(plant?.coordinate.latitude ?? 0), \(plant?.coordinate.longitude ?? 0)"
+            )
+          ) {
             TextField("Name", text: $nameInput)
               .textInputAutocapitalization(.words)
               .disableAutocorrection(true)
@@ -40,15 +46,26 @@ struct PlantDetailView: View {
         .scrollContentBackground(.hidden)
         .background(.clear)
         .onAppear {
-          nameInput = plant.name ?? ""
-          typeInput = plant.type
+          if let plant = plant {
+            nameInput = plant.name ?? ""
+            typeInput = plant.type
+          }
         }
-        .navigationTitle(plant.name ?? "Plant Details")
+        .navigationTitle(isCreationMode ? "New Plant" : (plant?.name ?? "Plant Details"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
           ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+              onSave(nameInput, typeInput)
+            }) {
+              Text("Save")
+                .font(.body)
+                .foregroundColor(.primary)
+            }
+          }
+          ToolbarItem(placement: .topBarLeading) {
             Button(action: { onDismiss() }) {
-              Image(systemName: "xmark")
+              Text("Cancel")
                 .font(.body)
                 .foregroundColor(.secondary)
             }

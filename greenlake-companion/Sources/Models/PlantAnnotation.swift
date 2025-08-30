@@ -18,6 +18,13 @@ final class PlantAnnotation: NSObject, MKAnnotation {
   var title: String? { plant.name ?? "Unnamed Plant" }
   var subtitle: String? { plant.type.displayName }
 
+  /// Check if this annotation represents a temporary plant
+  var isTemporary: Bool {
+    // Temporary plants are those created very recently (within last few seconds)
+    // This is a simple heuristic - in a real app you might want a more robust approach
+    return plant.createdAt.timeIntervalSinceNow > -5
+  }
+
   init(plant: PlantInstance) {
     self.id = plant.id
     self.plant = plant

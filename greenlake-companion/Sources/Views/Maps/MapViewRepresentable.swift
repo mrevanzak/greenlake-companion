@@ -12,24 +12,20 @@ import SwiftUI
 /// SwiftUI wrapper for MKMapView
 struct MapViewRepresentable: UIViewRepresentable {
   @ObservedObject var locationManager: LocationManager
-  @Binding var plants: [PlantInstance]
-  @Binding var selectedPlant: PlantInstance?
+  @ObservedObject var plantManager: PlantManager
 
   // MARK: - Initialization
 
   /// Initialize MapViewRepresentable
   /// - Parameters:
   ///   - locationManager: Location manager for user location tracking
-  ///   - pins: Binding to the array of map pins
-  ///   - selectedPin: Binding to the currently selected pin
+  ///   - plantManager: Centralized plant state manager
   init(
     locationManager: LocationManager,
-    plants: Binding<[PlantInstance]>,
-    selectedPlant: Binding<PlantInstance?>
+    plantManager: PlantManager
   ) {
     self.locationManager = locationManager
-    self._plants = plants
-    self._selectedPlant = selectedPlant
+    self.plantManager = plantManager
   }
 
   // MARK: - UIViewRepresentable Implementation
@@ -123,8 +119,14 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.removeAnnotations(existingAnnotations)
 
     // Add new plant annotations
-    let annotations = plants.map { PlantAnnotation(plant: $0) }
+    let annotations = plantManager.plants.map { PlantAnnotation(plant: $0) }
     mapView.addAnnotations(annotations)
+
+    // Add temporary plant annotation if exists
+    if let tempPlant = plantManager.temporaryPlant {
+      let tempAnnotation = PlantAnnotation(plant: tempPlant)
+      mapView.addAnnotation(tempAnnotation)
+    }
   }
 }
 
@@ -134,6 +136,7 @@ extension MapViewRepresentable {
   /// Coordinator class implementing MKMapViewDelegate
   class Coordinator: NSObject, MKMapViewDelegate {
     var parent: MapViewRepresentable
+    private var isSelectingPlant = false
 
     init(_ parent: MapViewRepresentable) {
       self.parent = parent
@@ -149,15 +152,8 @@ extension MapViewRepresentable {
       let point = gesture.location(in: mapView)
       let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
 
-      // Create a new plant at the pressed location
-      let newPlant = PlantInstance(
-        coordinate: coordinate,
-        name: nil,
-        type: .tree
-      )
-
-      // Add the new plant to the array
-      parent.plants.append(newPlant)
+      // Create a temporary plant instead of immediately saving
+      parent.plantManager.createTemporaryPlant(at: coordinate)
 
       // Provide haptic feedback
       let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -178,17 +174,27 @@ extension MapViewRepresentable {
       let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
 
       // Configure the pin appearance
-      switch plantAnno.plant.type {
-      case .tree: annotationView.pinTintColor = .systemGreen
-      case .groundCover: annotationView.pinTintColor = .systemTeal
-      case .bush: annotationView.pinTintColor = .systemMint
+      if plantAnno.isTemporary {
+        // Temporary plants get a different appearance
+        annotationView.pinTintColor = .systemOrange
+        annotationView.alpha = 0.7
+        annotationView.canShowCallout = false
+      } else {
+        // Permanent plants get normal appearance
+        switch plantAnno.plant.type {
+        case .tree: annotationView.pinTintColor = .systemGreen
+        case .groundCover: annotationView.pinTintColor = .systemTeal
+        case .bush: annotationView.pinTintColor = .systemMint
+        }
+        annotationView.canShowCallout = true
+        annotationView.calloutOffset = CGPoint(x: 0, y: -4)
       }
-      annotationView.canShowCallout = true
-      annotationView.calloutOffset = CGPoint(x: 0, y: -4)
 
-      // Add a detail disclosure button to the callout
-      let detailButton = UIButton(type: .detailDisclosure)
-      annotationView.rightCalloutAccessoryView = detailButton
+      // Add a detail disclosure button to the callout (only for permanent plants)
+      if !plantAnno.isTemporary {
+        let detailButton = UIButton(type: .detailDisclosure)
+        annotationView.rightCalloutAccessoryView = detailButton
+      }
 
       return annotationView
     }
@@ -200,9 +206,18 @@ extension MapViewRepresentable {
     ) {
       guard let plantAnno = view.annotation as? PlantAnnotation else { return }
 
+      // Don't allow selection of temporary plants
+      guard !plantAnno.isTemporary else { return }
+
       // Set the selected plant by resolving back to value model
-      if let plant = parent.plants.first(where: { $0.id == plantAnno.id }) {
-        parent.selectedPlant = plant
+      if let plant = parent.plantManager.plants.first(where: { $0.id == plantAnno.id }) {
+        isSelectingPlant = true
+        parent.plantManager.selectPlant(plant)
+
+        // Reset the flag after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          self.isSelectingPlant = false
+        }
       }
 
       // Provide haptic feedback
@@ -213,14 +228,28 @@ extension MapViewRepresentable {
     /// Handle selection of annotations
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
       guard let plantAnno = view.annotation as? PlantAnnotation else { return }
-      if let plant = parent.plants.first(where: { $0.id == plantAnno.id }) {
-        parent.selectedPlant = plant
+
+      // Don't allow selection of temporary plants
+      guard !plantAnno.isTemporary else { return }
+
+      if let plant = parent.plantManager.plants.first(where: { $0.id == plantAnno.id }) {
+        isSelectingPlant = true
+        parent.plantManager.selectPlant(plant)
+
+        // Reset the flag after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          self.isSelectingPlant = false
+        }
       }
     }
 
     /// Handle deselection of annotations
     func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {
-      parent.selectedPlant = nil
+      // Prevent deselection if we're in the middle of selecting a plant
+      guard !isSelectingPlant else { return }
+
+      // Only clear selection if we're not currently selecting
+      parent.plantManager.selectPlant(nil)
     }
   }
 }
