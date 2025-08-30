@@ -63,8 +63,10 @@ struct MapView: View {
             showingPlantDetails = false
             plantManager.selectPlant(nil)
           },
-          onSave: { name, type in
-            Task { await plantManager.updatePlant(selectedPlant, name: name, type: type) }
+          onSave: { name, type, radius in
+            Task {
+              await plantManager.updatePlant(selectedPlant, name: name, type: type, radius: radius)
+            }
           }
         )
       }
@@ -79,9 +81,9 @@ struct MapView: View {
           isCreationMode: true,
           onDelete: { _ in plantManager.discardTemporaryPlant() },
           onDismiss: { plantManager.discardTemporaryPlant() },
-          onSave: { name, type in
+          onSave: { name, type, radius in
             // Update temporary plant with user input and confirm
-            plantManager.updateTemporaryPlant(name: name, type: type)
+            plantManager.updateTemporaryPlant(name: name, type: type, radius: radius)
             Task { await plantManager.confirmTemporaryPlant() }
           }
         )

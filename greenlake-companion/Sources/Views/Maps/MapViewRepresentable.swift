@@ -118,14 +118,35 @@ struct MapViewRepresentable: UIViewRepresentable {
     let existingAnnotations = mapView.annotations.filter { !($0 is MKUserLocation) }
     mapView.removeAnnotations(existingAnnotations)
 
+    // Remove existing overlays
+    let existingOverlays = mapView.overlays
+    mapView.removeOverlays(existingOverlays)
+
     // Add new plant annotations
     let annotations = plantManager.plants.map { PlantAnnotation(plant: $0) }
     mapView.addAnnotations(annotations)
+
+    // Add tree radius overlays
+    let treeOverlays = plantManager.plants
+      .compactMap { plant -> MKCircle? in
+        guard plant.type == .tree, let radius = plant.radius else { return nil }
+        return MKCircle(center: plant.location, radius: radius)
+      }
+
+    print("🌳 Creating \(treeOverlays.count) tree overlays")
+    mapView.addOverlays(treeOverlays)
 
     // Add temporary plant annotation if exists
     if let tempPlant = plantManager.temporaryPlant {
       let tempAnnotation = PlantAnnotation(plant: tempPlant)
       mapView.addAnnotation(tempAnnotation)
+
+      // Add temporary plant radius overlay if it's a tree
+      if tempPlant.type == .tree, let radius = tempPlant.radius {
+        let tempOverlay = MKCircle(center: tempPlant.location, radius: radius)
+        print("🌱 Adding temporary plant overlay with radius: \(radius)m")
+        mapView.addOverlay(tempOverlay)
+      }
     }
   }
 }
@@ -250,6 +271,23 @@ extension MapViewRepresentable {
 
       // Only clear selection if we're not currently selecting
       parent.plantManager.selectPlant(nil)
+    }
+
+    /// Configure overlay renderers for tree radius circles
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+      print("🎨 Rendering overlay: \(type(of: overlay))")
+
+      if let circle = overlay as? MKCircle {
+        let renderer = MKCircleRenderer(circle: circle)
+        renderer.fillColor = UIColor.systemGreen.withAlphaComponent(0.2)
+        renderer.strokeColor = UIColor.systemGreen.withAlphaComponent(0.6)
+        renderer.lineWidth = 2.0
+        print("🌿 Created circle renderer with radius: \(circle.radius)m")
+        return renderer
+      }
+
+      // Fallback for other overlay types
+      return MKOverlayRenderer(overlay: overlay)
     }
   }
 }

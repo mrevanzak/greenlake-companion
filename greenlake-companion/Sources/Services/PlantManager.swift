@@ -55,9 +55,10 @@ class PlantManager: ObservableObject {
   /// - Parameter coordinate: The location where the plant should be added
   func createTemporaryPlant(at coordinate: CLLocationCoordinate2D) {
     let tempPlant = PlantInstance(
-      coordinate: coordinate,
+      location: coordinate,
       name: nil,
-      type: .tree
+      type: .tree,
+      radius: 5.0  // Default radius for immediate overlay display
     )
     temporaryPlant = tempPlant
     isCreatingPlant = true
@@ -67,10 +68,12 @@ class PlantManager: ObservableObject {
   /// - Parameters:
   ///   - name: Optional name for the plant
   ///   - type: Plant type
-  func updateTemporaryPlant(name: String?, type: PlantType) {
+  ///   - radius: Optional radius for tree types
+  func updateTemporaryPlant(name: String?, type: PlantType, radius: Double? = nil) {
     guard var tempPlant = temporaryPlant else { return }
     tempPlant.name = name
     tempPlant.type = type
+    tempPlant.radius = type == .tree ? radius : nil
     temporaryPlant = tempPlant
   }
 
@@ -110,7 +113,7 @@ class PlantManager: ObservableObject {
     error = nil
 
     let newPlant = PlantInstance(
-      coordinate: coordinate,
+      location: coordinate,
       name: nil,
       type: .tree
     )
@@ -131,12 +134,16 @@ class PlantManager: ObservableObject {
   ///   - plant: The plant to update
   ///   - name: Optional new name for the plant
   ///   - type: New plant type
-  func updatePlant(_ plant: PlantInstance, name: String?, type: PlantType) async {
+  ///   - radius: Optional radius for tree types
+  func updatePlant(_ plant: PlantInstance, name: String?, type: PlantType, radius: Double? = nil)
+    async
+  {
     isLoading = true
     error = nil
 
     do {
-      let updatedPlant = try await plantService.updatePlant(plant.id, name: name, type: type)
+      let updatedPlant = try await plantService.updatePlant(
+        plant.id, name: name, type: type, radius: radius)
 
       // Update the plant in our local array
       if let index = plants.firstIndex(where: { $0.id == plant.id }) {

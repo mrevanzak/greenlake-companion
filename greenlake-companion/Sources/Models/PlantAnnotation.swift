@@ -28,7 +28,7 @@ final class PlantAnnotation: NSObject, MKAnnotation {
   init(plant: PlantInstance) {
     self.id = plant.id
     self.plant = plant
-    self.coordinate = plant.coordinate
+    self.coordinate = plant.location
     super.init()
   }
 }
