@@ -18,6 +18,14 @@ struct PlantDetailView: View {
   @State private var typeInput: PlantType = .tree
   @State private var radiusInput: Double = 5.0
 
+  private func initialState(plant: PlantInstance?) {
+    if let plant = plant {
+      nameInput = plant.name ?? ""
+      typeInput = plant.type
+      radiusInput = plant.radius ?? 5.0
+    }
+  }
+
   var body: some View {
     NavigationStack {
       ZStack {
@@ -62,13 +70,12 @@ struct PlantDetailView: View {
         .scrollContentBackground(.hidden)
         .background(.clear)
         .onAppear {
-          if let plant = plant {
-            nameInput = plant.name ?? ""
-            typeInput = plant.type
-            radiusInput = plant.radius ?? 5.0
-          }
+          initialState(plant: plant)
         }
-        .onChange(of: typeInput) { newType in
+        .onChange(of: plant) { oldPlant, newPlant in
+          initialState(plant: newPlant)
+        }
+        .onChange(of: typeInput) { oldType, newType in
           if newType != .tree {
             radiusInput = 5.0  // Reset radius for non-tree types
           }
