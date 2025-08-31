@@ -13,6 +13,7 @@ import SwiftUIX
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
   @StateObject private var plantManager = PlantManager()
+  @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
 
   var body: some View {
@@ -22,6 +23,26 @@ struct MapView: View {
         plantManager: plantManager
       )
       .ignoresSafeArea()
+
+      // Top-right logout button
+      VStack {
+        HStack {
+          Spacer()
+          Button(action: {
+            authManager.logout()
+          }) {
+            Image(systemName: "rectangle.portrait.and.arrow.right")
+              .font(.title2)
+              .foregroundColor(.primary)
+              .padding(12)
+              .background(.ultraThinMaterial)
+              .clipShape(Circle())
+          }
+          .padding(.trailing, 20)
+          .padding(.top, 60)
+        }
+        Spacer()
+      }
 
       // Loading indicator
       if plantManager.isLoading {
@@ -113,4 +134,5 @@ struct MapView: View {
 
 #Preview {
   MapView()
+    .environmentObject(AuthManager.shared)
 }
