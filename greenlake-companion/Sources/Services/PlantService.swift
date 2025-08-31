@@ -21,25 +21,26 @@ protocol PlantServiceProtocol {
 class PlantService: PlantServiceProtocol {
   // MARK: - Properties
 
-  private let baseURL = "https://api.greenlake.com/v1"
-  private let session: URLSession
+  private let networkManager: NetworkManagerProtocol
 
   // MARK: - Initialization
 
-  init(session: URLSession = .shared) {
-    self.session = session
+  init(networkManager: NetworkManagerProtocol = NetworkManager()) {
+    self.networkManager = networkManager
   }
 
   // MARK: - PlantServiceProtocol Implementation
 
   func fetchPlants() async throws -> [PlantInstance] {
     // TODO: Replace with actual API call
+    // return try await networkManager.request(PlantEndpoint.fetchPlants)
     // For now, return mock data
     return mockPlants
   }
 
   func createPlant(_ plant: PlantInstance) async throws -> PlantInstance {
     // TODO: Replace with actual API call
+    // return try await networkManager.request(PlantEndpoint.createPlant, with: plant)
     // For now, simulate network delay and return the plant
     try await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
 
@@ -55,6 +56,8 @@ class PlantService: PlantServiceProtocol {
     -> PlantInstance
   {
     // TODO: Replace with actual API call
+    // let updateData = PlantUpdateRequest(name: name, type: type, radius: radius)
+    // return try await networkManager.request(PlantEndpoint.updatePlant(id: id), with: updateData)
     // For now, simulate network delay and return updated plant
     try await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
 
@@ -73,6 +76,7 @@ class PlantService: PlantServiceProtocol {
 
   func deletePlant(_ id: UUID) async throws {
     // TODO: Replace with actual API call
+    // try await networkManager.request(PlantEndpoint.deletePlant(id: id))
     // For now, simulate network delay
     try await Task.sleep(nanoseconds: 200_000_000)  // 0.2 seconds
 
