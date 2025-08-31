@@ -162,6 +162,13 @@ class NetworkManager: NetworkManagerProtocol {
       request.setValue(value, forHTTPHeaderField: key)
     }
 
+    // Add authentication header for protected endpoints if not already set
+    if endpoint.headers?["Authorization"] == nil && requiresAuthentication(endpoint) {
+      if let token = AuthManager.shared.accessToken {
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+      }
+    }
+
     // Set request body if provided
     if let body = body {
       do {
@@ -172,6 +179,18 @@ class NetworkManager: NetworkManagerProtocol {
     }
 
     return request
+  }
+
+  /// Determine if an endpoint requires authentication
+  private func requiresAuthentication(_ endpoint: APIEndpoint) -> Bool {
+    // Public endpoints that don't require authentication
+    let publicEndpoints: [String] = [
+      "/auth/login",
+      "/auth/refresh",
+    ]
+
+    // Check if the endpoint path is in the public endpoints list
+    return !publicEndpoints.contains(endpoint.path)
   }
 
   /// Perform the actual network request

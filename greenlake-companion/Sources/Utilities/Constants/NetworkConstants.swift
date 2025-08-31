@@ -105,3 +105,45 @@ enum PlantEndpoint: APIEndpoint {
     }
   }
 }
+
+/// Authentication-specific API endpoints
+enum AuthEndpoint: APIEndpoint {
+  case login
+  case logout
+  case refreshToken
+  case me
+
+  var path: String {
+    switch self {
+    case .login:
+      return "/auth/login"
+    case .logout:
+      return "/auth/logout"
+    case .refreshToken:
+      return "/auth/refresh"
+    case .me:
+      return "/auth/me"
+    }
+  }
+
+  var method: HTTPMethod {
+    switch self {
+    case .login, .refreshToken:
+      return .POST
+    case .logout:
+      return .POST
+    case .me:
+      return .GET
+    }
+  }
+
+  var body: Encodable? {
+    switch self {
+    case .login, .refreshToken:
+      // This will be set by the service when making the request
+      return nil
+    default:
+      return nil
+    }
+  }
+}
