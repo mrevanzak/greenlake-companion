@@ -1,0 +1,242 @@
+//
+//  NetworkManager.swift
+//  greenlake-companion
+//
+//  Created by AI Assistant on 28/08/25.
+//
+
+import Foundation
+
+/// Protocol defining network management operations for dependency injection and testing
+protocol NetworkManagerProtocol {
+  /// Make a network request and decode the response to a specific type
+  /// - Parameter endpoint: The API endpoint to request
+  /// - Returns: Decoded response of type T
+  func request<T: Codable>(_ endpoint: APIEndpoint) async throws -> T
+
+  /// Make a network request and return raw data
+  /// - Parameter endpoint: The API endpoint to request
+  /// - Returns: Raw response data
+  func request(_ endpoint: APIEndpoint) async throws -> Data
+
+  /// Make a network request with a custom body and decode the response
+  /// - Parameters:
+  ///   - endpoint: The API endpoint to request
+  ///   - body: The request body to send
+  /// - Returns: Decoded response of type T
+  func request<T: Codable>(_ endpoint: APIEndpoint, with body: Encodable) async throws -> T
+}
+
+/// Centralized network management service for handling all API requests
+class NetworkManager: NetworkManagerProtocol {
+  // MARK: - Properties
+
+  private let baseURL: String
+  private let session: URLSession
+  private let decoder: JSONDecoder
+  private let encoder: JSONEncoder
+  private let timeoutInterval: TimeInterval
+
+  // MARK: - Initialization
+
+  init(
+    baseURL: String = NetworkConstants.defaultBaseURL,
+    session: URLSession = .shared,
+    decoder: JSONDecoder = JSONDecoder(),
+    encoder: JSONEncoder = JSONEncoder(),
+    timeoutInterval: TimeInterval = NetworkConstants.defaultTimeoutInterval
+  ) {
+    self.baseURL = baseURL
+    self.session = session
+    self.decoder = decoder
+    self.encoder = encoder
+    self.timeoutInterval = timeoutInterval
+
+    // Configure decoders with app-specific settings
+    self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+    self.decoder.dateDecodingStrategy = .iso8601
+
+    // Configure encoders with app-specific settings
+    self.encoder.keyEncodingStrategy = .convertToSnakeCase
+    self.encoder.dateEncodingStrategy = .iso8601
+  }
+
+  // MARK: - NetworkManagerProtocol Implementation
+
+  func request<T: Codable>(_ endpoint: APIEndpoint) async throws -> T {
+    let data = try await request(endpoint)
+    return try decoder.decode(T.self, from: data)
+  }
+
+  func request(_ endpoint: APIEndpoint) async throws -> Data {
+    let request = try buildRequest(for: endpoint)
+    return try await performRequest(request)
+  }
+
+  func request<T: Codable>(_ endpoint: APIEndpoint, with body: Encodable) async throws -> T {
+    let request = try buildRequest(for: endpoint, with: body)
+    let data = try await performRequest(request)
+    return try decoder.decode(T.self, from: data)
+  }
+
+  // MARK: - Private Methods
+
+  /// Build a URLRequest for the given endpoint
+  private func buildRequest(for endpoint: APIEndpoint) throws -> URLRequest {
+    return try buildRequest(for: endpoint, with: endpoint.body)
+  }
+
+  /// Build a URLRequest for the given endpoint with a custom body
+  private func buildRequest(for endpoint: APIEndpoint, with body: Encodable?) throws -> URLRequest {
+    // Construct the full URL
+    var urlComponents = URLComponents(string: baseURL + endpoint.path)
+
+    // Add query parameters if present
+    if let queryParams = endpoint.queryParameters {
+      urlComponents?.queryItems = queryParams.map { key, value in
+        URLQueryItem(name: key, value: value)
+      }
+    }
+
+    guard let url = urlComponents?.url else {
+      throw NetworkError.invalidURL
+    }
+
+    // Create the request
+    var request = URLRequest(url: url)
+    request.httpMethod = endpoint.method.rawValue
+    request.timeoutInterval = timeoutInterval
+
+    // Set default headers
+    NetworkConstants.defaultHeaders.forEach { key, value in
+      request.setValue(value, forHTTPHeaderField: key)
+    }
+
+    // Set custom headers if provided
+    endpoint.headers?.forEach { key, value in
+      request.setValue(value, forHTTPHeaderField: key)
+    }
+
+    // Set request body if provided
+    if let body = body {
+      do {
+        request.httpBody = try encoder.encode(body)
+      } catch {
+        throw NetworkError.encodingError(error)
+      }
+    }
+
+    return request
+  }
+
+  /// Perform the actual network request
+  private func performRequest(_ request: URLRequest) async throws -> Data {
+    let startTime = Date()
+    var success = false
+    var requestError: Error?
+
+    // Record metrics for monitoring
+    defer {
+      let duration = Date().timeIntervalSince(startTime)
+      let endpoint = request.url?.path ?? "unknown"
+
+      NetworkMonitoringService.shared.recordRequest(
+        endpoint: endpoint,
+        duration: duration,
+        success: success,
+        error: requestError
+      )
+    }
+
+    do {
+      let (data, response) = try await session.data(for: request)
+
+      // Validate the response
+      try validateResponse(response)
+
+      success = true
+      return data
+    } catch let error as NetworkError {
+      requestError = error
+      throw error
+    } catch {
+      requestError = error
+      // Convert other errors to appropriate NetworkError types
+      if let urlError = error as? URLError {
+        throw convertURLError(urlError)
+      } else {
+        throw NetworkError.invalidResponse
+      }
+    }
+  }
+
+  /// Validate the HTTP response
+  private func validateResponse(_ response: URLResponse) throws {
+    guard let httpResponse = response as? HTTPURLResponse else {
+      throw NetworkError.invalidResponse
+    }
+
+    // Check for successful status codes
+    guard (200...299).contains(httpResponse.statusCode) else {
+      // Map specific status codes to appropriate errors
+      switch httpResponse.statusCode {
+      case 401:
+        throw NetworkError.unauthorized
+      case 403:
+        throw NetworkError.forbidden
+      case 404:
+        throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+      case 429:
+        throw NetworkError.rateLimitExceeded
+      case 500...599:
+        throw NetworkError.serverError
+      default:
+        throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+      }
+    }
+  }
+
+  /// Convert URLError to NetworkError
+  private func convertURLError(_ urlError: URLError) -> NetworkError {
+    switch urlError.code {
+    case .timedOut:
+      return .timeout
+    case .notConnectedToInternet:
+      return .noInternetConnection
+    case .cannotFindHost, .cannotConnectToHost:
+      return .networkConfigurationError
+    case .serverCertificateUntrusted, .serverCertificateHasBadDate:
+      return .certificateError
+    default:
+      return .networkConfigurationError
+    }
+  }
+}
+
+// MARK: - NetworkManager Extensions
+
+extension NetworkManager {
+  /// Create a NetworkManager configured for testing
+  static func testing(
+    baseURL: String = "https://test-api.greenlake.com/v1",
+    session: URLSession = .shared
+  ) -> NetworkManager {
+    return NetworkManager(
+      baseURL: baseURL,
+      session: session,
+      timeoutInterval: 5.0
+    )
+  }
+
+  /// Create a NetworkManager configured for development
+  static func development(
+    baseURL: String = "https://dev-api.greenlake.com/v1",
+    session: URLSession = .shared
+  ) -> NetworkManager {
+    return NetworkManager(
+      baseURL: baseURL,
+      session: session,
+      timeoutInterval: 15.0
+    )
+  }
+}

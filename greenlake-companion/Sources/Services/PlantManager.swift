@@ -30,7 +30,7 @@ class PlantManager: ObservableObject {
 
   // MARK: - Initialization
 
-  init(plantService: PlantServiceProtocol = PlantService()) {
+  init(plantService: PlantServiceProtocol = PlantService(networkManager: NetworkManager())) {
     self.plantService = plantService
   }
 
