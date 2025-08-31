@@ -74,7 +74,7 @@ enum PlantEndpoint: APIEndpoint {
     case .fetchPlant(let id):
       return "/plants/\(id)"
     case .createPlant:
-      return "/plants"
+      return "/plants/create"
     case .updatePlant(let id):
       return "/plants/\(id)"
     case .deletePlant(let id):
