@@ -75,24 +75,17 @@ class PlantService: PlantServiceProtocol {
   func updatePlant(_ id: UUID, name: String, type: PlantType, radius: Double?) async throws
     -> PlantInstance
   {
-    // TODO: Replace with actual API call
-    // let updateData = PlantUpdateRequest(name: name, type: type, radius: radius)
-    // let response: PlantResponse = try await networkManager.request(PlantEndpoint.updatePlant(id: id), with: updateData)
-    // return response.data
-    // For now, simulate network delay and return updated plant
-    try await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
-
-    // Simulate finding and updating the plant
-    guard let existingPlant = mockPlants.first(where: { $0.id == id }) else {
-      throw PlantError.plantNotFound
+    do {
+      print("🌱 Updating plant in API...")
+      let updateData = PlantUpdateRequest(name: name, type: type, radius: radius)
+      let response: PlantResponse = try await networkManager.request(
+        PlantEndpoint.updatePlant(id: id), with: updateData)
+      print("✅ Successfully updated plant in API")
+      return response.data
+    } catch {
+      print("❌ Error updating plant in API: \(error)")
+      throw error
     }
-
-    var updatedPlant = existingPlant
-    updatedPlant.name = name
-    updatedPlant.type = type
-    updatedPlant.radius = radius
-
-    return updatedPlant
   }
 
   func deletePlant(_ id: UUID) async throws {
