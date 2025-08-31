@@ -60,19 +60,16 @@ class PlantService: PlantServiceProtocol {
   }
 
   func createPlant(_ plant: PlantInstance) async throws -> PlantInstance {
-    // TODO: Replace with actual API call
-    // let response: PlantResponse = try await networkManager.request(PlantEndpoint.createPlant, with: plant)
-    // return response.data
-
-    // For now, simulate network delay and return the plant
-    try await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
-
-    // Simulate potential errors
-    if plant.location.latitude == 0 && plant.location.longitude == 0 {
-      throw PlantError.invalidCoordinate
+    do {
+      print("🌱 Creating plant in API...")
+      let response: PlantResponse = try await networkManager.request(
+        PlantEndpoint.createPlant, with: plant)
+      print("✅ Successfully created plant in API")
+      return response.data
+    } catch {
+      print("❌ Error creating plant in API: \(error)")
+      throw error
     }
-
-    return plant
   }
 
   func updatePlant(_ id: UUID, name: String, type: PlantType, radius: Double?) async throws
