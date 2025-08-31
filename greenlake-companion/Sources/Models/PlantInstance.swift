@@ -30,33 +30,41 @@ enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
 struct PlantInstance: Identifiable, Hashable, Codable {
   let id: UUID
   var type: PlantType
-  var name: String?
+  var name: String
   var location: CLLocationCoordinate2D
   var createdAt: Date
-  var updatedAt: Date?
+  var updatedAt: Date
 
-  /// Tree radius in meters - only applicable for trees
+  // Tree specific properties
   var radius: Double?
+
+  // Path specific properties
+  var path: [CLLocationCoordinate2D]?
 
   init(
     id: UUID = UUID(),
+    type: PlantType,
+    name: String,
     location: CLLocationCoordinate2D,
-    name: String? = nil,
-    type: PlantType = .tree,
-    createdAt: Date = Date(),
-    radius: Double? = nil
+    radius: Double? = nil,
+    path: [CLLocationCoordinate2D]? = nil,
+    createdAt: Date,
+    updatedAt: Date
   ) {
     self.id = id
-    self.location = location
-    self.name = name
     self.type = type
+    self.name = name
+    self.location = location
     self.createdAt = createdAt
+    self.updatedAt = updatedAt
 
     switch type {
     case .tree:
       self.radius = radius
+      self.path = nil
     case .groundCover, .bush:
       self.radius = nil
+      self.path = path
     }
   }
 }
@@ -66,44 +74,99 @@ struct PlantInstance: Identifiable, Hashable, Codable {
 extension PlantInstance {
   private enum CodingKeys: String, CodingKey {
     case id
-    case latitude
-    case longitude
-    case name
     case type
-    case createdAt
+    case name
+    case location
     case radius
+    case path
+    case createdAt
+    case updatedAt
+  }
+
+  private enum LocationKeys: String, CodingKey {
+    case lat
+    case lng
   }
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    let id = try container.decode(UUID.self, forKey: .id)
-    let latitude = try container.decode(CLLocationDegrees.self, forKey: .latitude)
-    let longitude = try container.decode(CLLocationDegrees.self, forKey: .longitude)
-    let name = try container.decodeIfPresent(String.self, forKey: .name)
+
+    // Decode ID as string first, then convert to UUID
+    let idString = try container.decode(String.self, forKey: .id)
+    guard let id = UUID(uuidString: idString) else {
+      throw DecodingError.dataCorruptedError(
+        forKey: .id,
+        in: container,
+        debugDescription: "Invalid UUID string: \(idString)"
+      )
+    }
     let type = try container.decode(PlantType.self, forKey: .type)
-    let createdAt = try container.decode(Date.self, forKey: .createdAt)
+    let name = try container.decode(String.self, forKey: .name)
+
+    // Decode nested location object
+    let locationContainer = try container.nestedContainer(
+      keyedBy: LocationKeys.self, forKey: .location)
+    let latitude = try locationContainer.decode(CLLocationDegrees.self, forKey: .lat)
+    let longitude = try locationContainer.decode(CLLocationDegrees.self, forKey: .lng)
+    let location = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+
     let radius = try container.decodeIfPresent(Double.self, forKey: .radius)
+
+    // Decode path array if present
+    var path: [CLLocationCoordinate2D]? = nil
+    if let pathArray = try container.decodeIfPresent([PathCoordinate].self, forKey: .path) {
+      path = pathArray.map { pathCoordinate in
+        CLLocationCoordinate2D(latitude: pathCoordinate.lat, longitude: pathCoordinate.lng)
+      }
+    }
+
+    let createdAt = try container.decode(Date.self, forKey: .createdAt)
+    let updatedAt = try container.decode(Date.self, forKey: .updatedAt)
 
     self.init(
       id: id,
-      location: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-      name: name,
       type: type,
+      name: name,
+      location: location,
+      radius: radius,
+      path: path,
       createdAt: createdAt,
-      radius: radius
+      updatedAt: updatedAt
     )
   }
 
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
+
     try container.encode(id, forKey: .id)
-    try container.encode(location.latitude, forKey: .latitude)
-    try container.encode(location.longitude, forKey: .longitude)
-    try container.encodeIfPresent(name, forKey: .name)
     try container.encode(type, forKey: .type)
-    try container.encode(createdAt, forKey: .createdAt)
+    try container.encode(name, forKey: .name)
+
+    // Encode nested location object
+    var locationContainer = container.nestedContainer(keyedBy: LocationKeys.self, forKey: .location)
+    try locationContainer.encode(location.latitude, forKey: .lat)
+    try locationContainer.encode(location.longitude, forKey: .lng)
+
     try container.encodeIfPresent(radius, forKey: .radius)
+
+    // Encode path array if present
+    if let path = path {
+      let pathArray = path.map { coordinate in
+        PathCoordinate(lat: coordinate.latitude, lng: coordinate.longitude)
+      }
+      try container.encode(pathArray, forKey: .path)
+    }
+
+    try container.encode(createdAt, forKey: .createdAt)
+    try container.encode(updatedAt, forKey: .updatedAt)
   }
+}
+
+// MARK: - Helper Types
+
+private struct PathCoordinate: Codable {
+  let lat: CLLocationDegrees
+  let lng: CLLocationDegrees
 }
 
 // MARK: - Equatable & Hashable

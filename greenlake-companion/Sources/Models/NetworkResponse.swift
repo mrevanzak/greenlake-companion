@@ -7,20 +7,18 @@
 
 import Foundation
 
-/// Generic API response wrapper for consistent response handling
+/// Generic API response wrapper
 struct APIResponse<T: Codable>: Codable {
   let success: Bool
-  let data: T?
-  let message: String?
-  let error: APIError?
-
-  enum CodingKeys: String, CodingKey {
-    case success
-    case data
-    case message
-    case error
-  }
+  let message: String
+  let data: T
 }
+
+/// Specific response for plants endpoint
+typealias PlantsResponse = APIResponse<[PlantInstance]>
+
+/// Specific response for single plant endpoint
+typealias PlantResponse = APIResponse<PlantInstance>
 
 /// API error response structure
 struct APIError: Codable, LocalizedError {

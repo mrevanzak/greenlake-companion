@@ -12,7 +12,7 @@ struct PlantDetailView: View {
   let isCreationMode: Bool
   let onDelete: (PlantInstance) -> Void
   let onDismiss: () -> Void
-  let onSave: (String?, PlantType, Double?) -> Void
+  let onSave: (String, PlantType, Double?) -> Void
 
   @State private var nameInput: String = ""
   @State private var typeInput: PlantType = .tree

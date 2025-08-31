@@ -53,12 +53,57 @@ class NetworkManager: NetworkManagerProtocol {
     self.timeoutInterval = timeoutInterval
 
     // Configure decoders with app-specific settings
-    self.decoder.keyDecodingStrategy = .convertFromSnakeCase
-    self.decoder.dateDecodingStrategy = .iso8601
+    // Use .useDefaultKeys since the API already uses camelCase
+    self.decoder.keyDecodingStrategy = .useDefaultKeys
+
+    // Configure date decoding to handle ISO 8601 with milliseconds and Z timezone
+    self.decoder.dateDecodingStrategy = .custom { decoder in
+      let container = try decoder.singleValueContainer()
+      let dateString = try container.decode(String.self)
+
+      // Try parsing with ISO8601DateFormatter first
+      let isoFormatter = ISO8601DateFormatter()
+      if let date = isoFormatter.date(from: dateString) {
+        return date
+      }
+
+      // Try parsing with DateFormatter for more flexible ISO 8601 formats
+      let dateFormatter = DateFormatter()
+      dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+      dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+
+      if let date = dateFormatter.date(from: dateString) {
+        return date
+      }
+
+      // Try without milliseconds
+      dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      if let date = dateFormatter.date(from: dateString) {
+        return date
+      }
+
+      throw DecodingError.dataCorruptedError(
+        in: container,
+        debugDescription: "Date string does not match expected format: \(dateString)"
+      )
+    }
 
     // Configure encoders with app-specific settings
-    self.encoder.keyEncodingStrategy = .convertToSnakeCase
-    self.encoder.dateEncodingStrategy = .iso8601
+    // Use .useDefaultKeys since we want to keep camelCase
+    self.encoder.keyEncodingStrategy = .useDefaultKeys
+
+    // Configure date encoding to match the custom decoding strategy
+    self.encoder.dateEncodingStrategy = .custom { date, encoder in
+      var container = encoder.singleValueContainer()
+
+      // Use DateFormatter to match the decoding format
+      let dateFormatter = DateFormatter()
+      dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+      dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+
+      let dateString = dateFormatter.string(from: date)
+      try container.encode(dateString)
+    }
   }
 
   // MARK: - NetworkManagerProtocol Implementation
