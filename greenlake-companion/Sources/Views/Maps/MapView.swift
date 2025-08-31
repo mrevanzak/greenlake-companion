@@ -89,7 +89,7 @@ struct MapView: View {
         )
       }
     }
-    .onChange(of: plantManager.selectedPlant) { newValue in
+    .onChange(of: plantManager.selectedPlant) { oldValue, newValue in
       showingPlantDetails = newValue != nil
     }
     .alert("Error", isPresented: .constant(plantManager.error != nil)) {
