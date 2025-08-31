@@ -9,8 +9,8 @@ import Foundation
 
 /// Centralized network configuration constants
 enum NetworkConstants {
-  /// Default base URL for the GreenLake API (can be overridden by NetworkConfigurationManager)
-  static let defaultBaseURL = "https://api.greenlake.com/v1"
+  /// Default base URL for the GreenLake API
+  static let defaultBaseURL = "https://citraland.site/api"
 
   /// Default request timeout interval in seconds
   static let defaultTimeoutInterval: TimeInterval = 30.0

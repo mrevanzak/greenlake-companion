@@ -55,10 +55,12 @@ class PlantManager: ObservableObject {
   /// - Parameter coordinate: The location where the plant should be added
   func createTemporaryPlant(at coordinate: CLLocationCoordinate2D) {
     let tempPlant = PlantInstance(
-      location: coordinate,
-      name: nil,
       type: .tree,
-      radius: 5.0  // Default radius for immediate overlay display
+      name: "",
+      location: coordinate,
+      radius: 5.0,  // Default radius for immediate overlay display
+      createdAt: Date(),
+      updatedAt: Date()
     )
     temporaryPlant = tempPlant
     isCreatingPlant = true
@@ -69,7 +71,7 @@ class PlantManager: ObservableObject {
   ///   - name: Optional name for the plant
   ///   - type: Plant type
   ///   - radius: Optional radius for tree types
-  func updateTemporaryPlant(name: String?, type: PlantType, radius: Double? = nil) {
+  func updateTemporaryPlant(name: String, type: PlantType, radius: Double? = nil) {
     guard var tempPlant = temporaryPlant else { return }
     tempPlant.name = name
     tempPlant.type = type
@@ -113,9 +115,11 @@ class PlantManager: ObservableObject {
     error = nil
 
     let newPlant = PlantInstance(
+      type: .tree,
+      name: "",
       location: coordinate,
-      name: nil,
-      type: .tree
+      createdAt: Date(),
+      updatedAt: Date()
     )
 
     do {
@@ -135,7 +139,7 @@ class PlantManager: ObservableObject {
   ///   - name: Optional new name for the plant
   ///   - type: New plant type
   ///   - radius: Optional radius for tree types
-  func updatePlant(_ plant: PlantInstance, name: String?, type: PlantType, radius: Double? = nil)
+  func updatePlant(_ plant: PlantInstance, name: String, type: PlantType, radius: Double? = nil)
     async
   {
     isLoading = true
