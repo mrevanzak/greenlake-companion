@@ -14,6 +14,12 @@ struct APIResponse<T: Codable>: Codable {
   let data: T
 }
 
+/// Response for operations that don't return data (e.g., delete operations)
+struct MessageOnlyResponse: Codable {
+  let success: Bool
+  let message: String
+}
+
 /// Specific response for plants endpoint
 typealias PlantsResponse = APIResponse<[PlantInstance]>
 

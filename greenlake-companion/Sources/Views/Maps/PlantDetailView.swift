@@ -17,6 +17,7 @@ struct PlantDetailView: View {
   @State private var nameInput: String = ""
   @State private var typeInput: PlantType = .tree
   @State private var radiusInput: Double = 5.0
+  @State private var showingDeleteConfirmation = false
 
   private func initialState(plant: PlantInstance?) {
     if let plant = plant {
@@ -65,6 +66,37 @@ struct PlantDetailView: View {
             }
           }
           .listRowBackground(Color.systemGray6)
+
+          if !isCreationMode {
+            Section {
+              Button(action: { showingDeleteConfirmation = true }) {
+                HStack {
+                  Image(systemName: "trash")
+                    .foregroundColor(.red)
+                  Text("Delete Plant")
+                    .foregroundColor(.red)
+                }
+              }
+            }
+            .confirmationDialog(
+              "Delete Plant",
+              isPresented: $showingDeleteConfirmation,
+              titleVisibility: .visible
+            ) {
+              Button("Delete", role: .destructive) {
+                if let plant = plant {
+                  onDelete(plant)
+                  onDismiss()
+                }
+              }
+              Button("Cancel", role: .cancel) {}
+            } message: {
+              Text(
+                "Are you sure you want to delete '\(plant?.name ?? "this plant")'? This action cannot be undone."
+              )
+            }
+            .listRowBackground(Color.systemGray6)
+          }
         }
         .contentMargins(.horizontal, 4)
         .scrollContentBackground(.hidden)

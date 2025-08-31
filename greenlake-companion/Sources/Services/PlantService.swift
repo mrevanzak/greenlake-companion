@@ -89,49 +89,14 @@ class PlantService: PlantServiceProtocol {
   }
 
   func deletePlant(_ id: UUID) async throws {
-    // TODO: Replace with actual API call
-    // try await networkManager.request(PlantEndpoint.deletePlant(id: id))
-    // For now, simulate network delay
-    try await Task.sleep(nanoseconds: 200_000_000)  // 0.2 seconds
-
-    // Simulate potential errors
-    guard mockPlants.contains(where: { $0.id == id }) else {
-      throw PlantError.plantNotFound
+    do {
+      print("🌱 Deleting plant in API...")
+      let _: MessageOnlyResponse = try await networkManager.request(
+        PlantEndpoint.deletePlant(id: id))
+      print("✅ Successfully deleted plant in API")
+    } catch {
+      print("❌ Error deleting plant in API: \(error)")
+      throw error
     }
-  }
-
-  // MARK: - Private Methods
-
-  private var mockPlants: [PlantInstance] {
-    [
-      PlantInstance(
-        type: .tree,
-        name: "Douglas Fir",
-        location: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.6550),
-        radius: 8.0,
-        createdAt: Date().addingTimeInterval(-86400),  // 1 day ago
-        updatedAt: Date().addingTimeInterval(-86400),  // 1 day ago
-      ),
-      PlantInstance(
-        type: .tree,
-        name: "Western Red Cedar",
-        location: CLLocationCoordinate2D(latitude: -7.308118, longitude: 112.660),
-        radius: 12.0,
-        createdAt: Date().addingTimeInterval(-172800),  // 2 days ago
-        updatedAt: Date().addingTimeInterval(-172800),  // 2 days ago
-      ),
-      PlantInstance(
-        type: .groundCover,
-        name: "Salal",
-        location: CLLocationCoordinate2D(latitude: -7.308765, longitude: 112.656825),
-        path: [
-          CLLocationCoordinate2D(latitude: -7.308765, longitude: 112.656825),
-          CLLocationCoordinate2D(latitude: -7.308765, longitude: 112.656825),
-        ],
-        createdAt: Date().addingTimeInterval(-259200),  // 3 days ago
-        updatedAt: Date().addingTimeInterval(-259200),  // 3 days ago
-
-      ),
-    ]
   }
 }
