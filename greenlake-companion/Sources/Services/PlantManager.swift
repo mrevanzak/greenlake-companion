@@ -163,6 +163,7 @@ class PlantManager: ObservableObject {
     }
 
     isLoading = false
+    selectedPlant = nil
   }
 
   /// Delete a plant from the system
