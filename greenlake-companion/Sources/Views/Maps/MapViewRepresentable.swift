@@ -163,6 +163,99 @@ extension MapViewRepresentable {
       self.parent = parent
     }
 
+    // MARK: - Map Centering Methods
+
+    /// Center the map on a selected plant with appropriate zoom level
+    /// - Parameters:
+    ///   - plant: The plant instance to center on
+    ///   - mapView: The map view to center
+    private func centerMapOnPlant(_ plant: PlantInstance, in mapView: MKMapView) {
+      // Calculate zoom span based on plant type
+      let span: MKCoordinateSpan
+      switch plant.type {
+      case .tree:
+        // Trees need closer zoom to show radius overlays clearly
+        span = MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)  // ~200m
+      case .bush, .groundCover:
+        // Smaller plants get overview zoom for area context
+        span = MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)  // ~500m
+      }
+
+      // Create region centered on plant location
+      let region = MKCoordinateRegion(center: plant.location, span: span)
+
+      // Constrain region to map boundaries
+      let constrainedRegion = constrainRegionToBoundaries(region)
+
+      // Center map with smooth animation
+      mapView.setVisibleMapRect(
+        MKMapRectForCoordinateRegion(constrainedRegion),
+        edgePadding: .init(top: 0, left: SheetConstants.width, bottom: 0, right: 0),
+        animated: true
+      )
+
+      // Provide haptic feedback for successful centering
+      let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+      impactFeedback.impactOccurred()
+    }
+
+    /// Constrain a region to stay within the map's boundary limits
+    /// - Parameter region: The region to constrain
+    /// - Returns: A region that respects the boundary constraints
+    private func constrainRegionToBoundaries(_ region: MKCoordinateRegion) -> MKCoordinateRegion {
+      let boundaryRegion = MapConstants.boundaryRegion
+
+      // Calculate the minimum and maximum allowed coordinates
+      let minLat = boundaryRegion.center.latitude - boundaryRegion.span.latitudeDelta / 2
+      let maxLat = boundaryRegion.center.latitude + boundaryRegion.span.latitudeDelta / 2
+      let minLng = boundaryRegion.center.longitude - boundaryRegion.span.longitudeDelta / 2
+      let maxLng = boundaryRegion.center.longitude + boundaryRegion.span.longitudeDelta / 2
+
+      // Constrain the center coordinates to stay within boundaries
+      let constrainedLat = max(minLat, min(maxLat, region.center.latitude))
+      let constrainedLng = max(minLng, min(maxLng, region.center.longitude))
+
+      // Ensure the span doesn't exceed boundary limits
+      let maxAllowedLatSpan = boundaryRegion.span.latitudeDelta
+      let maxAllowedLngSpan = boundaryRegion.span.longitudeDelta
+
+      let constrainedLatSpan = min(region.span.latitudeDelta, maxAllowedLatSpan)
+      let constrainedLngSpan = min(region.span.longitudeDelta, maxAllowedLngSpan)
+
+      return MKCoordinateRegion(
+        center: CLLocationCoordinate2D(
+          latitude: constrainedLat,
+          longitude: constrainedLng
+        ),
+        span: MKCoordinateSpan(
+          latitudeDelta: constrainedLatSpan,
+          longitudeDelta: constrainedLngSpan
+        )
+      )
+    }
+
+    /// Convert MKCoordinateRegion to MKMapRect
+    /// - Parameter region: The coordinate region to convert
+    /// - Returns: The corresponding map rect
+    private func MKMapRectForCoordinateRegion(_ region: MKCoordinateRegion) -> MKMapRect {
+      let a = MKMapPoint(
+        CLLocationCoordinate2D(
+          latitude: region.center.latitude + region.span.latitudeDelta / 2,
+          longitude: region.center.longitude - region.span.longitudeDelta / 2
+        ))
+      let b = MKMapPoint(
+        CLLocationCoordinate2D(
+          latitude: region.center.latitude - region.span.latitudeDelta / 2,
+          longitude: region.center.longitude + region.span.longitudeDelta / 2
+        ))
+      return MKMapRect(
+        x: min(a.x, b.x),
+        y: min(a.y, b.y),
+        width: abs(a.x - b.x),
+        height: abs(a.y - b.y)
+      )
+    }
+
     // MARK: - Long Press Handling
 
     /// Handle long press gesture to add new plants
@@ -175,6 +268,11 @@ extension MapViewRepresentable {
 
       // Create a temporary plant instead of immediately saving
       parent.plantManager.createTemporaryPlant(at: coordinate)
+
+      // Center map on the selected plant
+      if let temporaryPlant = parent.plantManager.temporaryPlant {
+        centerMapOnPlant(temporaryPlant, in: mapView)
+      }
 
       // Provide haptic feedback
       let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -235,6 +333,9 @@ extension MapViewRepresentable {
         isSelectingPlant = true
         parent.plantManager.selectPlant(plant)
 
+        // Center map on the selected plant
+        centerMapOnPlant(plant, in: mapView)
+
         // Reset the flag after a short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
           self.isSelectingPlant = false
@@ -256,6 +357,9 @@ extension MapViewRepresentable {
       if let plant = parent.plantManager.plants.first(where: { $0.id == plantAnno.id }) {
         isSelectingPlant = true
         parent.plantManager.selectPlant(plant)
+
+        // Center map on the selected plant
+        centerMapOnPlant(plant, in: mapView)
 
         // Reset the flag after a short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

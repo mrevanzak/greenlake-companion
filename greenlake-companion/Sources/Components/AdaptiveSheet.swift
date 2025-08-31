@@ -1,6 +1,10 @@
 import SwiftUI
 import UIKit
 
+enum SheetConstants {
+  static let width: CGFloat = 400
+}
+
 // Bridge enum to handle custom detents with value extraction
 enum SheetDetent: Hashable {
   case small
@@ -239,7 +243,7 @@ private struct CustomBottomSheet<Content: View>: View {
           .padding(.top, 8)
       }
       .frame(
-        width: horizontalSizeClass == .compact ? geometry.size.width : 400,
+        width: horizontalSizeClass == .compact ? geometry.size.width : SheetConstants.width,
         height: geometry.size.height,
         alignment: .top
       )
