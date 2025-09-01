@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 28/08/25.
 //
 
+import CoreLocation
 import Foundation
 
 /// Generic API response wrapper
@@ -63,13 +64,57 @@ struct PlantUpdateRequest: Codable {
   let name: String?
   let type: PlantType
   let radius: Double?
+  let path: [CLLocationCoordinate2D]?
 
   enum CodingKeys: String, CodingKey {
     case name
     case type
     case radius
+    case path
+  }
+
+  init(name: String?, type: PlantType, radius: Double?, path: [CLLocationCoordinate2D]? = nil) {
+    self.name = name
+    self.type = type
+    self.radius = radius
+    self.path = path
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    name = try container.decodeIfPresent(String.self, forKey: .name)
+    type = try container.decode(PlantType.self, forKey: .type)
+    radius = try container.decodeIfPresent(Double.self, forKey: .radius)
+
+    // Decode path array if present
+    var path: [CLLocationCoordinate2D]? = nil
+    if let pathArray = try container.decodeIfPresent([PathCoordinate].self, forKey: .path) {
+      path = pathArray.map { pathCoordinate in
+        CLLocationCoordinate2D(latitude: pathCoordinate.lat, longitude: pathCoordinate.lng)
+      }
+    }
+    self.path = path
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+
+    try container.encodeIfPresent(name, forKey: .name)
+    try container.encode(type, forKey: .type)
+    try container.encodeIfPresent(radius, forKey: .radius)
+
+    // Encode path array if present
+    if let path = path {
+      let pathArray = path.map { coordinate in
+        PathCoordinate(lat: coordinate.latitude, lng: coordinate.longitude)
+      }
+      try container.encode(pathArray, forKey: .path)
+    }
   }
 }
+
+// MARK: - Helper Types
 
 /// Plant creation request model for API calls
 struct PlantCreateRequest: Codable {

@@ -12,7 +12,7 @@ import SwiftUIX
 /// Main Maps view replicating Apple Maps interface and functionality
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
-  @StateObject private var plantManager = PlantManager()
+  @StateObject private var plantManager = PlantManager.shared
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
 
@@ -76,19 +76,11 @@ struct MapView: View {
       if let selectedPlant = plantManager.selectedPlant {
         PlantDetailView(
           plant: selectedPlant,
-          isCreationMode: false,
-          onDelete: { plant in
-            Task { await plantManager.deletePlant(plant) }
-          },
+          mode: .update,
           onDismiss: {
             showingPlantDetails = false
             plantManager.selectPlant(nil)
           },
-          onSave: { name, type, radius in
-            Task {
-              await plantManager.updatePlant(selectedPlant, name: name, type: type, radius: radius)
-            }
-          }
         )
       }
     }
@@ -99,14 +91,8 @@ struct MapView: View {
       if let tempPlant = plantManager.temporaryPlant {
         PlantDetailView(
           plant: tempPlant,
-          isCreationMode: true,
-          onDelete: { _ in plantManager.discardTemporaryPlant() },
+          mode: .create,
           onDismiss: { plantManager.discardTemporaryPlant() },
-          onSave: { name, type, radius in
-            // Update temporary plant with user input and confirm
-            plantManager.updateTemporaryPlant(name: name, type: type, radius: radius)
-            Task { await plantManager.confirmTemporaryPlant() }
-          }
         )
       }
     }

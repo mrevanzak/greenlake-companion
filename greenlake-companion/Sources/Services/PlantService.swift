@@ -12,8 +12,7 @@ import Foundation
 protocol PlantServiceProtocol {
   func fetchPlants() async throws -> [PlantInstance]
   func createPlant(_ plant: PlantInstance) async throws -> PlantInstance
-  func updatePlant(_ id: UUID, name: String, type: PlantType, radius: Double?) async throws
-    -> PlantInstance
+  func updatePlant(_ plant: PlantInstance) async throws -> PlantInstance
   func deletePlant(_ id: UUID) async throws
 }
 
@@ -72,14 +71,11 @@ class PlantService: PlantServiceProtocol {
     }
   }
 
-  func updatePlant(_ id: UUID, name: String, type: PlantType, radius: Double?) async throws
-    -> PlantInstance
-  {
+  func updatePlant(_ plant: PlantInstance) async throws -> PlantInstance {
     do {
       print("🌱 Updating plant in API...")
-      let updateData = PlantUpdateRequest(name: name, type: type, radius: radius)
       let response: PlantResponse = try await networkManager.request(
-        PlantEndpoint.updatePlant(id: id), with: updateData)
+        PlantEndpoint.updatePlant(id: plant.id), with: plant)
       print("✅ Successfully updated plant in API")
       return response.data
     } catch {
