@@ -13,14 +13,24 @@ struct GreenlakeCompanionApp: App {
 
   var body: some Scene {
     WindowGroup {
-      MapView()
-        .fullScreenCover(isPresented: .constant(!authManager.isAuthenticated)) {
-          LoginView()
-        }
-        .onAppear {
-          // Load user data when app starts
-          authManager.loadUserFromStorage()
-        }
+      TabView {
+        MapView()
+          .tabItem{
+              Label("Peta", image: "map")
+          }
+        
+        AgendaView()
+          .tabItem{
+            Label("Agenda", image: "book.closed")
+          }
+      }
+      .fullScreenCover(isPresented: .constant(!authManager.isAuthenticated)) {
+        LoginView()
+      }
+      .onAppear {
+        // Load user data when app starts
+        authManager.loadUserFromStorage()
+      }
     }.environmentObject(authManager)
   }
 }
