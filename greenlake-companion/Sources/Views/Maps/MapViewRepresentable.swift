@@ -134,9 +134,11 @@ struct MapViewRepresentable: UIViewRepresentable {
     let existingOverlays = mapView.overlays
     mapView.removeOverlays(existingOverlays)
 
-    // Add new plant annotations
-    let annotations = plantManager.plants.map { PlantAnnotation(plant: $0) }
-    mapView.addAnnotations(annotations)
+    // Add new plant annotations (only for tree-type plants)
+    let treeAnnotations = plantManager.plants
+      .filter { $0.type == .tree }
+      .map { PlantAnnotation(plant: $0) }
+    mapView.addAnnotations(treeAnnotations)
 
     // Add tree radius overlays
     let treeOverlays = plantManager.plants
@@ -164,8 +166,8 @@ struct MapViewRepresentable: UIViewRepresentable {
     print("🌿 Creating \(pathOverlays.count) path overlays")
     mapView.addOverlays(pathOverlays)
 
-    // Add temporary plant annotation if exists
-    if let tempPlant = plantManager.temporaryPlant {
+    // Add temporary plant annotation if exists (only for tree-type plants)
+    if let tempPlant = plantManager.temporaryPlant, tempPlant.type == .tree {
       let tempAnnotation = PlantAnnotation(plant: tempPlant)
       mapView.addAnnotation(tempAnnotation)
 
