@@ -10,18 +10,18 @@ import Foundation
 
 /// Strongly-typed category for plants used by UI pickers and map styling
 enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
-  case tree //= "Pohon"
-  case groundCover //= "Ground Cover"
-  case bush //= "Semak"
+  case tree = "tree"
+  case groundCover = "ground_cover"
+  case bush = "bush"
 
   var id: String { self.rawValue }
 
   /// Human readable display name
   var displayName: String {
     switch self {
-    case .tree: return "Tree"
+    case .tree: return "Pohon"
     case .groundCover: return "Ground Cover"
-    case .bush: return "Bush"
+    case .bush: return "Semak"
     }
   }
 }
@@ -164,7 +164,7 @@ extension PlantInstance {
 
 // MARK: - Helper Types
 
-private struct PathCoordinate: Codable {
+struct PathCoordinate: Codable {
   let lat: CLLocationDegrees
   let lng: CLLocationDegrees
 }
@@ -178,5 +178,29 @@ extension PlantInstance {
 
   func hash(into hasher: inout Hasher) {
     hasher.combine(id)
+  }
+}
+
+// MARK: - Spread-like Updates
+
+extension PlantInstance {
+  /// Create a new instance with updated properties (similar to JavaScript spread operator)
+  func with(
+    name: String? = nil,
+    type: PlantType? = nil,
+    location: CLLocationCoordinate2D? = nil,
+    radius: Double? = nil,
+    path: [CLLocationCoordinate2D]? = nil
+  ) -> PlantInstance {
+    PlantInstance(
+      id: self.id,
+      type: type ?? self.type,
+      name: name ?? self.name,
+      location: location ?? self.location,
+      radius: radius ?? self.radius,
+      path: path ?? self.path,
+      createdAt: self.createdAt,
+      updatedAt: Date()
+    )
   }
 }
