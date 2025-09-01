@@ -24,7 +24,6 @@ struct FilterToggleButton<Parameter: RawRepresentable & Equatable & Hashable>: V
         selection.append(parameter)
       }
     } label: {
-      
       Text(parameter.rawValue)
         .font(.footnote)
         .padding(.vertical, 8)

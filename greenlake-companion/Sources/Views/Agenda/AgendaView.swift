@@ -13,6 +13,9 @@ struct AgendaView: View {
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
   
+  @State private var adjustedScreenHeight = UIScreen.main.bounds.height + 100
+  @State private var isLandscape: Bool = true
+  
   @StateObject private var filterViewModel = FilterViewModel()
   
   @State private var searchText = ""
@@ -100,104 +103,106 @@ struct AgendaView: View {
   }
   
   var body: some View {
-    NavigationSplitView(columnVisibility: $columnVisibility) {
-      VStack(spacing: 0) {
-        VStack(alignment: .leading, spacing: 12) {
-          Text("Agenda")
-            .font(.largeTitle)
-            .fontWeight(.bold)
-            .padding(.horizontal)
-          
-          // Search Bar
-          HStack(spacing: 10) {
-            HStack {
-              Image(systemName: "magnifyingglass")
-                .foregroundColor(.secondary)
-              TextField("Search Tasks", text: $searchText)
-              Image(systemName: "microphone.fill")
-                .foregroundColor(.secondary)
-            }
-            .padding(10)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
+    GeometryReader { geometry in
+      NavigationSplitView(columnVisibility: $columnVisibility) {
+        VStack(spacing: 0) {
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Agenda")
+              .font(.largeTitle)
+              .fontWeight(.bold)
+              .padding(.horizontal)
             
-            Button {
-              isPopoverPresented = true
-            } label: {
-              Image(systemName: "line.3.horizontal.decrease.circle")
-                .resizable()
-                .frame(width: 30, height: 30)
-              //TODO: Fix bug
-              //                                .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
+            // Search Bar
+            HStack(spacing: 10) {
+              HStack {
+                Image(systemName: "magnifyingglass")
+                  .foregroundColor(.secondary)
+                TextField("Search Tasks", text: $searchText)
+                Image(systemName: "microphone.fill")
+                  .foregroundColor(.secondary)
+              }
+              .padding(10)
+              .background(Color(.systemGray6))
+              .cornerRadius(10)
+              
+              Button {
+                isPopoverPresented = true
+              } label: {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+                  .resizable()
+                  .frame(width: 30, height: 30)
+                //TODO: Fix bug
+                //                                .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
+              }
+              .popover(
+                isPresented: $isPopoverPresented,
+                attachmentAnchor: .point(.trailing),
+                arrowEdge: .leading
+              ) {
+                FilterPopover(viewModel: filterViewModel)
+                  .presentationCompactAdaptation(.popover)
+              }
             }
-            .popover(
-              isPresented: $isPopoverPresented,
-              attachmentAnchor: .point(.trailing),
-              arrowEdge: .leading
-            ) {
-              FilterPopover(viewModel: filterViewModel)
-                .presentationCompactAdaptation(.popover)
+            .padding(.horizontal)
+          }
+          .padding(.vertical)
+          
+          ScrollView {
+            LazyVStack(spacing: 0) {
+              ForEach(filteredTasks) { task in
+                TaskPreview(task: task)
+                  .padding()
+                  .background(selectedTask == task ? Color.blue.opacity(0.15) : Color.clear)
+                  .onTapGesture {
+                    selectedTask = task
+                  }
+                Divider()
+              }
             }
           }
-          .padding(.horizontal)
         }
-        .padding(.vertical)
-        
-        ScrollView {
-          LazyVStack(spacing: 0) {
-            ForEach(filteredTasks) { task in
-              TaskPreview(task: task)
-                .padding()
-                .background(selectedTask == task ? Color.blue.opacity(0.15) : Color.clear)
-                .onTapGesture {
-                  selectedTask = task
+        .toolbar(removing: isLandscape ? .sidebarToggle : nil)
+        .navigationSplitViewColumnWidth(sidebarWidth)
+      }
+      detail: {
+        VStack {
+          ScrollView {
+            if let selectedTask {
+              TaskDetailView(task: selectedTask)
+            } else {
+              Text("Select a task from the list")
+                .font(.title)
+                .foregroundColor(.secondary)
+            }
+          }
+          .navigationSplitViewStyle(.balanced)
+          .onAppear {
+            selectedTask = filteredTasks[0]
+          }
+          .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+              Button {
+                print("Laporan Harian")
+              } label: {
+                VStack {
+                  Image(systemName: "square.and.arrow.up")
                 }
-              Divider()
+              }
             }
           }
         }
       }
-      .toolbar(removing: .sidebarToggle)
-      .navigationSplitViewColumnWidth(sidebarWidth)
-    }
-    detail: {
-      ScrollView {
-        if let selectedTask {
-          TaskDetailView(task: selectedTask)
-        } else {
-          Text("Select a task from the list")
-            .font(.title)
-            .foregroundColor(.secondary)
-        }
-      }
-      .navigationSplitViewStyle(.balanced)
-      .onAppear {
-        selectedTask = filteredTasks[0]
-      }
-      .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-              exportControls
-          }
+      .onChange(of: geometry.size) {
+        isLandscape = isDeviceInLandscape()
+        adjustedScreenHeight = UIScreen.main.bounds.height + 100
       }
     }
-    .frame(height: UIScreen.main.bounds.height + 100, alignment: .top)
+    .ignoresSafeArea()
+    .frame(height: adjustedScreenHeight, alignment: .top)
   }
   
-  var exportControls: some View {
-    return HStack(alignment: .top, spacing: 16) {
-      Button {
-        print("Laporan Harian")
-      } label: {
-        VStack {
-          Image(systemName: "square.and.arrow.up")
-          Spacer()
-//          Text("Laporan Harian")
-//            .font(.footnote)
-        }
-      }
-    }
-    .padding(.trailing)
-    .foregroundColor(.blue)
+  private func isDeviceInLandscape() -> Bool {
+    return UIScreen.main.bounds.width > UIScreen.main.bounds.height
   }
 }
 
