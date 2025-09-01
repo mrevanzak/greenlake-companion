@@ -9,19 +9,19 @@ import CoreLocation
 import Foundation
 
 /// Strongly-typed category for plants used by UI pickers and map styling
-enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
-  case tree //= "Pohon"
-  case groundCover //= "Ground Cover"
-  case bush //= "Semak"
+enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable, DisplayableParameter {
+  case tree = "tree"
+  case groundCover = "ground_cover"
+  case bush = "bush"
 
   var id: String { self.rawValue }
 
   /// Human readable display name
   var displayName: String {
     switch self {
-    case .tree: return "Tree"
+    case .tree: return "Pohon"
     case .groundCover: return "Ground Cover"
-    case .bush: return "Bush"
+    case .bush: return "Semak"
     }
   }
 }

@@ -13,13 +13,14 @@ struct AgendaView: View {
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
   
-  @State private var adjustedScreenHeight = UIScreen.main.bounds.height + 100
-  @State private var isLandscape: Bool = true
+  @State private var adjustedScreenHeight = UIScreen.main.bounds.height + 80
+  @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
   
   @StateObject private var filterViewModel = FilterViewModel()
   
   @State private var searchText = ""
-  @State private var isPopoverPresented = false
+  @State private var isFilterPresented = false
+  @State private var isExportPresented = false
   
   @State private var selectedTask: LandscapingTask?
   var filteredTasks: [LandscapingTask] {
@@ -29,7 +30,7 @@ struct AgendaView: View {
     // 2. Apply all enum-based filters from the ViewModel.
     processedTasks = processedTasks.filter { task in
       let typeMatch = filterViewModel.taskType.contains(task.taskType)
-      let urgencyMatch = filterViewModel.urgency.contains(task.urgency)
+      let urgencyMatch = filterViewModel.urgency.contains(task.urgencyLabel)
       let plantMatch = filterViewModel.plantType.contains(task.plantType)
       let statusMatch = filterViewModel.status.contains(task.status)
       
@@ -126,7 +127,7 @@ struct AgendaView: View {
               .cornerRadius(10)
               
               Button {
-                isPopoverPresented = true
+                isFilterPresented = true
               } label: {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                   .resizable()
@@ -135,7 +136,7 @@ struct AgendaView: View {
                 //                                .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
               }
               .popover(
-                isPresented: $isPopoverPresented,
+                isPresented: $isFilterPresented,
                 attachmentAnchor: .point(.trailing),
                 arrowEdge: .leading
               ) {
@@ -152,7 +153,7 @@ struct AgendaView: View {
               ForEach(filteredTasks) { task in
                 TaskPreview(task: task)
                   .padding()
-                  .background(selectedTask == task ? Color.blue.opacity(0.15) : Color.clear)
+                  .background(selectedTask == task ? Color.blue.opacity(0.25) : Color.clear)
                   .onTapGesture {
                     selectedTask = task
                   }
@@ -181,20 +182,33 @@ struct AgendaView: View {
           }
           .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-              Button {
-                print("Laporan Harian")
-              } label: {
-                VStack {
-                  Image(systemName: "square.and.arrow.up")
+              HStack {
+                Spacer()
+                Button {
+                  isExportPresented = true
+                } label: {
+                  VStack {
+                    Image(systemName: "square.and.arrow.up")
+                  }
+                }
+                .popover(
+                  isPresented: $isExportPresented,
+                  attachmentAnchor: .point(.bottom),
+                  arrowEdge: .top
+                ) {
+                  ExportPopover()
+                    .presentationCompactAdaptation(.popover)
                 }
               }
+              .offset(y: -15)
             }
           }
         }
+        .padding(.horizontal)
       }
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()
-        adjustedScreenHeight = UIScreen.main.bounds.height + 100
+        adjustedScreenHeight = UIScreen.main.bounds.height + 80
       }
     }
     .ignoresSafeArea()
