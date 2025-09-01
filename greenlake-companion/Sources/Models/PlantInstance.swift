@@ -10,11 +10,11 @@ import Foundation
 
 /// Strongly-typed category for plants used by UI pickers and map styling
 enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
-  case tree
-  case groundCover
-  case bush
+  case tree //= "Pohon"
+  case groundCover //= "Ground Cover"
+  case bush //= "Semak"
 
-  var id: String { rawValue }
+  var id: String { self.rawValue }
 
   /// Human readable display name
   var displayName: String {
