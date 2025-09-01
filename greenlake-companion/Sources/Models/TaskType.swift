@@ -6,9 +6,16 @@
 //
 
 
-enum TaskType: String, CaseIterable, Identifiable {
+enum TaskType: String, CaseIterable, Identifiable, DisplayableParameter {
   case major = "Major"
   case minor = "Minor"
   
   var id: String { self.rawValue }
+  
+  var displayName: String {
+    switch self {
+      case .major : return "Major"
+      case .minor : return "Minor"
+    }
+  }
 }

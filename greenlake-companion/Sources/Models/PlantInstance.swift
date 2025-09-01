@@ -9,7 +9,7 @@ import CoreLocation
 import Foundation
 
 /// Strongly-typed category for plants used by UI pickers and map styling
-enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable {
+enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable, DisplayableParameter {
   case tree = "tree"
   case groundCover = "ground_cover"
   case bush = "bush"

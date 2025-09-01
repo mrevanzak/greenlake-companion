@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct FilterToggleButton<Parameter: RawRepresentable & Equatable & Hashable>: View where Parameter.RawValue == String {
+struct FilterToggleButton<Parameter: DisplayableParameter & Equatable & Hashable>: View {
   let parameter: Parameter
   @Binding var selection: [Parameter]
   
@@ -24,8 +24,7 @@ struct FilterToggleButton<Parameter: RawRepresentable & Equatable & Hashable>: V
         selection.append(parameter)
       }
     } label: {
-      
-      Text(parameter.rawValue)
+      Text(parameter.displayName)
         .font(.footnote)
         .padding(.vertical, 8)
         .padding(.horizontal, 16)
