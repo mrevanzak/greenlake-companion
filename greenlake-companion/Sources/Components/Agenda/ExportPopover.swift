@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum ExportedReportType: String, CaseIterable, Identifiable {
-  case daily = "Harian"
+  case daily = "Checklist"
   case monthly = "Bulanan"
   case penalty = "Denda"
   
@@ -16,33 +16,59 @@ enum ExportedReportType: String, CaseIterable, Identifiable {
 }
 
 struct ExportPopover: View {
-  @State private var selectedReportType: ExportedReportType = .daily
+  @State private var reportType: ExportedReportType = .daily
+  @State private var useDateRange: Bool = false
+  @State private var startDate: Date = Date()
+  @State private var endDate: Date = Date()
   
   var body: some View {
-    VStack(alignment: .leading) {
-      Text("Jenis Laporan")
-        .font(.title3)
-        .fontWeight(.bold)
-        .padding(.bottom, 10)
-      
-      Picker("Jenis Laporan", selection: $selectedReportType) {
-        // Loop through all cases of the enum to create the segments.
-        ForEach(ExportedReportType.allCases) { reportType in
-          Text(reportType.rawValue).tag(reportType)
+    VStack {
+      VStack(alignment: .leading, spacing: 20) {
+        Text(reportType.rawValue)
+          .font(.title3)
+          .fontWeight(.bold)
+        
+        Picker(reportType.rawValue, selection: $reportType) {
+          ForEach(ExportedReportType.allCases) { reportType in
+            Text(reportType.rawValue).tag(reportType)
+          }
         }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 0)
+        
+        Toggle(
+          "Filter Tanggal",
+          isOn: $useDateRange
+        )
       }
-      .pickerStyle(.segmented)
+      .padding()
       
-      switch selectedReportType {
-      case .daily:
-          DailyReportView()
-      case .monthly:
-          MonthlyReportView()
-      case .penalty:
-          PenaltyReportView()
+      if useDateRange {
+        Spacer()
+        
+        VStack(alignment: .leading, spacing: 10) {
+          Text("Pilih Tanggal")
+            .font(.subheadline, weight: .bold)
+          
+          DatePicker(
+            "Mulai",
+            selection: $startDate,
+            displayedComponents: .date
+          )
+          
+          DatePicker(
+            "Hingga",
+            selection: $endDate,
+            displayedComponents: .date
+          )
+          
+          Spacer()
+        }
+        .padding()
+        .frame(height: useDateRange ? 100 : 0)
+        .animation(.spring(duration: 0.5))
       }
       
-      Spacer()
       Divider()
       
       HStack {
@@ -51,48 +77,21 @@ struct ExportPopover: View {
         Button {
           print("Send Button")
         } label: {
-          Text("Reset")
+          Text("Buat Laporan")
             .foregroundColor(.blue)
         }
       }
-      
+      .frame(height: 40)
+      .padding(.trailing)
     }
-    .frame(width: 300, height: 400)
-    .padding()
     .background(.ultraThinMaterial)
-  }
-  
-  struct DailyReportView: View {
-      var body: some View {
-          Text("View for Daily Reports")
-              .padding()
-              .frame(maxWidth: .infinity, minHeight: 150)
-              .background(.blue.opacity(0.1))
-              .cornerRadius(10)
-      }
-  }
-
-  struct MonthlyReportView: View {
-      var body: some View {
-          Text("View for Monthly Reports")
-              .padding()
-              .frame(maxWidth: .infinity, minHeight: 150)
-              .background(.green.opacity(0.1))
-              .cornerRadius(10)
-      }
-  }
-
-  struct PenaltyReportView: View {
-      var body: some View {
-          Text("View for Penalty Reports")
-              .padding()
-              .frame(maxWidth: .infinity, minHeight: 150)
-              .background(.red.opacity(0.1))
-              .cornerRadius(10)
-      }
+    .frame(width: 300)
+    .animation(.spring(duration: 0.5))
   }
 }
 
 #Preview {
   ExportPopover()
+    .presentationCompactAdaptation(.popover)
+  
 }

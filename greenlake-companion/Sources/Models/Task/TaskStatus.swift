@@ -8,10 +8,12 @@
 import SwiftUI
 
 enum TaskStatus: String, CaseIterable, Identifiable, DisplayableParameter {
-  case aktif = "Aktif"
   case diajukan = "Diajukan"
+  case aktif = "Aktif"
+  
   case diperiksa = "Diperiksa"
   case selesai = "Selesai"
+  
   case terdenda = "Terdenda"
   case dialihkan = "Dialihkan"
   
@@ -44,5 +46,16 @@ enum TaskStatus: String, CaseIterable, Identifiable, DisplayableParameter {
     case .dialihkan:
       return .purple
     }
+  }
+  
+  var iconName: String {
+      switch self {
+      case .aktif: return "gearshape"
+      case .diajukan: return "ellipsis"
+      case .diperiksa: return "magnifyingglass"
+      case .selesai: return "checkmark"
+      case .terdenda: return "exclamationmark"
+      case .dialihkan: return "arrowshape.turn.up.right"
+      }
   }
 }
