@@ -18,7 +18,7 @@ private struct SheetSearchHeader: View {
                 .textFieldBackgroundColor(.systemGray6)
                 .frame(maxWidth: .infinity)
             // .padding(.horizontal, 16)
-            // .padding(.vertical, 12)
+             .padding(.bottom, 4)
         }
         .background(Color(.systemBackground))
         .overlay(Divider()
@@ -137,7 +137,7 @@ struct BottomSheetContent: View {
                         // Ensure there's enough bottom padding for scrolling
                         Spacer(minLength: 120)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 8)
                 }
             }
         }

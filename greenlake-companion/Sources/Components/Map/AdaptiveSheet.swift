@@ -247,7 +247,7 @@ private struct CustomBottomSheet<Content: View>: View {
         height: geometry.size.height,
         alignment: .top
       )
-//      .background(.systemBackground)
+      .background(.systemBackground)
       .clipShape(RoundedRectangle(cornerRadius: 18))
       .shadow(
         color: .black.opacity(0.2),
