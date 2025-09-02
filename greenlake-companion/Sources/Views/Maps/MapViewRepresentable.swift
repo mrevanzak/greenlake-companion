@@ -14,19 +14,17 @@ import SwiftUI
 struct MapViewRepresentable: UIViewRepresentable {
   @ObservedObject var locationManager: LocationManager
   @ObservedObject var plantManager: PlantManager
+  @EnvironmentObject private var filterVM: MapFilterViewModel
 
   // MARK: - Initialization
 
-  /// Initialize MapViewRepresentable
-  /// - Parameters:
-  ///   - locationManager: Location manager for user location tracking
-  ///   - plantManager: Centralized plant state manager
+  /// Convenience initializer defaulting to showing all plant types
   init(
     locationManager: LocationManager,
     plantManager: PlantManager
   ) {
-    self.locationManager = locationManager
-    self.plantManager = plantManager
+    self._locationManager = ObservedObject(wrappedValue: locationManager)
+    self._plantManager = ObservedObject(wrappedValue: plantManager)
   }
 
   // MARK: - UIViewRepresentable Implementation
@@ -127,81 +125,115 @@ struct MapViewRepresentable: UIViewRepresentable {
 
   /// Update map annotations when plants change
   private func updateAnnotations(on mapView: MKMapView) {
-    // Remove existing annotations
-    let existingAnnotations = mapView.annotations.filter { !($0 is MKUserLocation) }
-    mapView.removeAnnotations(existingAnnotations)
+    // Determine which plants should be visible based on selected types
+    let allPlants = plantManager.plants
+    let visiblePlants =
+      filterVM.selectedPlantTypes.isEmpty
+      ? allPlants
+      : allPlants.filter { filterVM.selectedPlantTypes.contains($0.type) }
 
-    // Remove existing overlays
-    let existingOverlays = mapView.overlays
-    mapView.removeOverlays(existingOverlays)
+    // --- Annotations: incremental diff (PlantAnnotation only) ---
+    let existingAnnotations = mapView.annotations
+      .compactMap { $0 as? PlantAnnotation }
+    let existingIds = Set(existingAnnotations.map { $0.id })
+    let desiredIds = Set(visiblePlants.filter { $0.type == .tree }.map { $0.id })
 
-    // Add new plant annotations (only for tree-type plants)
-    let treeAnnotations = plantManager.plants
-      .filter { $0.type == .tree }
+    // Remove annotations no longer needed
+    let annotationsToRemove = existingAnnotations.filter { !desiredIds.contains($0.id) }
+    if !annotationsToRemove.isEmpty { mapView.removeAnnotations(annotationsToRemove) }
+
+    // Add missing annotations
+    let idsToAdd = desiredIds.subtracting(existingIds)
+    let annotationsToAdd =
+      visiblePlants
+      .filter { $0.type == .tree && idsToAdd.contains($0.id) }
       .map { PlantAnnotation(plant: $0) }
-    mapView.addAnnotations(treeAnnotations)
+    if !annotationsToAdd.isEmpty { mapView.addAnnotations(annotationsToAdd) }
 
-    // Add tree radius overlays
-    let treeOverlays = plantManager.plants
-      .compactMap { plant -> MKCircle? in
-        guard plant.type == .tree, let radius = plant.radius else { return nil }
-        return MKCircle(center: plant.location, radius: radius)
+    // --- Overlays: circles (recreate) ---
+    // Remove existing MKCircle overlays (tree radii) then add desired ones; circles don't carry IDs
+    let circleOverlays = mapView.overlays.compactMap { $0 as? MKCircle }
+    if !circleOverlays.isEmpty { mapView.removeOverlays(circleOverlays) }
+    let desiredCircles = visiblePlants.compactMap { plant -> MKCircle? in
+      guard plant.type == .tree, let radius = plant.radius else { return nil }
+      return MKCircle(center: plant.location, radius: radius)
+    }
+    if !desiredCircles.isEmpty {
+      print("🌳 Creating \(desiredCircles.count) tree overlays")
+      mapView.addOverlays(desiredCircles)
+    }
+
+    // --- Overlays: path polylines/polygons (diff using PlantPolyline/PlantPolygon with plantId) ---
+    let existingPathOverlays = mapView.overlays.compactMap { overlay -> (UUID, MKOverlay)? in
+      if let polygon = overlay as? PlantPolygon { return (polygon.plantId, polygon) }
+      if let polyline = overlay as? PlantPolyline { return (polyline.plantId, polyline) }
+      return nil
+    }
+    let existingPathIds = Set(existingPathOverlays.map { $0.0 })
+    let desiredPathIds = Set(
+      visiblePlants.filter { $0.type != .tree && $0.path != nil }.map { $0.id })
+
+    // Remove path overlays no longer needed
+    let overlaysToRemove =
+      existingPathOverlays
+      .filter { !desiredPathIds.contains($0.0) }
+      .map { $0.1 }
+    if !overlaysToRemove.isEmpty { mapView.removeOverlays(overlaysToRemove) }
+
+    // Add missing path overlays
+    let pathIdsToAdd = desiredPathIds.subtracting(existingPathIds)
+    let overlaysToAdd: [MKOverlay] = visiblePlants.compactMap { plant in
+      guard plant.type != .tree, let path = plant.path, pathIdsToAdd.contains(plant.id) else {
+        return nil
       }
+      if path.count < 3 { return PlantPolyline(plantId: plant.id, coordinates: path) }
+      return PlantPolygon(plantId: plant.id, coordinates: path)
+    }
+    if !overlaysToAdd.isEmpty {
+      print("🌿 Creating \(overlaysToAdd.count) path overlays")
+      mapView.addOverlays(overlaysToAdd)
+    }
 
-    print("🌳 Creating \(treeOverlays.count) tree overlays")
-    mapView.addOverlays(treeOverlays)
+    // --- Temporary plant overlays/annotation (respect filter) ---
+    // Remove any plain MKPolyline/MKPolygon that are not our typed variants to avoid duplicates
+    let plainPolylinePolygon = mapView.overlays.filter { overlay in
+      (overlay is MKPolyline && !(overlay is PlantPolyline))
+        || (overlay is MKPolygon && !(overlay is PlantPolygon))
+    }
+    if !plainPolylinePolygon.isEmpty { mapView.removeOverlays(plainPolylinePolygon) }
 
-    // Add path-based polygon overlays for non-tree plants
-    let pathOverlays = plantManager.plants
-      .compactMap { plant -> MKOverlay? in
-        guard plant.type != .tree, let path = plant.path else { return nil }
-
-        // Use PlantPolyline/PlantPolygon carrying plantId for selection
-        if path.count < 3 {
-          return PlantPolyline(plantId: plant.id, coordinates: path)
-        } else {
-          return PlantPolygon(plantId: plant.id, coordinates: path)
+    if let tempPlant = plantManager.temporaryPlant,
+      filterVM.selectedPlantTypes.isEmpty
+        || filterVM.selectedPlantTypes.contains(tempPlant.type)
+    {
+      if tempPlant.type == .tree {
+        let tempAnnotation = PlantAnnotation(plant: tempPlant)
+        mapView.addAnnotation(tempAnnotation)
+        if let radius = tempPlant.radius {
+          let tempOverlay = MKCircle(center: tempPlant.location, radius: radius)
+          print("🌱 Adding temporary plant overlay with radius: \(radius)m")
+          mapView.addOverlay(tempOverlay)
         }
-      }
-
-    print("🌿 Creating \(pathOverlays.count) path overlays")
-    mapView.addOverlays(pathOverlays)
-
-    // Add temporary plant annotation if exists (only for tree-type plants)
-    if let tempPlant = plantManager.temporaryPlant, tempPlant.type == .tree {
-      let tempAnnotation = PlantAnnotation(plant: tempPlant)
-      mapView.addAnnotation(tempAnnotation)
-
-      // Add temporary plant radius overlay if it's a tree
-      if tempPlant.type == .tree, let radius = tempPlant.radius {
-        let tempOverlay = MKCircle(center: tempPlant.location, radius: radius)
-        print("🌱 Adding temporary plant overlay with radius: \(radius)m")
-        mapView.addOverlay(tempOverlay)
-      }
-
-      // Add temporary plant path overlay if it's a non-tree with path
-      if tempPlant.type != .tree, let path = tempPlant.path {
-        let tempPathOverlay: MKOverlay
-        if path.count < 3 {
-          tempPathOverlay = MKPolyline(coordinates: path, count: path.count)
-        } else {
-          tempPathOverlay = MKPolygon(coordinates: path, count: path.count)
-        }
+      } else if let path = tempPlant.path {
+        let tempPathOverlay: MKOverlay =
+          (path.count < 3)
+          ? MKPolyline(coordinates: path, count: path.count)
+          : MKPolygon(coordinates: path, count: path.count)
         print("🌱 Adding temporary plant path overlay with \(path.count) points")
         mapView.addOverlay(tempPathOverlay)
       }
     }
 
-    // Add current path drawing overlay if in path drawing mode
+    // --- Current path drawing overlay ---
     if plantManager.isDrawingPath {
-      let currentPathOverlay: MKOverlay
-      if plantManager.currentPathPoints.count < 3 {
-        currentPathOverlay = MKPolyline(
-          coordinates: plantManager.currentPathPoints, count: plantManager.currentPathPoints.count)
-      } else {
-        currentPathOverlay = MKPolygon(
-          coordinates: plantManager.currentPathPoints, count: plantManager.currentPathPoints.count)
-      }
+      let currentPathOverlay: MKOverlay =
+        (plantManager.currentPathPoints.count < 3)
+        ? MKPolyline(
+          coordinates: plantManager.currentPathPoints,
+          count: plantManager.currentPathPoints.count)
+        : MKPolygon(
+          coordinates: plantManager.currentPathPoints,
+          count: plantManager.currentPathPoints.count)
       print(
         "✏️ Adding current path drawing overlay with \(plantManager.currentPathPoints.count) points")
       mapView.addOverlay(currentPathOverlay)

@@ -13,36 +13,57 @@ import SwiftUIX
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
   @StateObject private var plantManager = PlantManager.shared
+  @StateObject private var filterVM = MapFilterViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
 
   var body: some View {
-    ZStack(alignment: .bottom) {
+    ZStack(alignment: .topTrailing) {
       MapViewRepresentable(
         locationManager: locationManager,
         plantManager: plantManager
       )
       .ignoresSafeArea()
 
-      // Top-right logout button
-      VStack {
-        HStack {
-          Spacer()
-          Button(action: {
-            authManager.logout()
-          }) {
-            Image(systemName: "rectangle.portrait.and.arrow.right")
-              .font(.title2)
-              .foregroundColor(.primary)
-              .padding(12)
-              .background(.ultraThinMaterial)
-              .clipShape(Circle())
+      // Floating controls (Layers + Logout)
+      VStack(alignment: .trailing, spacing: 12) {
+        // Layers menu
+        Menu {
+          ForEach(PlantType.allCases) { type in
+            Button(action: { filterVM.toggle(type) }) {
+              Label(
+                type.displayName,
+                systemImage: filterVM.selectedPlantTypes.contains(type)
+                  ? "checkmark.circle.fill" : "circle"
+              )
+            }
           }
-          .padding(.trailing, 20)
-          .padding(.top, 60)
+          Divider()
+          Button("Show All", action: { filterVM.showAll() })
+        } label: {
+          HStack(spacing: 8) {
+            Image(systemName: "square.3.layers.3d.down.right")
+            Text("Layers")
+          }
+          .padding(.horizontal, 12)
+          .padding(.vertical, 10)
+          .background(.ultraThinMaterial)
+          .clipShape(Capsule())
         }
-        Spacer()
+        .accessibilityLabel("Layer filters")
+
+        // Logout button
+        Button(action: { authManager.logout() }) {
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .font(.title2)
+            .foregroundColor(.primary)
+            .padding(12)
+            .background(.ultraThinMaterial)
+            .clipShape(Circle())
+        }
       }
+      .padding(.trailing, 16)
+      .padding(.top, 16)
 
       // Loading indicator
       if plantManager.isLoading {
@@ -57,6 +78,7 @@ struct MapView: View {
       }
     }
     .environmentObject(locationManager)
+    .environmentObject(filterVM)
     .onAppear {
       setupInitialState()
       Task {
