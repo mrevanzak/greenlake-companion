@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 21/08/25.
 //
 
+import CoreGraphics
 import CoreLocation
 import MapKit
 import SwiftUI
@@ -155,11 +156,11 @@ struct MapViewRepresentable: UIViewRepresentable {
       .compactMap { plant -> MKOverlay? in
         guard plant.type != .tree, let path = plant.path else { return nil }
 
-        // Use MKPolyline for paths with < 3 points, MKPolygon for >= 3 points
+        // Use PlantPolyline/PlantPolygon carrying plantId for selection
         if path.count < 3 {
-          return MKPolyline(coordinates: path, count: path.count)
+          return PlantPolyline(plantId: plant.id, coordinates: path)
         } else {
-          return MKPolygon(coordinates: path, count: path.count)
+          return PlantPolygon(plantId: plant.id, coordinates: path)
         }
       }
 
@@ -336,15 +337,65 @@ extension MapViewRepresentable {
       impactFeedback.impactOccurred()
     }
 
-    /// Handle tap gesture for path drawing
+    /// Handle tap gesture for path drawing and overlay selection
     @objc func handlePathTap(_ gesture: UITapGestureRecognizer) {
-      guard parent.plantManager.isDrawingPath else { return }
-
       let mapView = gesture.view as! MKMapView
       let point = gesture.location(in: mapView)
-      let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
 
-      parent.plantManager.addPathPoint(coordinate)
+      // If drawing, append point and return
+      if parent.plantManager.isDrawingPath {
+        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+        parent.plantManager.addPathPoint(coordinate)
+        return
+      }
+
+      // Otherwise, hit-test overlays for selection
+      if let plant = hitTestOverlays(at: point, in: mapView) {
+        isSelectingPlant = true
+        parent.plantManager.selectPlant(plant)
+        centerMapOnPlant(plant, in: mapView)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          self.isSelectingPlant = false
+        }
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+      }
+    }
+
+    /// Hit-test tap against overlay renderers to find the plant under the tap.
+    /// Converts to renderer space using `renderer.point(for:)` then checks:
+    /// - Polygon: `renderer.path.contains(point)`
+    /// - Polyline: stroked path with tolerance contains point
+    private func hitTestOverlays(at point: CGPoint, in mapView: MKMapView) -> PlantInstance? {
+      for overlay in mapView.overlays.reversed() {
+        if overlay is MKCircle { continue }
+
+        if let polygon = overlay as? PlantPolygon,
+          let renderer = mapView.renderer(for: polygon) as? MKPolygonRenderer,
+          let cgPath = renderer.path
+        {
+          let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+          let mapPoint = MKMapPoint(coordinate)
+          let rendererPoint = renderer.point(for: mapPoint)
+          if cgPath.contains(rendererPoint) {
+            return parent.plantManager.plants.first(where: { $0.id == polygon.plantId })
+          }
+        } else if let polyline = overlay as? PlantPolyline,
+          let renderer = mapView.renderer(for: polyline) as? MKPolylineRenderer,
+          let cgPath = renderer.path
+        {
+          let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+          let mapPoint = MKMapPoint(coordinate)
+          let rendererPoint = renderer.point(for: mapPoint)
+          let tolerance = max(22.0, CGFloat(renderer.lineWidth) + 16.0)
+          let stroked = cgPath.copy(
+            strokingWithWidth: tolerance, lineCap: .round, lineJoin: .round, miterLimit: 0)
+          if stroked.contains(rendererPoint) {
+            return parent.plantManager.plants.first(where: { $0.id == polyline.plantId })
+          }
+        }
+      }
+      return nil
     }
 
     // MARK: - MKMapViewDelegate
