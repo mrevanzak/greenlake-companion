@@ -102,6 +102,9 @@ struct PlantDetailView: View {
     .onAppear {
       initialState(plant: plant)
     }
+    .onDisappear {
+      plantManager.stopPathDrawing()
+    }
     .onChange(of: plant) { oldPlant, newPlant in
       initialState(plant: newPlant)
     }

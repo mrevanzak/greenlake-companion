@@ -27,3 +27,7 @@ enum SortingState {
   case ascending
   case descending
 }
+
+protocol DisplayableParameter {
+    var displayName: String { get }
+}
