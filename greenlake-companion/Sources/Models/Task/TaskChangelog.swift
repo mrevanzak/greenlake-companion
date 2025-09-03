@@ -19,7 +19,7 @@ struct TaskChangelog: Identifiable, Hashable {
   let description : String?
   
   var images: [Image]? {
-    let numOfImages = Int.random(in: 1...4)
+    let numOfImages = Int.random(in: 1...3)
     
     if statusBefore == nil && statusAfter == .aktif || statusAfter == .diajukan {
       return generateImages(numOfImages: numOfImages)
