@@ -81,6 +81,9 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsCompass = false
     mapView.showsScale = false
     mapView.showsTraffic = false
+
+    mapView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+
   }
 
   /// Configure user interaction capabilities
