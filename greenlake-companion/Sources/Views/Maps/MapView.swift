@@ -13,6 +13,7 @@ import SwiftUIX
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
   @StateObject private var plantManager = PlantManager.shared
+  @StateObject private var filterVM = MapFilterViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
   @State private var selectedItem: String = "Mode"
@@ -35,6 +36,7 @@ struct MapView: View {
       topControl
     }
     .environmentObject(locationManager)
+    .environmentObject(filterVM)
     .onAppear {
       setupInitialState()
       Task {
