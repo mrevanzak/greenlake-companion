@@ -5,6 +5,7 @@
 //  Created by Revan on 26/08/25.
 //
 
+import CoreLocation
 import MapKit
 import SwiftUI
 import SwiftUIX
@@ -12,6 +13,7 @@ import SwiftUIX
 struct BottomSheetContent: View {
   @EnvironmentObject private var sheetViewModel: SheetViewModel
   @State private var searchText = ""
+  @State private var showingPlantConditionSheet = false
 
   var body: some View {
     ScrollView(showsIndicators: false) {
@@ -69,7 +71,9 @@ struct BottomSheetContent: View {
           }
 
           // Action button
-          Button(action: {}) {
+          Button(action: {
+            showingPlantConditionSheet = true
+          }) {
             Text("Catat Kondisi")
               .font(.headline)
               .foregroundStyle(.white)
@@ -128,6 +132,9 @@ struct BottomSheetContent: View {
     }
     .scrollDisabled(sheetViewModel.isSmallest)
     .frame(maxHeight: .infinity)
+    .sheet(isPresented: $showingPlantConditionSheet) {
+      PlantConditionSheet()
+    }
   }
 
   private struct HistoryItem {
