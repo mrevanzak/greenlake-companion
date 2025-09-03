@@ -94,6 +94,7 @@ struct MapView: View {
       locationManager: locationManager,
       plantManager: plantManager
     )
+    .accessibilityHidden(true)
     .ignoresSafeArea()
   }
 
