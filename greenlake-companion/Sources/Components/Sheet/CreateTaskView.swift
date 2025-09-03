@@ -14,18 +14,17 @@ struct CreateTaskView: View {
   @Environment(\.dismiss) private var dismiss
 
   @StateObject private var viewModel: CreateTaskViewModel
-  @ObservedObject private var plantManager = PlantManager.shared
 
   @State private var showingImagePicker = false
   @State private var showingCamera = false
 
-  var plant: PlantInstance {
-    return plantManager.selectedPlant ?? PlantInstance.empty()
-  }
+  let plant: PlantInstance
 
   init() {
+    let plant = PlantManager.shared.selectedPlant ?? PlantInstance.empty()
     self._viewModel = StateObject(
-      wrappedValue: CreateTaskViewModel())
+      wrappedValue: CreateTaskViewModel(plant: plant))
+    self.plant = plant
   }
 
   var body: some View {
@@ -35,7 +34,7 @@ struct CreateTaskView: View {
 
         taskDetailSection
 
-        Section("Gambar") {
+        Section("Dokumentasi") {
           imagesRow
           imagesUploadRow
         }
@@ -56,9 +55,9 @@ struct CreateTaskView: View {
         }
 
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Catat") {
+          Button("Simpan") {
             Task {
-              await viewModel.savePlantCondition()
+              await viewModel.saveTask()
             }
           }
           .disabled(!viewModel.isFormValid || viewModel.isLoading)
@@ -89,7 +88,7 @@ struct CreateTaskView: View {
     }
     .alert(
       isPresent: $viewModel.isLoading,
-      view: AlertAppleMusic16View(title: "Loading", subtitle: nil, icon: .spinnerLarge)
+      view: AlertAppleMusic16View(title: "Loading...", subtitle: nil, icon: .spinnerLarge)
     )
     .alert(
       isPresent: $viewModel.showErrorAlert,

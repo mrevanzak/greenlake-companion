@@ -34,18 +34,13 @@ class CreateTaskViewModel: ObservableObject {
   // MARK: - Private Properties
 
   private let plantInstance: PlantInstance
+  private let taskService: TaskServiceProtocol
 
   // MARK: - Initialization
 
-  init() {
-    self.plantInstance = PlantInstance(
-      type: .tree,
-      name: "Pine Tree",
-      location: CLLocationCoordinate2D(latitude: -7.250445, longitude: 112.768845),
-      radius: 5.0,
-      createdAt: Date(),
-      updatedAt: Date()
-    )
+  init(plant: PlantInstance, taskService: TaskServiceProtocol = TaskService()) {
+    self.plantInstance = plant
+    self.taskService = taskService
   }
 
   // MARK: - Public Methods
@@ -112,8 +107,8 @@ class CreateTaskViewModel: ObservableObject {
       && (hasSelectedConditions || hasDescription || !imageData.isEmpty)
   }
 
-  /// Save plant condition record
-  func savePlantCondition() async {
+  /// Save task to the backend
+  func saveTask() async {
     guard validateFields() else { return }
 
     isLoading = true
@@ -122,19 +117,39 @@ class CreateTaskViewModel: ObservableObject {
     // Convert PhotosPicker items to Data if needed
     await processSelectedImages()
 
-    // TODO: Persist plant condition when service is ready
-    try? await Task.sleep(for: .seconds(1))
+    do {
+      // Create the task request
+      let request = CreateTaskRequest(
+        taskName: taskName,
+        urgency: taskType,
+        dueDate: dueDate,
+        plantId: plantInstance.id,
+        description: description.isEmpty ? nil : description,
+        location: generateLocationString(),
+        conditions: selectedConditionTags.isEmpty ? nil : selectedConditionTags.map { $0.rawValue }
+      )
 
-    // Reset form after successful save
-    resetForm()
+      // Call the API to create the task
+      let _ = try await taskService.createTask(request, with: imageData)
+
+      // Reset form after successful save
+      resetForm()
+
+    } catch {
+      print("❌ Error saving task: \(error)")
+      setGlobalError("Gagal menyimpan tugas. Silakan coba lagi.")
+    }
 
     isLoading = false
   }
 
   /// Reset form to initial state
   func resetForm() {
+    taskName = ""
     selectedConditionTags.removeAll()
     description = ""
+    taskType = .minor
+    dueDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
     clearImages()
     clearGlobalError()
     clearFieldErrors()
@@ -154,6 +169,11 @@ class CreateTaskViewModel: ObservableObject {
     default:
       return "Species name"
     }
+  }
+
+  /// Generate location string from plant coordinates
+  private func generateLocationString() -> String {
+    return "Lat: \(plantInstance.location.latitude), Lng: \(plantInstance.location.longitude)"
   }
 
   // MARK: - Private Methods
@@ -188,19 +208,22 @@ class CreateTaskViewModel: ObservableObject {
 
     var isValid = true
 
-    // Task name
+    // Task name validation
     if !hasTaskName {
       taskNameError = "Nama tugas wajib diisi"
       isValid = false
+    } else if taskName.count < 3 {
+      taskNameError = "Nama tugas minimal 3 karakter"
+      isValid = false
     }
 
-    // Description length
+    // Description length validation
     if !isDescriptionValid {
       descriptionError = "Deskripsi maksimal \(maxDescriptionLength) karakter"
       isValid = false
     }
 
-    // Due date (defensive, DatePicker already constrains)
+    // Due date validation
     if !isDueDateValid {
       dueDateError = "Jatuh tempo tidak boleh di masa lalu"
       isValid = false
