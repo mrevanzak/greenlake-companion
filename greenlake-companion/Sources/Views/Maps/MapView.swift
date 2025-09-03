@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 21/08/25.
 //
 
+import AlertKit
 import MapKit
 import SwiftUI
 
@@ -29,9 +30,6 @@ struct MapView: View {
       // Top controls overlay
       logoutButton
 
-      // Loading indicator overlay
-      loadingIndicator
-
       // Bottom rectangle overlay
       topControl
     }
@@ -49,13 +47,18 @@ struct MapView: View {
     ) {
       MainSheetView()
     }
-    .alert("Error", isPresented: .constant(plantManager.error != nil)) {
-      Button("OK") { plantManager.clearError() }
-    } message: {
-      if let error = plantManager.error {
-        Text(error.localizedDescription)
-      }
-    }
+    .alert(
+      isPresent: $plantManager.isLoading,
+      view: AlertAppleMusic16View(title: "Loading", subtitle: nil, icon: .spinnerLarge)
+    )
+    .alert(
+      isPresent: .constant(plantManager.error != nil),
+      view: AlertAppleMusic16View(
+        title: "Error",
+        subtitle:
+          plantManager.error?.localizedDescription,
+        icon: .error)
+    )
   }
 
   // MARK: - View Components
@@ -85,21 +88,6 @@ struct MapView: View {
         .padding(.trailing, 20)
       }
       Spacer()
-    }
-  }
-
-  private var loadingIndicator: some View {
-    Group {
-      if plantManager.isLoading {
-        VStack {
-          ProgressView("Loading...")
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 100)
-      }
     }
   }
 

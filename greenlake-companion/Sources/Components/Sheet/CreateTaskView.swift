@@ -93,7 +93,7 @@ struct CreateTaskView: View {
     )
     .alert(
       isPresent: $viewModel.showErrorAlert,
-      view: AlertAppleMusic16View(title: "Error", subtitle: nil, icon: .error)
+      view: AlertAppleMusic16View(title: "Error", subtitle: viewModel.errorMessage, icon: .error)
     )
   }
 
