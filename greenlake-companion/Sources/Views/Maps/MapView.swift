@@ -95,6 +95,7 @@ struct MapView: View {
       locationManager: locationManager,
       plantManager: plantManager
     )
+    .accessibilityHidden(true)
     .ignoresSafeArea()
   }
 
@@ -156,6 +157,7 @@ struct MapView: View {
         .padding(.vertical, 10)
         .background(.ultraThinMaterial)
         .clipShape(Capsule())
+        .accessibilityHidden(true)
       }
       .accessibilityLabel("Layer filters")
 
