@@ -9,10 +9,8 @@ import SwiftUI
 
 struct TopControlView: View {
   @EnvironmentObject private var filterVM: MapFilterViewModel
-
   @State private var selectedItem: String = "Pencatatan"
   @State private var showMenu = false
-
   @Environment(\.colorScheme) private var colorScheme
 
   private let items = ["Pencatatan", "Ubah Peta"]
@@ -25,30 +23,6 @@ struct TopControlView: View {
         .frame(height: 32)
         .opacity(0.7)
       expandableButton
-
-      Menu {
-        ForEach(PlantType.allCases) { type in
-          Button(action: { filterVM.toggle(type) }) {
-            Label(
-              type.displayName,
-              systemImage: filterVM.selectedPlantTypes.contains(type)
-                ? "checkmark.circle.fill" : "circle"
-            )
-          }
-        }
-        Divider()
-        Button("Show All", action: { filterVM.showAll() })
-      } label: {
-        HStack(spacing: 8) {
-          Image(systemName: "square.3.layers.3d.down.right")
-          Text("Layers")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-      }
-      .accessibilityLabel("Layer filters")
     }
     .padding(4)
     .padding(.leading, 12)

@@ -107,7 +107,7 @@ struct MapView: View {
 
 // MARK: - Preview
 
-#Preview {
-  MapView()
-    .environmentObject(AuthManager.shared)
-}
+//#Preview {
+//  MapView()
+//    .environmentObject(AuthManager.shared)
+//}
