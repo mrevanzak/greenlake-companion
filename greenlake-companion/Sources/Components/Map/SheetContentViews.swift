@@ -12,6 +12,7 @@ import SwiftUIX
 struct BottomSheetContent: View {
   @EnvironmentObject private var sheetViewModel: SheetViewModel
   @State private var searchText = ""
+  @State private var showingConditionSheet = false
 
   var body: some View {
     ScrollView(showsIndicators: false) {
@@ -69,7 +70,7 @@ struct BottomSheetContent: View {
           }
 
           // Action button
-          Button(action: {}) {
+          Button(action: { showingConditionSheet = true }) {
             Text("Catat Kondisi")
               .font(.headline)
               .foregroundStyle(.white)
@@ -128,6 +129,9 @@ struct BottomSheetContent: View {
     }
     .scrollDisabled(sheetViewModel.isSmallest)
     .frame(maxHeight: .infinity)
+    .sheet(isPresented: $showingConditionSheet) {
+      PlantConditionSheet()
+    }
   }
 
   private struct HistoryItem {
@@ -143,4 +147,96 @@ struct BottomSheetContent: View {
     ]
   }
 
+}
+
+struct PlantConditionSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @State private var selectedCondition: PlantCondition = .healthy
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 16) {
+          Text("Lokasi")
+            .font(.headline)
+          Text("Area Taman - The GreenLake ClubHouse")
+            .font(.subheadline)
+
+          Text("Pinus Merkusii")
+            .font(.title2)
+            .bold()
+
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.gray.opacity(0.2))
+            .frame(height: 180)
+            .overlay(
+              Image(systemName: "photo")
+                .font(.system(size: 40))
+                .foregroundStyle(.secondary)
+            )
+
+          HStack {
+            Button("Unggah gambar") {}
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+
+            Button("Buka Kamera") {}
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+          }
+
+          Text("Deskripsi Tanaman")
+            .font(.headline)
+
+          Picker("Kondisi", selection: $selectedCondition) {
+            ForEach(PlantCondition.allCases) { condition in
+              Text(condition.rawValue).tag(condition)
+            }
+          }
+          .pickerStyle(.segmented)
+
+          Text(selectedCondition.description)
+            .font(.body)
+            .padding()
+            .background(Color.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+
+          Spacer(minLength: 40)
+        }
+        .padding()
+      }
+      .navigationTitle("Catat Kondisi Tanaman")
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Batal") { dismiss() }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button("Simpan") { dismiss() }
+        }
+      }
+    }
+  }
+
+  enum PlantCondition: String, CaseIterable, Identifiable {
+    case healthy = "Tanaman Sehat"
+    case wilted = "Daun Layu"
+    case broken = "Dahan Patah"
+    case dead = "Tanaman Mati"
+
+    var id: String { rawValue }
+
+    var description: String {
+      switch self {
+      case .healthy:
+        return "Daun pohon terlihat agak menguning dengan beberapa helai yang kering. Daun utamanya masih hijau dan sehat, meskipun beberapa bagian kecil daunnya sudah mulai mengering. Pertumbuhan batang utama dan cabang-cabangnya terlihat sehat. Tanaman masih segar, meskipun dahan utamanya tidak menghasilkan banyak daun. Kondisi keseluruhan tanaman tampak optimal."
+      case .wilted:
+        return "Beberapa daun mulai layu dan mengering."
+      case .broken:
+        return "Terdapat dahan yang patah dan perlu perbaikan."
+      case .dead:
+        return "Tanaman mati dan memerlukan penggantian."
+      }
+    }
+  }
 }
