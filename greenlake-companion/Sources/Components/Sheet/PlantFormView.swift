@@ -13,7 +13,7 @@ enum Mode {
   case update
 }
 
-struct PlantDetailView: View {
+struct PlantFormView: View {
   let mode: Mode
 
   @StateObject private var plantManager = PlantManager.shared
@@ -26,11 +26,12 @@ struct PlantDetailView: View {
 
   @Environment(\.dismiss) var dismiss
 
-  var plant: PlantInstance? {
-    if mode == .create {
-      return plantManager.temporaryPlant
-    } else {
-      return plantManager.selectedPlant
+  var plant: PlantInstance {
+    switch mode {
+    case .create:
+      return plantManager.temporaryPlant ?? PlantInstance.empty()
+    case .update:
+      return plantManager.selectedPlant ?? PlantInstance.empty()
     }
   }
 
@@ -47,7 +48,6 @@ struct PlantDetailView: View {
   }
 
   private func onDelete() {
-    guard let plant = plant else { return }
     if mode == .create {
       plantManager.discardTemporaryPlant()
       return
@@ -59,7 +59,6 @@ struct PlantDetailView: View {
   }
 
   private func onSave() {
-    guard let plant = plant else { return }
     let radius = typeInput == .tree ? radiusInput : nil
     let path = typeInput != .tree ? (pathPoints.count >= 3 ? pathPoints : nil) : nil
 
@@ -93,40 +92,32 @@ struct PlantDetailView: View {
     }
     .scrollContentBackground(.hidden)
     .background(.clear)
-    .onDisappear {
-      plantManager.selectPlant(nil)
-      plantManager.stopPathDrawing()
-      plantManager.discardTemporaryPlant()
-    }
-    .if(plant) { view, plant in
-      view
-        .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
-        .onAppear {
-          initialState(plant: plant)
-        }
-        .onChange(of: plant) { oldPlant, newPlant in
-          initialState(plant: newPlant)
-        }
-        .onChange(of: typeInput) { oldType, newType in
-          if newType != .tree {
-            radiusInput = 5.0  // Reset radius for non-tree types
-
-            if plantManager.currentPathPoints.isEmpty {
-              plantManager.startPathDrawing(withInitialPoint: plant.location)
-            }
-          } else {
-            // Clear path when switching to tree type
-            plantManager.clearPath()
-            plantManager.stopPathDrawing()
-            pathPoints.removeAll()
-          }
-        }
-    }
+    .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         Button("Save") {
           onSave()
         }
+      }
+    }
+    .onAppear {
+      initialState(plant: plant)
+    }
+    .onChange(of: plant) { oldPlant, newPlant in
+      initialState(plant: newPlant)
+    }
+    .onChange(of: typeInput) { oldType, newType in
+      if newType != .tree {
+        radiusInput = 5.0  // Reset radius for non-tree types
+
+        if plantManager.currentPathPoints.isEmpty {
+          plantManager.startPathDrawing(withInitialPoint: plant.location)
+        }
+      } else {
+        // Clear path when switching to tree type
+        plantManager.clearPath()
+        plantManager.stopPathDrawing()
+        pathPoints.removeAll()
       }
     }
     .onChange(of: plantManager.isDrawingPath) { oldValue, newValue in
@@ -148,7 +139,7 @@ struct PlantDetailView: View {
     Section(
       header: Text("Details"),
       footer: Text(
-        "Coordinates: \(plant?.location.latitude ?? 0), \(plant?.location.longitude ?? 0)")
+        "Coordinates: \(plant.location.latitude ?? 0), \(plant.location.longitude ?? 0)")
     ) {
       TextField("Name", text: $nameInput)
         .textInputAutocapitalization(.words)
@@ -251,7 +242,7 @@ struct PlantDetailView: View {
       }
       Button("Cancel", role: .cancel) {}
     } message: {
-      Text("Are you sure you want to delete '\(plant?.name ?? "")'? This action cannot be undone.")
+      Text("Are you sure you want to delete '\(plant.name)'? This action cannot be undone.")
     }
     .listRowBackground(Color(.systemGray6))
   }
