@@ -72,10 +72,13 @@ struct PlantDetailView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        Color(.systemBackground)
-          .ignoresSafeArea()
+    ZStack {
+      Color(.systemBackground)
+        .ignoresSafeArea()
+
+      VStack(spacing: 0) {
+        headerBar
+        Divider()
 
         mainForm
       }
@@ -131,25 +134,6 @@ struct PlantDetailView: View {
     .onReceive(plantManager.$currentPathPoints) { newPoints in
       if typeInput != .tree {
         pathPoints = newPoints
-      }
-    }
-    .navigationTitle(mode == .create ? "New Plant" : plant.name)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button(action: { onSave() }) {
-          Text("Save")
-            .font(.body)
-            .foregroundColor(.primary)
-        }
-        .disabled(typeInput != .tree && pathPoints.count < 3)
-      }
-      ToolbarItem(placement: .topBarLeading) {
-        Button(action: { onDismiss() }) {
-          Text("Cancel")
-            .font(.body)
-            .foregroundColor(.secondary)
-        }
       }
     }
   }
@@ -263,5 +247,42 @@ struct PlantDetailView: View {
       Text("Are you sure you want to delete '\(plant.name)'? This action cannot be undone.")
     }
     .listRowBackground(Color.systemGray6)
+  }
+}
+
+// MARK: - Private Views
+
+extension PlantDetailView {
+  private var headerButtonWidth: CGFloat { 72 }
+
+  private var headerBar: some View {
+    HStack(alignment: .center) {
+      Button(action: { onDismiss() }) {
+        Text("Cancel")
+          .font(.body)
+          .foregroundColor(.secondary)
+      }
+      .frame(width: headerButtonWidth, alignment: .leading)
+
+      Spacer()
+
+      Text(mode == .create ? "New Plant" : plant.name)
+        .font(.headline)
+        .foregroundColor(.primary)
+        .lineLimit(1)
+        .truncationMode(.middle)
+
+      Spacer()
+
+      Button(action: { onSave() }) {
+        Text("Save")
+          .font(.body)
+      }
+      .disabled(typeInput != .tree && pathPoints.count < 3)
+      .frame(width: headerButtonWidth, alignment: .trailing)
+    }
+    .padding(.horizontal)
+    .padding(.top, 4)
+    .padding(.bottom, 8)
   }
 }
