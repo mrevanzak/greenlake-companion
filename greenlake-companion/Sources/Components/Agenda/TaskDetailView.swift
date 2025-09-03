@@ -104,7 +104,7 @@ struct TaskDetailView: View {
             
             Spacer()
             
-            Text("\(String(format: "%.2f", task.ukuran)) \(task.satuan)")
+            Text("\(String(format: "%.2f", task.size)) \(task.unit)")
               .font(.subheadline)
               .foregroundColor(.primary)
               .bold()
