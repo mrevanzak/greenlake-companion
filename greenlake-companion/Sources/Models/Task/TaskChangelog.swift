@@ -18,7 +18,7 @@ struct TaskChangelog: Identifiable, Hashable {
   let statusAfter : TaskStatus
   let description : String?
   
-  var images: [Image]? {
+  var images: [UIImage]? {
     let numOfImages = Int.random(in: 1...3)
     
     if statusBefore == nil && statusAfter == .aktif || statusAfter == .diajukan {
@@ -30,13 +30,14 @@ struct TaskChangelog: Identifiable, Hashable {
     }
   }
   
-  private func generateImages(numOfImages: Int) -> [Image] {
-    var generatedImages: [Image] = []
+  // Generate dummy data for images
+  private func generateImages(numOfImages: Int) -> [UIImage] {
+    var generatedImages: [UIImage] = []
 
     for _ in 1...numOfImages {
       let systemImageName = ["img1", "img2", "img3", "img4"].randomElement()
-      let newImage = Image(systemImageName!)
-      generatedImages.append(newImage)
+      let newImage = UIImage(named:systemImageName!)
+      generatedImages.append(newImage!)
     }
     
     return generatedImages

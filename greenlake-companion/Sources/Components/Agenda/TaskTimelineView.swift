@@ -20,7 +20,7 @@ struct TaskTimelineView: View {
             TimelineIndicator(status: entry.statusAfter, isLast: entry.statusBefore == nil)
             
             TimelineEntryView(entry: entry)
-              .padding(.bottom, 50)
+              .padding(.bottom, 60)
           }
         }
       }
@@ -85,10 +85,9 @@ struct TaskTimelineView: View {
           ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 20) {
               ForEach(images.indices, id: \.self) { index in
-                images[index]
+                  Image(uiImage: images[index])
                   .resizable()
                   .scaledToFit()
-                  .foregroundColor(.indigo)
                   .frame(height: 200)
               }
             }
