@@ -25,6 +25,9 @@ struct LandscapingTask: Identifiable, Hashable {
   var location: String {  // TODO: Change to LET variable using database entry
     return generateRandomLocation()
   }
+  let ukuran: Double = 10
+  let satuan: String = "m2"
+  
   var plantInstance: String {
     switch self.plantType {
     case .tree:
@@ -35,7 +38,6 @@ struct LandscapingTask: Identifiable, Hashable {
       return "Semak Keren"
     }
   }
-  
   var urgencyLabel: UrgencyLabel {
     var daysUntilDue: Int {
       let calendar = Calendar.current

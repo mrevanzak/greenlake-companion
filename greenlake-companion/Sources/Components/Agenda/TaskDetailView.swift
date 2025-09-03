@@ -71,6 +71,20 @@ struct TaskDetailView: View {
               .bold()
           }
           
+          // Ukuran
+          HStack {
+            Text("Ukuran")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+          
+            Spacer()
+            
+            Text("\(task.ukuran) \(task.satuan)")
+              .font(.subheadline)
+              .foregroundColor(.primary)
+              .bold()
+          }
+          
           // Deadline
           HStack {
             Text("Tenggat Waktu")

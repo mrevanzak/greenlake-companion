@@ -30,12 +30,12 @@ struct AgendaView: View {
     
     // 2. Apply all enum-based filters from the ViewModel.
     processedTasks = processedTasks.filter { task in
-      let typeMatch = filterViewModel.taskType.contains(task.taskType)
-      let urgencyMatch = filterViewModel.urgency.contains(task.urgencyLabel)
-      let plantMatch = filterViewModel.plantType.contains(task.plantType)
-      let statusMatch = filterViewModel.status.contains(task.status)
-      
-      return typeMatch && urgencyMatch && plantMatch && statusMatch
+        let typeMatch = filterViewModel.taskType.isEmpty || filterViewModel.taskType.contains(task.taskType)
+        let urgencyMatch = filterViewModel.urgency.isEmpty || filterViewModel.urgency.contains(task.urgencyLabel)
+        let plantMatch = filterViewModel.plantType.isEmpty || filterViewModel.plantType.contains(task.plantType)
+        let statusMatch = filterViewModel.status.isEmpty || filterViewModel.status.contains(task.status)
+        
+        return typeMatch && urgencyMatch && plantMatch && statusMatch
     }
     
     // 3. Apply the date range filter if the date range is valid AND not the default.
@@ -133,8 +133,7 @@ struct AgendaView: View {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                   .resizable()
                   .frame(width: 30, height: 30)
-                //TODO: Fix bug
-                //                                .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
+                  .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
               }
               .popover(
                 isPresented: $isFilterPresented,
