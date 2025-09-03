@@ -135,6 +135,30 @@ struct MapView: View {
 
   private var topControl: some View {
     VStack {
+      Menu {
+        ForEach(PlantType.allCases) { type in
+          Button(action: { filterVM.toggle(type) }) {
+            Label(
+              type.displayName,
+              systemImage: filterVM.selectedPlantTypes.contains(type)
+                ? "checkmark.circle.fill" : "circle"
+            )
+          }
+        }
+        Divider()
+        Button("Show All", action: { filterVM.showAll() })
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "square.3.layers.3d.down.right")
+          Text("Layers")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+      }
+      .accessibilityLabel("Layer filters")
+
       // Top-most button positioned at the top of the screen
       Button(action: {
         withAnimation {
@@ -211,9 +235,9 @@ struct MapView: View {
   }
 }
 
-//// MARK: - Preview
-//
-//#Preview {
-//  MapView()
-//    .environmentObject(AuthManager.shared)
-//}
+// MARK: - Preview
+
+#Preview {
+  MapView()
+    .environmentObject(AuthManager.shared)
+}
