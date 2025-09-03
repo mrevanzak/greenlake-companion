@@ -9,15 +9,15 @@ import CoreLocation
 import PhotosUI
 import SwiftUI
 
-struct PlantConditionSheet: View {
-  @StateObject private var viewModel: PlantConditionViewModel
+struct CreateTaskView: View {
+  @StateObject private var viewModel: CreateTaskViewModel
   @Environment(\.dismiss) private var dismiss
   @State private var showingImagePicker = false
   @State private var showingCamera = false
 
   init() {
     self._viewModel = StateObject(
-      wrappedValue: PlantConditionViewModel())
+      wrappedValue: CreateTaskViewModel())
   }
 
   var body: some View {
@@ -313,5 +313,5 @@ struct PlantConditionSheet: View {
 // MARK: - Preview
 
 #Preview {
-  PlantConditionSheet()
+  CreateTaskView()
 }

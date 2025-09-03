@@ -10,7 +10,7 @@ import PhotosUI
 import SwiftUI
 
 @MainActor
-class PlantConditionViewModel: ObservableObject {
+class CreateTaskViewModel: ObservableObject {
   // MARK: - Published Properties
 
   @Published var selectedImages: [PhotosPickerItem] = []
@@ -180,7 +180,7 @@ class PlantConditionViewModel: ObservableObject {
 
 // MARK: - Image Processing Extensions
 
-extension PlantConditionViewModel {
+extension CreateTaskViewModel {
   /// Get image data at specific index
   func imageData(at index: Int) -> Data? {
     guard index < imageData.count else { return nil }
@@ -201,7 +201,7 @@ extension PlantConditionViewModel {
 
 // MARK: - Validation Extensions
 
-extension PlantConditionViewModel {
+extension CreateTaskViewModel {
   /// Validate description length
   var isDescriptionValid: Bool {
     description.count <= 500  // Max 500 characters

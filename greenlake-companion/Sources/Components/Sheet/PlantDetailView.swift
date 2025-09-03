@@ -4,9 +4,8 @@ import SwiftUI
 struct PlantDetailView: View {
   @StateObject private var plantManager = PlantManager.shared
 
-  @State private var showingPlantConditionSheet = false
   @State private var isExpanded = true
-
+  @State private var showingCreateTaskSheet = false
   @State private var showForm = false
 
   private func navigateToForm() {
@@ -139,7 +138,7 @@ struct PlantDetailView: View {
           }
           .buttonStyle(.secondary)
           Button(action: {
-            showingPlantConditionSheet = true
+            showingCreateTaskSheet = true
           }) {
             Text("Catat Kondisi")
               .font(.headline)
@@ -153,8 +152,8 @@ struct PlantDetailView: View {
     )
     .scrollContentBackground(.hidden)
     .background(.clear)
-    .sheet(isPresented: $showingPlantConditionSheet) {
-      PlantConditionSheet()
+    .sheet(isPresented: $showingCreateTaskSheet) {
+      CreateTaskView()
     }
     .navigationDestination(isPresented: $showForm) {
       PlantFormView(mode: .update)
