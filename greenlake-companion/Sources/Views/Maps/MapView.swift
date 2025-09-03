@@ -23,7 +23,9 @@ struct MapView: View {
         locationManager: locationManager,
         plantManager: plantManager
       )
+      .accessibilityHidden(true)
       .ignoresSafeArea()
+        
 
       // Floating controls (Layers + Logout)
       VStack(alignment: .trailing, spacing: 12) {
@@ -43,6 +45,7 @@ struct MapView: View {
         } label: {
           HStack(spacing: 8) {
             Image(systemName: "square.3.layers.3d.down.right")
+                  .accessibilityLabel("Layer")
             Text("Layers")
           }
           .padding(.horizontal, 12)
@@ -60,6 +63,7 @@ struct MapView: View {
             .padding(12)
             .background(.ultraThinMaterial)
             .clipShape(Circle())
+            .accessibilityLabel("Tombol Keluar")
         }
       }
       .padding(.trailing, 16)

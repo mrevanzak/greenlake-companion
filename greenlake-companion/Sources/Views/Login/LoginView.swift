@@ -87,17 +87,20 @@ struct LoginView: View {
                             endPoint: .bottomTrailing
                         )
                     )
+                    .accessibilityLabel("App icon")
             }
             
             Text("Greenlake Companion")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
+                .accessibilitySortPriority(2)
             
             Text("Your partner in site management")
                 .font(.system(size: 17))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
+                .accessibilityLabel("App to manage citraland site")
             
             Spacer()
         }
@@ -140,6 +143,7 @@ struct LoginView: View {
                                 )
                         )
                         .submitLabel(.next)
+                        .accessibilityLabel("Email field, insert your email here")
                         .onSubmit {
                             focusedField = .password
                         }
@@ -164,6 +168,7 @@ struct LoginView: View {
                                 )
                         )
                         .submitLabel(.go)
+                        .accessibilityLabel("Password field, insert your password here")
                         .onSubmit {
                             if !viewModel.isLoading {
                                 viewModel.login()
@@ -216,6 +221,7 @@ struct LoginView: View {
                 .foregroundColor(.white)
                 .cornerRadius(14)
                 .contentShape(Rectangle())
+//                .accessibilityLabel("Button to sign in")
             }
             .disabled(viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty)
             .padding(.horizontal, 32)

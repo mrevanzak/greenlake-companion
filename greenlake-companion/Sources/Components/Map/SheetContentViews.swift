@@ -27,8 +27,11 @@ struct BottomSheetContent: View {
             HStack {
               Text("Pruning").font(.title3.weight(.semibold))
               Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+                    .accessibilityLabel("Kondisi: Butuh Diperbaiki")
               Spacer()
               Image(systemName: "chevron.down").foregroundStyle(.secondary)
+                    .accessibilityLabel("Kondisi: Sakit")
+                    .accessibilityHidden(true)
             }
             .padding(16)
             .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
@@ -36,8 +39,10 @@ struct BottomSheetContent: View {
             HStack {
               Text("Tanaman Sakit").font(.title3.weight(.semibold))
               Image(systemName: "triangle.fill").foregroundStyle(.orange)
+                    .accessibilityHidden(true)
               Spacer()
               Image(systemName: "chevron.down").foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
             .padding(16)
             .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
@@ -57,12 +62,13 @@ struct BottomSheetContent: View {
             .frame(height: 220)
             .overlay(
               Image(systemName: "photo").font(.system(size: 40)).foregroundStyle(.secondary))
+            .accessibilityLabel("Gambar Tanaman")
 
-          // Plant information section
           VStack(alignment: .leading, spacing: 6) {
-            Label("Jl. Citra Utama Lidah Kulon", systemImage: "mappin.and.ellipse")
-              .font(.subheadline)
-              .foregroundStyle(.primary)
+              Label("Jl. Citra Utama Lidah Kulon", systemImage: "mappin.and.ellipse")
+                  .accessibilityLabel("Lokasi: Jl. Citra Utama Lidah Kulon")
+                  .font(.subheadline)
+                  .foregroundStyle(.primary)
 
             Text("Pine Tree").font(.largeTitle).bold()
             Text("Pinus merkusii").font(.title3).italic().foregroundStyle(.secondary)
@@ -99,6 +105,7 @@ struct BottomSheetContent: View {
                 Image(systemName: "chevron.right")
                   .font(.caption)
                   .foregroundStyle(.secondary)
+                  .accessibilityHidden(true)
               }
               .padding(12)
               .background(Color.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
