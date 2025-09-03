@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct AgendaView: View {
+  @EnvironmentObject private var taskManager: TaskManager
   @State private var columnVisibility = NavigationSplitViewVisibility.all
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
@@ -22,11 +23,13 @@ struct AgendaView: View {
   @State private var searchText = ""
   @State private var isFilterPresented = false
   @State private var isExportPresented = false
+    @State private var isCreatePresented = false
+
   
   @State private var selectedTask: LandscapingTask?
   var filteredTasks: [LandscapingTask] {
     // 1. Start with the full list of tasks.
-    var processedTasks = sampleTasks
+    var processedTasks = taskManager.tasks
     
     // 2. Apply all enum-based filters from the ViewModel.
     processedTasks = processedTasks.filter { task in
@@ -193,17 +196,20 @@ struct AgendaView: View {
           }
           .navigationSplitViewStyle(.balanced)
           .onAppear {
-            selectedTask = filteredTasks[0]
+            selectedTask = filteredTasks.first
           }
           .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-              HStack {
-                Spacer()
+              HStack(spacing: 16) {
+                Button {
+                  isCreatePresented = true
+                } label: {
+                  Image(systemName: "plus")
+                }
                 Button {
                   isExportPresented = true
                 } label: {
                   Image(systemName: "square.and.arrow.up")
-                    .padding(.trailing)
                 }
                 .popover(
                   isPresented: $isExportPresented,
@@ -227,6 +233,12 @@ struct AgendaView: View {
     }
     .ignoresSafeArea()
     .frame(height: adjustedScreenHeight, alignment: .top)
+    .onAppear { Task { await taskManager.loadTasks() } }
+    .sheet(isPresented: $isCreatePresented) {
+      CreateTaskSheet()
+        .environmentObject(PlantManager.shared)
+        .environmentObject(TaskManager.shared)
+    }
   }
   
   private func isDeviceInLandscape() -> Bool {

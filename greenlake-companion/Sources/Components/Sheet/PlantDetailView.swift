@@ -153,7 +153,7 @@ struct PlantDetailView: View {
     .scrollContentBackground(.hidden)
     .background(.clear)
     .sheet(isPresented: $showingCreateTaskSheet) {
-      CreateTaskView()
+      PlantConditionCreateView()
     }
     .navigationDestination(isPresented: $showForm) {
       PlantFormView(mode: .update)

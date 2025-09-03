@@ -65,7 +65,7 @@ struct TaskDetailView: View {
           
             Spacer()
             
-            Text(task.plantInstance)
+            Text(task.plantName)
               .font(.subheadline)
               .foregroundColor(.primary)
               .bold()
