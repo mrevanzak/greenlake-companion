@@ -16,66 +16,23 @@ struct MapView: View {
   @StateObject private var filterVM = MapFilterViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
+  @State private var selectedItem: String = "Mode"
+  @State private var showMenu = false
+
+  private let items = ["Pencatatan", "Label", "Label 2"]
 
   var body: some View {
-    ZStack(alignment: .topTrailing) {
-      MapViewRepresentable(
-        locationManager: locationManager,
-        plantManager: plantManager
-      )
-      .ignoresSafeArea()
+    ZStack(alignment: .bottom) {
+      // Map background
+      mapContent
 
-      // Floating controls (Layers + Logout)
-      VStack(alignment: .trailing, spacing: 12) {
-        // Layers menu
-        Menu {
-          ForEach(PlantType.allCases) { type in
-            Button(action: { filterVM.toggle(type) }) {
-              Label(
-                type.displayName,
-                systemImage: filterVM.selectedPlantTypes.contains(type)
-                  ? "checkmark.circle.fill" : "circle"
-              )
-            }
-          }
-          Divider()
-          Button("Show All", action: { filterVM.showAll() })
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "square.3.layers.3d.down.right")
-            Text("Layers")
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 10)
-          .background(.ultraThinMaterial)
-          .clipShape(Capsule())
-        }
-        .accessibilityLabel("Layer filters")
+      // Top controls overlay
+      logoutButton
 
-        // Logout button
-        Button(action: { authManager.logout() }) {
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .font(.title2)
-            .foregroundColor(.primary)
-            .padding(12)
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-        }
-      }
-      .padding(.trailing, 16)
-      .padding(.top, 16)
+      // Loading indicator overlay
+      loadingIndicator
 
-      // Loading indicator
-      if plantManager.isLoading {
-        VStack {
-          ProgressView("Loading...")
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 100)
-      }
+        TopControlView()
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -102,7 +59,7 @@ struct MapView: View {
           onDismiss: {
             showingPlantDetails = false
             plantManager.selectPlant(nil)
-          },
+          }
         )
       }
     }
@@ -114,7 +71,7 @@ struct MapView: View {
         PlantDetailView(
           plant: tempPlant,
           mode: .create,
-          onDismiss: { plantManager.discardTemporaryPlant() },
+          onDismiss: { plantManager.discardTemporaryPlant() }
         )
       }
     }
@@ -130,7 +87,51 @@ struct MapView: View {
     }
   }
 
-  // MARK: - Helper Methods
+  // MARK: - View Components
+
+  private var mapContent: some View {
+    MapViewRepresentable(
+      locationManager: locationManager,
+      plantManager: plantManager
+    )
+    .accessibilityHidden(true)
+    .ignoresSafeArea()
+  }
+
+  private var logoutButton: some View {
+    VStack {
+      HStack {
+        Spacer()
+        Button(action: {
+          authManager.logout()
+        }) {
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .font(.title2)
+            .foregroundColor(.primary)
+            .padding(12)
+            .background(.ultraThinMaterial)
+            .clipShape(Circle())
+        }
+        .padding(.trailing, 20)
+      }
+      Spacer()
+    }
+  }
+
+  private var loadingIndicator: some View {
+    Group {
+      if plantManager.isLoading {
+        VStack {
+          ProgressView("Loading...")
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 100)
+      }
+    }
+  }
 
   private func setupInitialState() {
     // Request location permission and start tracking
