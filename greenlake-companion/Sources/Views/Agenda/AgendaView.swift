@@ -21,7 +21,6 @@ struct AgendaView: View {
   
   @State private var searchText = ""
   @State private var isFilterPresented = false
-  @State private var isExportPresented = false
   
   @State private var selectedTask: LandscapingTask?
   var filteredTasks: [LandscapingTask] {
@@ -196,23 +195,23 @@ struct AgendaView: View {
           }
           .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-              HStack {
-                Spacer()
+              Menu {
                 Button {
-                  isExportPresented = true
+                  print("Checklist")
                 } label: {
-                  Image(systemName: "square.and.arrow.up")
-                    .padding(.trailing)
+                  Label("Checklist", systemImage: "checklist")
                 }
-                .popover(
-                  isPresented: $isExportPresented,
-                  attachmentAnchor: .point(.bottom),
-                  arrowEdge: .top
-                ) {
-                  ExportPopover()
-                    .presentationCompactAdaptation(.popover)
+                
+                Button {
+                  print("Denda")
+                } label: {
+                  Label("Denda", systemImage: "dollarsign")
                 }
+              } label: {
+                Image(systemName: "square.and.arrow.up")
+                  .padding(.trailing)
               }
+              .foregroundColor(.accentColor)
               .offset(y: -5)
             }
           }
