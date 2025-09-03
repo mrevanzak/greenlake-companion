@@ -16,17 +16,24 @@ class CreateTaskViewModel: ObservableObject {
   @Published var selectedImages: [PhotosPickerItem] = []
   @Published var selectedConditionTags: Set<PlantConditionTag> = []
   @Published var description: String = ""
-  @Published var location: String = "Area Taman - The GreenLake ClubHouse"
+  @Published var taskName: String = ""
+  @Published var taskType: TaskType = .minor
+  @Published var dueDate: Date =
+    Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
   @Published var isLoading: Bool = false
   @Published var errorMessage: String?
-  @Published var showingImagePicker: Bool = false
-  @Published var showingCamera: Bool = false
+  @Published var showErrorAlert: Bool = false
+  @Published private(set) var imageData: [Data] = []
+
+  // MARK: - Field Error States
+
+  @Published var taskNameError: String?
+  @Published var descriptionError: String?
+  @Published var dueDateError: String?
 
   // MARK: - Private Properties
 
   private let plantInstance: PlantInstance
-  private var imageData: [Data] = []
-  private let plantConditionService = PlantConditionService.shared
 
   // MARK: - Initialization
 
@@ -42,6 +49,11 @@ class CreateTaskViewModel: ObservableObject {
   }
 
   // MARK: - Public Methods
+
+  /// Handle updates to PhotosPicker selections and load image data
+  func handlePhotosSelectionChanged() async {
+    await processSelectedImages()
+  }
 
   /// Toggle condition tag selection
   func toggleConditionTag(_ tag: PlantConditionTag) {
@@ -96,42 +108,25 @@ class CreateTaskViewModel: ObservableObject {
 
   /// Check if form is valid for submission
   var isFormValid: Bool {
-    hasSelectedConditions || hasDescription || !imageData.isEmpty
+    hasTaskName && isDescriptionValid && isDueDateValid
+      && (hasSelectedConditions || hasDescription || !imageData.isEmpty)
   }
 
   /// Save plant condition record
   func savePlantCondition() async {
-    guard isFormValid else {
-      errorMessage = "Pilih minimal satu kondisi, tambahkan deskripsi, atau unggah gambar"
-      return
-    }
+    guard validateFields() else { return }
 
     isLoading = true
-    errorMessage = nil
+    clearGlobalError()
 
-    do {
-      // Convert PhotosPicker items to Data if needed
-      await processSelectedImages()
+    // Convert PhotosPicker items to Data if needed
+    await processSelectedImages()
 
-      // Create plant condition record
-      let plantCondition = PlantCondition(
-        plantId: plantInstance.id,
-        conditionTags: Array(selectedConditionTags),
-        description: description,
-        images: imageData,
-        recordedAt: Date(),
-        location: location
-      )
+    // TODO: Persist plant condition when service is ready
+    try? await Task.sleep(for: .seconds(1))
 
-      // Save using the plant condition service
-      try await plantConditionService.savePlantCondition(plantCondition)
-
-      // Reset form after successful save
-      resetForm()
-
-    } catch {
-      errorMessage = "Gagal menyimpan kondisi tanaman: \(error.localizedDescription)"
-    }
+    // Reset form after successful save
+    resetForm()
 
     isLoading = false
   }
@@ -141,7 +136,8 @@ class CreateTaskViewModel: ObservableObject {
     selectedConditionTags.removeAll()
     description = ""
     clearImages()
-    errorMessage = nil
+    clearGlobalError()
+    clearFieldErrors()
   }
 
   /// Get plant name for display
@@ -176,6 +172,70 @@ class CreateTaskViewModel: ObservableObject {
       }
     }
   }
+
+  // MARK: - Validation
+
+  private let maxDescriptionLength: Int = 500
+  private let maxImageCount: Int = 6
+
+  /// Public accessors for UI
+  var descriptionLimit: Int { maxDescriptionLength }
+  var imageLimit: Int { maxImageCount }
+
+  @discardableResult
+  func validateFields() -> Bool {
+    clearFieldErrors()
+
+    var isValid = true
+
+    // Task name
+    if !hasTaskName {
+      taskNameError = "Nama tugas wajib diisi"
+      isValid = false
+    }
+
+    // Description length
+    if !isDescriptionValid {
+      descriptionError = "Deskripsi maksimal \(maxDescriptionLength) karakter"
+      isValid = false
+    }
+
+    // Due date (defensive, DatePicker already constrains)
+    if !isDueDateValid {
+      dueDateError = "Jatuh tempo tidak boleh di masa lalu"
+      isValid = false
+    }
+
+    // At least one detail provided (conditions, description, or image)
+    if !(hasSelectedConditions || hasDescription || !imageData.isEmpty) {
+      setGlobalError("Pilih minimal satu kondisi, tambahkan deskripsi, atau unggah gambar")
+      isValid = false
+    }
+
+    // Image count limit
+    if imageData.count > maxImageCount {
+      setGlobalError("Maksimal \(maxImageCount) gambar")
+      isValid = false
+    }
+
+    return isValid
+  }
+
+  func clearFieldErrors() {
+    taskNameError = nil
+    descriptionError = nil
+    dueDateError = nil
+  }
+
+  func setGlobalError(_ message: String) {
+    errorMessage = message
+    showErrorAlert = true
+  }
+
+  func clearGlobalError() {
+    errorMessage = nil
+    showErrorAlert = false
+  }
 }
 
 // MARK: - Image Processing Extensions
@@ -205,6 +265,16 @@ extension CreateTaskViewModel {
   /// Validate description length
   var isDescriptionValid: Bool {
     description.count <= 500  // Max 500 characters
+  }
+
+  /// Validate due date is not in the past
+  var isDueDateValid: Bool {
+    dueDate >= Date()
+  }
+
+  /// Validate task name non-empty
+  var hasTaskName: Bool {
+    !taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 
   /// Get description character count

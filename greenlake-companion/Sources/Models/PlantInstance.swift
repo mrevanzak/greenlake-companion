@@ -70,8 +70,11 @@ struct PlantInstance: Identifiable, Hashable, Codable {
 
   static func empty() -> PlantInstance {
     return PlantInstance(
-      type: .tree, name: "", location: CLLocationCoordinate2D(latitude: 0, longitude: 0), radius: 0,
-      createdAt: Date(), updatedAt: Date())
+      type: .tree, name: "Pinus",
+      location: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+      radius: 0,
+      createdAt: Date(),
+      updatedAt: Date())
   }
 }
 

@@ -5,15 +5,23 @@
 //  Created by AI Assistant on 05/01/25.
 //
 
+import AlertKit
 import CoreLocation
 import PhotosUI
 import SwiftUI
 
 struct CreateTaskView: View {
-  @StateObject private var viewModel: CreateTaskViewModel
   @Environment(\.dismiss) private var dismiss
+
+  @StateObject private var viewModel: CreateTaskViewModel
+  @ObservedObject private var plantManager = PlantManager.shared
+
   @State private var showingImagePicker = false
   @State private var showingCamera = false
+
+  var plant: PlantInstance {
+    return plantManager.selectedPlant ?? PlantInstance.empty()
+  }
 
   init() {
     self._viewModel = StateObject(
@@ -22,20 +30,23 @@ struct CreateTaskView: View {
 
   var body: some View {
     NavigationView {
-      ScrollView {
-        VStack(spacing: 24) {
-          locationSection
-          plantNameSection
-          plantImagesSection
-          imageUploadSection
-          conditionTagsSection
-          descriptionSection
+      Form {
+        plantInfoSection
+
+        taskDetailSection
+
+        Section("Gambar") {
+          imagesRow
+          imagesUploadRow
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 40)
+
+        Section("Kondisi Tanaman") {
+          conditionTagsSection
+        }
+
       }
       .navigationTitle("Catat Kondisi Tanaman")
-      .navigationBarTitleDisplayMode(.large)
+      .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Batal") {
@@ -45,7 +56,7 @@ struct CreateTaskView: View {
         }
 
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Simpan") {
+          Button("Catat") {
             Task {
               await viewModel.savePlantCondition()
             }
@@ -61,6 +72,9 @@ struct CreateTaskView: View {
       maxSelectionCount: 6,
       matching: .images
     )
+    .onChange(of: viewModel.selectedImages) {
+      Task { await viewModel.handlePhotosSelectionChanged() }
+    }
     .sheet(isPresented: $showingCamera) {
       CameraView(
         onImageCaptured: { image in
@@ -73,75 +87,20 @@ struct CreateTaskView: View {
         }
       )
     }
-    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-      Button("OK") {
-        viewModel.errorMessage = nil
-      }
-    } message: {
-      if let errorMessage = viewModel.errorMessage {
-        Text(errorMessage)
-      }
-    }
+    .alert(
+      isPresent: $viewModel.isLoading,
+      view: AlertAppleMusic16View(title: "Loading", subtitle: nil, icon: .spinnerLarge)
+    )
+    .alert(
+      isPresent: $viewModel.showErrorAlert,
+      view: AlertAppleMusic16View(title: "Error", subtitle: nil, icon: .error)
+    )
   }
 
-  // MARK: - Location Section
+  // MARK: - Images Section
 
-  private var locationSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Lokasi")
-        .font(.headline)
-        .foregroundColor(.secondary)
-
-      HStack {
-        Image(systemName: "mappin.and.ellipse")
-          .foregroundColor(.accentColor)
-        Text(viewModel.location)
-          .font(.subheadline)
-          .foregroundColor(.primary)
-        Spacer()
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-      .background(Color(.systemGray6))
-      .cornerRadius(12)
-    }
-  }
-
-  // MARK: - Plant Name Section
-
-  private var plantNameSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Nama Tanaman")
-        .font(.headline)
-        .foregroundColor(.secondary)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text(viewModel.plantName)
-          .font(.title2)
-          .fontWeight(.bold)
-          .foregroundColor(.primary)
-
-        Text(viewModel.plantScientificName)
-          .font(.subheadline)
-          .italic()
-          .foregroundColor(.secondary)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-      .background(Color(.systemGray6))
-      .cornerRadius(12)
-    }
-  }
-
-  // MARK: - Plant Images Section
-
-  private var plantImagesSection: some View {
+  private var imagesRow: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Gambar Tanaman")
-        .font(.headline)
-        .foregroundColor(.secondary)
-
       if viewModel.imageCount > 0 {
         LazyVGrid(
           columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8
@@ -187,9 +146,9 @@ struct CreateTaskView: View {
     }
   }
 
-  // MARK: - Image Upload Section
+  // MARK: - Image Upload
 
-  private var imageUploadSection: some View {
+  private var imagesUploadRow: some View {
     HStack(spacing: 12) {
       Button(action: {
         showingImagePicker = true
@@ -198,13 +157,9 @@ struct CreateTaskView: View {
           Image(systemName: "photo.on.rectangle")
           Text("Unggah gambar")
         }
-        .font(.subheadline)
-        .foregroundColor(.white)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(Color.accentColor)
-        .cornerRadius(12)
       }
+      .buttonStyle(.primary)
 
       Button(action: {
         showingCamera = true
@@ -213,98 +168,108 @@ struct CreateTaskView: View {
           Image(systemName: "camera")
           Text("Buka Kamera")
         }
-        .font(.subheadline)
-        .foregroundColor(.accentColor)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(Color.accentColor.opacity(0.1))
-        .cornerRadius(12)
       }
+      .buttonStyle(.secondary)
     }
   }
 
   // MARK: - Condition Tags Section
 
   private var conditionTagsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Kondisi Tanaman")
-        .font(.headline)
-        .foregroundColor(.secondary)
-
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8)
-      {
-        ForEach(PlantConditionTag.allCases) { tag in
-          Button(action: {
-            viewModel.toggleConditionTag(tag)
-          }) {
-            HStack {
-              Image(systemName: tag.icon)
-                .foregroundColor(viewModel.selectedConditionTags.contains(tag) ? .white : tag.color)
-              Text(tag.rawValue)
-                .font(.subheadline)
-                .foregroundColor(viewModel.selectedConditionTags.contains(tag) ? .white : .primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-              viewModel.selectedConditionTags.contains(tag)
-                ? tag.color
-                : Color(.systemGray5)
-            )
-            .cornerRadius(20)
+    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+      ForEach(PlantConditionTag.allCases) { tag in
+        Button(action: {
+          viewModel.toggleConditionTag(tag)
+        }) {
+          HStack {
+            Image(systemName: tag.icon)
+              .foregroundColor(viewModel.selectedConditionTags.contains(tag) ? .white : tag.color)
+            Text(tag.rawValue)
+              .font(.subheadline)
+              .foregroundColor(viewModel.selectedConditionTags.contains(tag) ? .white : .primary)
           }
-          .buttonStyle(PlainButtonStyle())
+          .frame(maxWidth: .infinity)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 10)
+          .background(
+            viewModel.selectedConditionTags.contains(tag)
+              ? tag.color
+              : Color(.systemGray5)
+          )
+          .cornerRadius(20)
         }
+        .buttonStyle(PlainButtonStyle())
       }
     }
   }
 
-  // MARK: - Description Section
+  // MARK: - Sections
 
-  private var descriptionSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Deskripsi")
-        .font(.headline)
-        .foregroundColor(.secondary)
+  private var plantInfoSection: some View {
+    Section("Informasi Tanaman") {
+      Label(plant.name, systemImage: "leaf.fill")
+      Label(
+        "\(plant.location.latitude.description), \(plant.location.longitude.description)",
+        systemImage: "mappin.and.ellipse"
+      )
+      Label(plant.type.displayName, systemImage: "tree")
+    }
+  }
 
-      ZStack(alignment: .bottomTrailing) {
-        TextEditor(text: $viewModel.description)
-          .frame(minHeight: 120)
-          .background(Color(.systemGray6))
-          .cornerRadius(12)
-          .overlay(
-            RoundedRectangle(cornerRadius: 12)
-              .stroke(viewModel.isDescriptionValid ? Color.clear : Color.red, lineWidth: 1)
-          )
+  private var taskDetailSection: some View {
+    Section("Detail Tugas") {
+      TextField("Nama Tugas", text: $viewModel.taskName)
+        .textInputAutocapitalization(.sentences)
+        .autocorrectionDisabled(false)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(viewModel.taskNameError == nil ? Color.clear : Color.red, lineWidth: 1)
+        )
+      if let taskNameError = viewModel.taskNameError {
+        Text(taskNameError)
+          .font(.caption)
+          .foregroundColor(.red)
+      }
 
-        VStack(alignment: .trailing, spacing: 4) {
-          Button(action: {
-            // Placeholder for voice input functionality
-          }) {
-            Image(systemName: "mic.fill")
-              .foregroundColor(.accentColor)
-              .padding(8)
-              .background(Color(.systemBackground))
-              .clipShape(Circle())
-              .shadow(radius: 2)
-          }
-          .padding(8)
-
-          if !viewModel.isDescriptionValid {
-            Text("\(viewModel.descriptionCharacterCount)/500")
-              .font(.caption)
-              .foregroundColor(.red)
-              .padding(.horizontal, 8)
-          }
+      Picker("Jenis Tugas", selection: $viewModel.taskType) {
+        ForEach(TaskType.allCases) { type in
+          Text(type.displayName).tag(type)
         }
       }
 
-      if viewModel.isDescriptionValid && viewModel.descriptionCharacterCount > 0 {
-        Text("\(viewModel.descriptionCharacterCount)/500")
+      DatePicker(
+        "Jatuh Tempo",
+        selection: $viewModel.dueDate,
+        in: Date()...,
+        displayedComponents: [.date, .hourAndMinute]
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .stroke(viewModel.dueDateError == nil ? Color.clear : Color.red, lineWidth: 1)
+      )
+      if let dueDateError = viewModel.dueDateError {
+        Text(dueDateError)
           .font(.caption)
+          .foregroundColor(.red)
+      }
+
+      TextField("Deskripsi", text: $viewModel.description, axis: .vertical)
+        .lineLimit(5...10)
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(viewModel.isDescriptionValid ? Color.clear : Color.red, lineWidth: 1)
+        )
+      HStack {
+        if let descriptionError = viewModel.descriptionError {
+          Text(descriptionError)
+            .font(.caption)
+            .foregroundColor(.red)
+        }
+        Spacer()
+        Text("\(viewModel.descriptionCharacterCount)/\(viewModel.descriptionLimit)")
+          .font(.caption2)
           .foregroundColor(.secondary)
-          .frame(maxWidth: .infinity, alignment: .trailing)
       }
     }
   }
@@ -312,6 +277,11 @@ struct CreateTaskView: View {
 
 // MARK: - Preview
 
-#Preview {
-  CreateTaskView()
+struct CreateTaskView_Previews: PreviewProvider {
+  static var previews: some View {
+    Color.clear
+      .sheet(isPresented: .constant(true)) {
+        CreateTaskView()
+      }
+  }
 }
