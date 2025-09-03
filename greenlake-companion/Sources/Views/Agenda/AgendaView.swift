@@ -15,6 +15,7 @@ struct AgendaView: View {
   
   @State private var adjustedScreenHeight = UIScreen.main.bounds.height + 80
   @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
+  @State private var isContentVisible: Bool = true
   
   @StateObject private var filterViewModel = FilterViewModel()
   
@@ -153,10 +154,14 @@ struct AgendaView: View {
               ForEach(filteredTasks) { task in
                 TaskPreview(task: task)
                   .padding()
-                  .background(selectedTask == task ? Color.blue.opacity(0.25) : Color.clear)
+                  .background(selectedTask == task ? Color.blue : .clear)
+                  .foregroundColor(selectedTask == task ? Color.white : .primary)
                   .onTapGesture {
-                    selectedTask = task
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                      selectedTask = task
+                    }
                   }
+
                 Divider()
               }
             }
@@ -170,10 +175,20 @@ struct AgendaView: View {
           ScrollView {
             if let selectedTask {
               TaskDetailView(task: selectedTask)
+                .opacity(isContentVisible ? 1 : 0)
+                .onChange(of: selectedTask) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isContentVisible = false
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        withAnimation(.easeIn(duration: 0.2)) {
+                            isContentVisible = true
+                        }
+                    }
+                }
             } else {
-              Text("Select a task from the list")
-                .font(.title)
-                .foregroundColor(.secondary)
+              EmptyView()
             }
           }
           .navigationSplitViewStyle(.balanced)
@@ -187,9 +202,8 @@ struct AgendaView: View {
                 Button {
                   isExportPresented = true
                 } label: {
-                  VStack {
-                    Image(systemName: "square.and.arrow.up")
-                  }
+                  Image(systemName: "square.and.arrow.up")
+                    .padding(.trailing)
                 }
                 .popover(
                   isPresented: $isExportPresented,
@@ -200,7 +214,7 @@ struct AgendaView: View {
                     .presentationCompactAdaptation(.popover)
                 }
               }
-              .offset(y: -15)
+              .offset(y: -5)
             }
           }
         }

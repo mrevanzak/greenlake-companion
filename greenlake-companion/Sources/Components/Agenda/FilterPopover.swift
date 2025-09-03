@@ -88,8 +88,6 @@ struct FilterPopover: View {
         .fontWeight(.bold)
         .padding(.bottom, 10)
       
-      Text("Status")
-        .fontWeight(.bold)
       HStack(spacing: 10) {
         ForEach(SortKey.allCases) { sortKey in
           SortingToggleButton(mySortKey: sortKey, sortKeyController: $viewModel.sortKey, sortOrderController: $viewModel.sortOrder)
