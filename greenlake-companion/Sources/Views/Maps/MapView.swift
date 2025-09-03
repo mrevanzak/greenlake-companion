@@ -16,66 +16,24 @@ struct MapView: View {
   @StateObject private var filterVM = MapFilterViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
+  @State private var selectedItem: String = "Mode"
+  @State private var showMenu = false
+
+  private let items = ["Pencatatan", "Label", "Label 2"]
 
   var body: some View {
-    ZStack(alignment: .topTrailing) {
-      MapViewRepresentable(
-        locationManager: locationManager,
-        plantManager: plantManager
-      )
-      .ignoresSafeArea()
+    ZStack(alignment: .bottom) {
+      // Map background
+      mapContent
 
-      // Floating controls (Layers + Logout)
-      VStack(alignment: .trailing, spacing: 12) {
-        // Layers menu
-        Menu {
-          ForEach(PlantType.allCases) { type in
-            Button(action: { filterVM.toggle(type) }) {
-              Label(
-                type.displayName,
-                systemImage: filterVM.selectedPlantTypes.contains(type)
-                  ? "checkmark.circle.fill" : "circle"
-              )
-            }
-          }
-          Divider()
-          Button("Show All", action: { filterVM.showAll() })
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "square.3.layers.3d.down.right")
-            Text("Layers")
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 10)
-          .background(.ultraThinMaterial)
-          .clipShape(Capsule())
-        }
-        .accessibilityLabel("Layer filters")
+      // Top controls overlay
+      logoutButton
 
-        // Logout button
-        Button(action: { authManager.logout() }) {
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .font(.title2)
-            .foregroundColor(.primary)
-            .padding(12)
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-        }
-      }
-      .padding(.trailing, 16)
-      .padding(.top, 16)
+      // Loading indicator overlay
+      loadingIndicator
 
-      // Loading indicator
-      if plantManager.isLoading {
-        VStack {
-          ProgressView("Loading...")
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 100)
-      }
+      // Bottom rectangle overlay
+      topControl
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -102,7 +60,7 @@ struct MapView: View {
           onDismiss: {
             showingPlantDetails = false
             plantManager.selectPlant(nil)
-          },
+          }
         )
       }
     }
@@ -114,7 +72,7 @@ struct MapView: View {
         PlantDetailView(
           plant: tempPlant,
           mode: .create,
-          onDismiss: { plantManager.discardTemporaryPlant() },
+          onDismiss: { plantManager.discardTemporaryPlant() }
         )
       }
     }
@@ -128,6 +86,145 @@ struct MapView: View {
         Text(error.localizedDescription)
       }
     }
+  }
+
+  // MARK: - View Components
+
+  private var mapContent: some View {
+    MapViewRepresentable(
+      locationManager: locationManager,
+      plantManager: plantManager
+    )
+    .ignoresSafeArea()
+  }
+
+  private var logoutButton: some View {
+    VStack {
+      HStack {
+        Spacer()
+        Button(action: {
+          authManager.logout()
+        }) {
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .font(.title2)
+            .foregroundColor(.primary)
+            .padding(12)
+            .background(.ultraThinMaterial)
+            .clipShape(Circle())
+        }
+        .padding(.trailing, 20)
+      }
+      Spacer()
+    }
+  }
+
+  private var loadingIndicator: some View {
+    Group {
+      if plantManager.isLoading {
+        VStack {
+          ProgressView("Loading...")
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 100)
+      }
+    }
+  }
+
+  private var topControl: some View {
+    VStack {
+      Menu {
+        ForEach(PlantType.allCases) { type in
+          Button(action: { filterVM.toggle(type) }) {
+            Label(
+              type.displayName,
+              systemImage: filterVM.selectedPlantTypes.contains(type)
+                ? "checkmark.circle.fill" : "circle"
+            )
+          }
+        }
+        Divider()
+        Button("Show All", action: { filterVM.showAll() })
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "square.3.layers.3d.down.right")
+          Text("Layers")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+      }
+      .accessibilityLabel("Layer filters")
+
+      // Top-most button positioned at the top of the screen
+      Button(action: {
+        withAnimation {
+          showMenu.toggle()
+        }
+      }) {
+        HStack {
+          Text("Mode")
+            .font(.system(size: 18, weight: .medium))  // SF Pro Medium 20/24
+            .foregroundColor(.black.opacity(0.7))
+          HStack {
+            Text(selectedItem)
+              .font(.system(size: 18, weight: .medium))  // SF Pro Medium 20/24
+              .foregroundColor(.black.opacity(1))
+            Spacer()
+
+            Image(systemName: "chevron.down")
+              .foregroundColor(.gray)
+          }
+          .padding()
+          .frame(height: 34)
+          .background(Color(.systemBackground).opacity(1))
+          .cornerRadius(17)  // Rounded corners for button
+          //                    .shadow(radius: 5)  // Soft shadow effect
+        }
+        .padding(.top, 3)
+        .padding(.leading)
+        .padding(.trailing, 3)
+        .padding(.bottom, 3)
+        .frame(height: 40)
+        .background(Color(.systemGray5).opacity(1))
+        .cornerRadius(20)  // Rounded corners for button
+        //                .shadow(radius: 5)  // Soft shadow effect
+      }
+      .frame(maxWidth: .infinity)  // Ensures button spans full width
+      .zIndex(1)  // Ensures button is on top
+
+      // Dropdown Menu
+      if showMenu {
+        VStack(spacing: 0) {
+          ForEach(items, id: \.self) { item in
+            Button(action: {
+              selectedItem = item
+              showMenu.toggle()
+            }) {
+              Text(item)
+                .font(.system(size: 20, weight: .medium))  // SF Pro Medium 20/24
+                .foregroundColor(.black)
+                .padding(.horizontal, 16)
+                .frame(height: 40)
+                .background(Color.white)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal, 8)
+          }
+        }
+        .transition(.move(edge: .top))  // Smooth transition for dropdown
+        .padding(.top, 8)
+        .zIndex(2)  // Ensures dropdown is above other content
+      }
+
+      Spacer()  // Pushes everything to the top of the screen
+    }
+    .padding(.top, 29)  // Space for dropdown
+    .padding(.horizontal, 16)
+    .frame(maxWidth: .infinity)  // Ensure the container takes up the full width
   }
 
   // MARK: - Helper Methods

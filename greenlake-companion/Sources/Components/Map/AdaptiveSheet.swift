@@ -239,8 +239,8 @@ private struct CustomBottomSheet<Content: View>: View {
 
         content()
           .environmentObject(sheetViewModel)
-          .padding(.horizontal)
-          .padding(.top, 8)
+//          .padding(.horizontal)
+          .padding(.top, 0)
       }
       .frame(
         width: horizontalSizeClass == .compact ? geometry.size.width : SheetConstants.width,
@@ -250,9 +250,9 @@ private struct CustomBottomSheet<Content: View>: View {
       .background(.systemBackground)
       .clipShape(RoundedRectangle(cornerRadius: 18))
       .shadow(
-        color: .black.opacity(0.18),
+        color: .black.opacity(0.2),
         radius: 14,
-        x: 0,
+        x: -10,
         y: 6
       )
       .offset(
@@ -383,9 +383,9 @@ private struct CustomBottomSheet<Content: View>: View {
 private struct DragHandle: View {
   var body: some View {
     Capsule()
-      .fill(.quaternary.opacity(0.6))
+      .fill(.quaternary.opacity(1))
       .frame(width: 36, height: 5)
-      .padding(.top, 12)
-      .padding(.bottom, 8)
+      .padding(.top, 4)
+      .padding(.bottom, 0)
   }
 }

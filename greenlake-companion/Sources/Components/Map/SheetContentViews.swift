@@ -10,6 +10,23 @@ import MapKit
 import SwiftUI
 import SwiftUIX
 
+//MARK: - Search Bar Header
+private struct SheetSearchHeader: View {
+    @Binding var text: String
+    var body: some View {
+        VStack(spacing: 0) {
+            SearchBar("Cari tanaman atau pekerjaan", text: $text)
+                .textFieldBackgroundColor(.systemGray6)
+                .frame(maxWidth: .infinity)
+            // .padding(.horizontal, 16)
+             .padding(.bottom, 4)
+        }
+        .background(Color(.systemBackground))
+        .overlay(Divider()
+            .opacity(1), alignment: .bottom)
+        .zIndex(1) } }
+//MARK: - Sheet Content
+
 struct BottomSheetContent: View {
   @EnvironmentObject private var sheetViewModel: SheetViewModel
   @State private var searchText = ""
