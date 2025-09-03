@@ -14,9 +14,7 @@ enum Mode {
 }
 
 struct PlantDetailView: View {
-  let plant: PlantInstance
   let mode: Mode
-  let onDismiss: () -> Void
 
   @StateObject private var plantManager = PlantManager.shared
 
@@ -26,21 +24,30 @@ struct PlantDetailView: View {
   @State private var pathPoints: [CLLocationCoordinate2D] = []
   @State private var showingDeleteConfirmation = false
 
-  private func initialState(plant: PlantInstance?) {
-    if let plant = plant {
-      nameInput = plant.name
-      typeInput = plant.type
-      radiusInput = plant.radius ?? 5.0
-      pathPoints = plant.path ?? []
+  @Environment(\.dismiss) var dismiss
 
-      // Sync with PlantManager's current path points for non-tree types
-      if plant.type != .tree {
-        plantManager.currentPathPoints = plant.path ?? []
-      }
+  var plant: PlantInstance? {
+    if mode == .create {
+      return plantManager.temporaryPlant
+    } else {
+      return plantManager.selectedPlant
+    }
+  }
+
+  private func initialState(plant: PlantInstance) {
+    nameInput = plant.name
+    typeInput = plant.type
+    radiusInput = plant.radius ?? 5.0
+    pathPoints = plant.path ?? []
+
+    // Sync with PlantManager's current path points for non-tree types
+    if plant.type != .tree {
+      plantManager.currentPathPoints = plant.path ?? []
     }
   }
 
   private func onDelete() {
+    guard let plant = plant else { return }
     if mode == .create {
       plantManager.discardTemporaryPlant()
       return
@@ -52,6 +59,7 @@ struct PlantDetailView: View {
   }
 
   private func onSave() {
+    guard let plant = plant else { return }
     let radius = typeInput == .tree ? radiusInput : nil
     let path = typeInput != .tree ? (pathPoints.count >= 3 ? pathPoints : nil) : nil
 
@@ -72,22 +80,6 @@ struct PlantDetailView: View {
   }
 
   var body: some View {
-    ZStack {
-      Color(.systemBackground)
-        .ignoresSafeArea()
-
-      VStack(spacing: 0) {
-        headerBar
-        Divider()
-
-        mainForm
-      }
-    }
-  }
-
-  // MARK: - View Components
-
-  private var mainForm: some View {
     Form {
       detailsSection
 
@@ -99,30 +91,42 @@ struct PlantDetailView: View {
         deleteSection
       }
     }
-    .contentMargins(.horizontal, 4)
     .scrollContentBackground(.hidden)
     .background(.clear)
-    .onAppear {
-      initialState(plant: plant)
-    }
     .onDisappear {
+      plantManager.selectPlant(nil)
       plantManager.stopPathDrawing()
+      plantManager.discardTemporaryPlant()
     }
-    .onChange(of: plant) { oldPlant, newPlant in
-      initialState(plant: newPlant)
-    }
-    .onChange(of: typeInput) { oldType, newType in
-      if newType != .tree {
-        radiusInput = 5.0  // Reset radius for non-tree types
-
-        if plantManager.currentPathPoints.isEmpty {
-          plantManager.startPathDrawing(withInitialPoint: plant.location)
+    .if(plant) { view, plant in
+      view
+        .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
+        .onAppear {
+          initialState(plant: plant)
         }
-      } else {
-        // Clear path when switching to tree type
-        plantManager.clearPath()
-        plantManager.stopPathDrawing()
-        pathPoints.removeAll()
+        .onChange(of: plant) { oldPlant, newPlant in
+          initialState(plant: newPlant)
+        }
+        .onChange(of: typeInput) { oldType, newType in
+          if newType != .tree {
+            radiusInput = 5.0  // Reset radius for non-tree types
+
+            if plantManager.currentPathPoints.isEmpty {
+              plantManager.startPathDrawing(withInitialPoint: plant.location)
+            }
+          } else {
+            // Clear path when switching to tree type
+            plantManager.clearPath()
+            plantManager.stopPathDrawing()
+            pathPoints.removeAll()
+          }
+        }
+    }
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button("Save") {
+          onSave()
+        }
       }
     }
     .onChange(of: plantManager.isDrawingPath) { oldValue, newValue in
@@ -138,10 +142,13 @@ struct PlantDetailView: View {
     }
   }
 
+  // MARK: - View Components
+
   private var detailsSection: some View {
     Section(
       header: Text("Details"),
-      footer: Text("Coordinates: \(plant.location.latitude), \(plant.location.longitude)")
+      footer: Text(
+        "Coordinates: \(plant?.location.latitude ?? 0), \(plant?.location.longitude ?? 0)")
     ) {
       TextField("Name", text: $nameInput)
         .textInputAutocapitalization(.words)
@@ -178,7 +185,7 @@ struct PlantDetailView: View {
 
       }
     }
-    .listRowBackground(Color.systemGray6)
+    .listRowBackground(Color(.systemGray6))
   }
 
   private var areaDrawingSection: some View {
@@ -219,7 +226,7 @@ struct PlantDetailView: View {
           .fontWeight(.medium)
       }
     }
-    .listRowBackground(Color.systemGray6)
+    .listRowBackground(Color(.systemGray6))
   }
 
   private var deleteSection: some View {
@@ -240,49 +247,12 @@ struct PlantDetailView: View {
     ) {
       Button("Delete", role: .destructive) {
         onDelete()
-        onDismiss()
+        dismiss()
       }
       Button("Cancel", role: .cancel) {}
     } message: {
-      Text("Are you sure you want to delete '\(plant.name)'? This action cannot be undone.")
+      Text("Are you sure you want to delete '\(plant?.name ?? "")'? This action cannot be undone.")
     }
-    .listRowBackground(Color.systemGray6)
-  }
-}
-
-// MARK: - Private Views
-
-extension PlantDetailView {
-  private var headerButtonWidth: CGFloat { 72 }
-
-  private var headerBar: some View {
-    HStack(alignment: .center) {
-      Button(action: { onDismiss() }) {
-        Text("Cancel")
-          .font(.body)
-          .foregroundColor(.secondary)
-      }
-      .frame(width: headerButtonWidth, alignment: .leading)
-
-      Spacer()
-
-      Text(mode == .create ? "New Plant" : plant.name)
-        .font(.headline)
-        .foregroundColor(.primary)
-        .lineLimit(1)
-        .truncationMode(.middle)
-
-      Spacer()
-
-      Button(action: { onSave() }) {
-        Text("Save")
-          .font(.body)
-      }
-      .disabled(typeInput != .tree && pathPoints.count < 3)
-      .frame(width: headerButtonWidth, alignment: .trailing)
-    }
-    .padding(.horizontal)
-    .padding(.top, 4)
-    .padding(.bottom, 8)
+    .listRowBackground(Color(.systemGray6))
   }
 }

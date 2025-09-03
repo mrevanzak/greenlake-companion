@@ -112,7 +112,6 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Binding var isPresented: Bool
 
-  @State private var currentDetent: SheetDetent
   @State private var sheetOffset: CGFloat = 1000
   @State private var isVisible: Bool = false
   @State private var isDismissing: Bool = false
@@ -131,7 +130,6 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
     self.configuration = configuration
 
     let firstDetent = configuration.firstDetent
-    self._currentDetent = State(initialValue: firstDetent)
     self._sheetViewModel = State(
       initialValue: SheetViewModel(detents: configuration.detents, initialDetent: firstDetent)
     )
@@ -143,7 +141,6 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
 
       if isVisible {
         CustomBottomSheet(
-          currentDetent: $currentDetent,
           sheetViewModel: sheetViewModel,
           configuration: configuration,
           content: sheetContent
@@ -160,9 +157,6 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
     }
     .onChange(of: isPresented) { _, newValue in
       updateSheetVisibility()
-    }
-    .onChange(of: currentDetent) { _, newValue in
-      sheetViewModel.updateCurrentDetent(newValue)
     }
   }
 
@@ -200,9 +194,9 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
     guard let new = new else { return }
 
     if new == .compact {
-      isPresented = (currentDetent == .large)
+      isPresented = (sheetViewModel.currentDetent == .large)
     } else {
-      currentDetent = isPresented ? .large : configuration.firstDetent
+      sheetViewModel.currentDetent = isPresented ? .large : configuration.firstDetent
       if isPresented {
         isPresented = false
       }
@@ -212,7 +206,6 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
 
 private struct CustomBottomSheet<Content: View>: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-  @Binding var currentDetent: SheetDetent
   @ObservedObject var sheetViewModel: SheetViewModel
 
   @State private var dragOffset: CGFloat = 0
@@ -221,12 +214,10 @@ private struct CustomBottomSheet<Content: View>: View {
   let content: () -> Content
 
   init(
-    currentDetent: Binding<SheetDetent>,
     sheetViewModel: SheetViewModel,
     configuration: AdaptiveSheetConfiguration,
     content: @escaping () -> Content
   ) {
-    self._currentDetent = currentDetent
     self.sheetViewModel = sheetViewModel
     self.configuration = configuration
     self.content = content
@@ -239,7 +230,7 @@ private struct CustomBottomSheet<Content: View>: View {
 
         content()
           .environmentObject(sheetViewModel)
-//          .padding(.horizontal)
+          //          .padding(.horizontal)
           .padding(.top, 0)
       }
       .frame(
@@ -247,17 +238,17 @@ private struct CustomBottomSheet<Content: View>: View {
         height: geometry.size.height,
         alignment: .top
       )
-      .background(.systemBackground)
+      .background(Color(.systemBackground))
       .clipShape(RoundedRectangle(cornerRadius: 18))
       .shadow(
         color: .black.opacity(0.2),
-        radius: 14,
-        x: -10,
+        radius: 8,
+        x: 0,
         y: 6
       )
       .offset(
         x: horizontalSizeClass == .compact ? 0 : geometry.size.width * 0.05,
-        y: calculatedOffset(for: currentDetent, geometry: geometry) + dragOffset
+        y: calculatedOffset(for: sheetViewModel.currentDetent, geometry: geometry) + dragOffset
       )
       .gesture(
         DragGesture()
@@ -269,16 +260,16 @@ private struct CustomBottomSheet<Content: View>: View {
           }
       )
       .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
-      .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentDetent)
-      .onChange(of: currentDetent) { _, newDetent in
-        currentDetent = newDetent
+      .animation(.spring(response: 0.5, dampingFraction: 0.8), value: sheetViewModel.currentDetent)
+      .onChange(of: sheetViewModel.currentDetent) { _, newDetent in
+        sheetViewModel.currentDetent = newDetent
         sheetViewModel.updateCurrentDetent(newDetent)
       }
     }
     .edgesIgnoringSafeArea(.bottom)
     .onAppear {
       let firstDetent = configuration.firstDetent
-      currentDetent = firstDetent
+      sheetViewModel.currentDetent = firstDetent
       sheetViewModel.updateCurrentDetent(firstDetent)
     }
   }
@@ -300,7 +291,9 @@ private struct CustomBottomSheet<Content: View>: View {
   private func handleDragEnd(translation: CGFloat, geometry: GeometryProxy) {
     let sortedDetents = configuration.sortedDetents
 
-    guard let currentIndex = sortedDetents.firstIndex(of: currentDetent) else { return }
+    guard let currentIndex = sortedDetents.firstIndex(of: sheetViewModel.currentDetent) else {
+      return
+    }
 
     let newDetent = determineNewDetent(
       translation: translation,
@@ -311,7 +304,7 @@ private struct CustomBottomSheet<Content: View>: View {
 
     animateToDetent(newDetent)
 
-    if newDetent != currentDetent {
+    if newDetent != sheetViewModel.currentDetent {
       UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
   }
@@ -335,7 +328,8 @@ private struct CustomBottomSheet<Content: View>: View {
 
     // Find closest detent by position
     return findClosestDetent(
-      currentY: calculatedOffset(for: currentDetent, geometry: geometry) + dragOffset,
+      currentY: calculatedOffset(for: sheetViewModel.currentDetent, geometry: geometry)
+        + dragOffset,
       sortedDetents: sortedDetents,
       geometry: geometry
     )
@@ -346,7 +340,7 @@ private struct CustomBottomSheet<Content: View>: View {
     sortedDetents: [SheetDetent],
     geometry: GeometryProxy
   ) -> SheetDetent {
-    var closestDetent = currentDetent
+    var closestDetent = sheetViewModel.currentDetent
     var closestDistance = CGFloat.greatestFiniteMagnitude
 
     for detent in sortedDetents {
@@ -364,7 +358,7 @@ private struct CustomBottomSheet<Content: View>: View {
 
   private func animateToDetent(_ detent: SheetDetent) {
     withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
-      currentDetent = detent
+      sheetViewModel.currentDetent = detent
       dragOffset = 0
 
       sheetViewModel.updateCurrentDetent(detent)
