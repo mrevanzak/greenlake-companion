@@ -15,7 +15,7 @@ struct TaskDetailView: View {
     VStack(alignment: .leading, spacing: 30) {
       VStack(alignment: .leading, spacing: 20) {
         // Header
-        HStack(alignment: .bottom) {
+        HStack(alignment: .top) {
           Text(task.title)
             .font(.title)
             .fontWeight(.bold)

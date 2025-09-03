@@ -25,7 +25,7 @@ struct TaskPreview: View {
         .font(.title)
         .frame(width: 60, height: 60)
         .foregroundColor(task.status.displayColor)
-        .background(task.status.displayColor.opacity(0.35).brightness(0.35))
+        .background(task.status.displayColor.brightness(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 8))
       
       Spacer()
