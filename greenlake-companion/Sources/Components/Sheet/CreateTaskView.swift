@@ -239,11 +239,20 @@ struct CreateTaskView: View {
         RoundedRectangle(cornerRadius: 8)
           .stroke(viewModel.dueDateError == nil ? Color.clear : Color.red, lineWidth: 1)
       )
+        
       if let dueDateError = viewModel.dueDateError {
         Text(dueDateError)
           .font(.caption)
           .foregroundColor(.red)
       }
+        
+        TextField("Area", text: $viewModel.area)
+        .textInputAutocapitalization(.sentences)
+        .autocorrectionDisabled(false)
+        
+        TextField("Unit", text: $viewModel.unit)
+        .textInputAutocapitalization(.sentences)
+        .autocorrectionDisabled(false)
 
       TextField("Deskripsi", text: $viewModel.description, axis: .vertical)
         .lineLimit(5...10)
