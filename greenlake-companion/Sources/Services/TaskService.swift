@@ -61,7 +61,7 @@ class TaskService: TaskServiceProtocol {
           TaskEndpoint.createTask,
           with: request,
           files: images,
-          fileFieldName: "files"
+          fileFieldName: "photos"
         )
         print("✅ Successfully created task with images in API")
         return response.data

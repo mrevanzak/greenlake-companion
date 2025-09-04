@@ -15,16 +15,14 @@ struct CreateTaskRequest: Codable {
   let plantId: UUID
   let description: String?
   let location: String
-  let conditions: [String]?
 
   enum CodingKeys: String, CodingKey {
-    case taskName = "task_name"
+    case taskName
     case urgency
     case dueDate = "due_date"
     case plantId = "plant_id"
     case description
     case location
-    case conditions
   }
 
   init(
@@ -42,7 +40,6 @@ struct CreateTaskRequest: Codable {
     self.plantId = plantId
     self.description = description
     self.location = location
-    self.conditions = conditions
   }
 }
 
@@ -55,23 +52,21 @@ struct TaskResponse: Codable {
   let plantId: UUID
   let description: String?
   let location: String
-  let conditions: [String]?
   let status: TaskStatus
   let createdAt: Date
   let updatedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case id
-    case taskName = "task_name"
+    case taskName
     case urgency
     case dueDate = "due_date"
     case plantId = "plant_id"
     case description
     case location
-    case conditions
     case status
-    case createdAt = "created_at"
-    case updatedAt = "updated_at"
+    case createdAt
+    case updatedAt
   }
 }
 
@@ -81,7 +76,6 @@ struct UpdateTaskRequest: Codable {
   let urgency: TaskType?
   let dueDate: Date?
   let description: String?
-  let conditions: [String]?
   let status: TaskStatus?
 
   enum CodingKeys: String, CodingKey {
@@ -89,7 +83,6 @@ struct UpdateTaskRequest: Codable {
     case urgency
     case dueDate = "due_date"
     case description
-    case conditions
     case status
   }
 
@@ -98,14 +91,12 @@ struct UpdateTaskRequest: Codable {
     urgency: TaskType? = nil,
     dueDate: Date? = nil,
     description: String? = nil,
-    conditions: [String]? = nil,
     status: TaskStatus? = nil
   ) {
     self.taskName = taskName
     self.urgency = urgency
     self.dueDate = dueDate
     self.description = description
-    self.conditions = conditions
     self.status = status
   }
 }

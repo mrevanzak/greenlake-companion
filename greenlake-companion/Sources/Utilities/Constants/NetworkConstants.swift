@@ -159,7 +159,7 @@ enum TaskEndpoint: APIEndpoint {
   var path: String {
     switch self {
     case .createTask:
-      return "/tasks"
+      return "/tasks/create"
     case .fetchTasks:
       return "/tasks"
     case .fetchTask(let id):

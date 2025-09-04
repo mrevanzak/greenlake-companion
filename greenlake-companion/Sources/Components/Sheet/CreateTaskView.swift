@@ -57,6 +57,7 @@ struct CreateTaskView: View {
           Button("Simpan") {
             Task {
               await viewModel.saveTask()
+              dismiss()
             }
           }
           .disabled(!viewModel.isFormValid || viewModel.isLoading)
