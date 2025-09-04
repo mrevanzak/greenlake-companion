@@ -1,39 +1,9 @@
-//
-//  PDFKitView.swift
-//  greenlake-companion
-//
-//  Created by Savio Enoson on 02/09/25.
-//
-
-
-import SwiftUI
 import PDFKit
-
-// A simple UIViewRepresentable to show the PDF in SwiftUI
-struct PDFKitView: UIViewRepresentable {
-  let data: Data
-  
-  func makeUIView(context: Context) -> PDFView {
-    let pdfView = PDFView()
-    pdfView.document = PDFDocument(data: data)
-    pdfView.autoScales = true
-    return pdfView
-  }
-  
-  func updateUIView(_ uiView: PDFView, context: Context) {
-    // No update needed
-  }
-}
-
-// A wrapper to make Data identifiable for the .sheet modifier
-struct PDFDataWrapper: Identifiable {
-  let id = UUID()
-  let data: Data
-}
+import SwiftUI
 
 struct PDFSampleView: View {
   @State private var pdfPreview: PDFDataWrapper?
-  
+
   var body: some View {
     VStack {
       Menu {
@@ -42,7 +12,7 @@ struct PDFSampleView: View {
         Button("Reminder Task", action: generateTaskReminder)
         Button("Berita Acara", action: { print("Option C selected") })
       } label: {
-        HStack{
+        HStack {
           Text("Generate PDF Files")
           Divider()
           Image(systemName: "chevron.down")
@@ -55,9 +25,9 @@ struct PDFSampleView: View {
       }
       .font(.largeTitle)
     }
-//    .task {
+    //    .task {
     //    }
-//      generatePDF()
+    //      generatePDF()
     .padding()
     .sheet(item: $pdfPreview) { pdfDataWrapper in
       NavigationView {
@@ -74,50 +44,50 @@ struct PDFSampleView: View {
       }
     }
   }
-  
+
   private func generateTaskChecklistPDF() {
     let reportTitle = "REKAPITULASI PEKERJAAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-      
+
       let tasksToDraw = Array(sampleTasks.prefix(5))
       pdf.drawTasks(tasks: tasksToDraw)
     }
-    
+
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
-  
+
   private func generateFinePDF() {
     let reportTitle = "LAPORAN KETERLAMBATAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-      
+
       let lateClosedTasks = sampleTasks.filter { task in
-          guard let closedDate = task.dateClosed else {
-              return false
-          }
-          return closedDate > task.dueDate
+        guard let closedDate = task.dateClosed else {
+          return false
+        }
+        return closedDate > task.dueDate
       }
       let tasksToDraw = Array(lateClosedTasks.prefix(10))
-      
+
       pdf.drawFineTable(finedTasks: tasksToDraw)
     }
-    
+
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
-  
+
   private func generateTaskReminder() {
     let reportTitle = "INFORMASI PEKERJAAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-      
+
       let taskToDraw = sampleTasks[Int.random(in: 1...sampleTasks.count)]
       pdf.drawTaskReminder(task: taskToDraw)
     }
-    
+
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
 }

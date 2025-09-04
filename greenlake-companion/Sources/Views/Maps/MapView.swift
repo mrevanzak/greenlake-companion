@@ -12,51 +12,30 @@ import SwiftUIX
 /// Main Maps view replicating Apple Maps interface and functionality
 struct MapView: View {
   @StateObject private var locationManager = LocationManager()
-  @StateObject private var plantManager = PlantManager()
+  @StateObject private var plantManager = PlantManager.shared
+  @StateObject private var filterVM = MapFilterViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @State private var showingPlantDetails = false
+  @State private var selectedItem: String = "Mode"
+  @State private var showMenu = false
+
+  private let items = ["Pencatatan", "Label", "Label 2"]
 
   var body: some View {
     ZStack(alignment: .bottom) {
-      MapViewRepresentable(
-        locationManager: locationManager,
-        plantManager: plantManager
-      )
-      .ignoresSafeArea()
+      // Map background
+      mapContent
 
-      // Top-right logout button
-      VStack {
-        HStack {
-          Spacer()
-          Button(action: {
-            authManager.logout()
-          }) {
-            Image(systemName: "rectangle.portrait.and.arrow.right")
-              .font(.title2)
-              .foregroundColor(.primary)
-              .padding(12)
-              .background(.ultraThinMaterial)
-              .clipShape(Circle())
-          }
-          .padding(.trailing, 20)
-          .padding(.top, 60)
-        }
-        Spacer()
-      }
+      // Top controls overlay
+      logoutButton
 
-      // Loading indicator
-      if plantManager.isLoading {
-        VStack {
-          ProgressView("Loading...")
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 100)
-      }
+      // Loading indicator overlay
+      loadingIndicator
+
+        TopControlView()
     }
     .environmentObject(locationManager)
+    .environmentObject(filterVM)
     .onAppear {
       setupInitialState()
       Task {
@@ -76,18 +55,10 @@ struct MapView: View {
       if let selectedPlant = plantManager.selectedPlant {
         PlantDetailView(
           plant: selectedPlant,
-          isCreationMode: false,
-          onDelete: { plant in
-            Task { await plantManager.deletePlant(plant) }
-          },
+          mode: .update,
           onDismiss: {
             showingPlantDetails = false
             plantManager.selectPlant(nil)
-          },
-          onSave: { name, type, radius in
-            Task {
-              await plantManager.updatePlant(selectedPlant, name: name, type: type, radius: radius)
-            }
           }
         )
       }
@@ -99,14 +70,8 @@ struct MapView: View {
       if let tempPlant = plantManager.temporaryPlant {
         PlantDetailView(
           plant: tempPlant,
-          isCreationMode: true,
-          onDelete: { _ in plantManager.discardTemporaryPlant() },
-          onDismiss: { plantManager.discardTemporaryPlant() },
-          onSave: { name, type, radius in
-            // Update temporary plant with user input and confirm
-            plantManager.updateTemporaryPlant(name: name, type: type, radius: radius)
-            Task { await plantManager.confirmTemporaryPlant() }
-          }
+          mode: .create,
+          onDismiss: { plantManager.discardTemporaryPlant() }
         )
       }
     }
@@ -122,7 +87,51 @@ struct MapView: View {
     }
   }
 
-  // MARK: - Helper Methods
+  // MARK: - View Components
+
+  private var mapContent: some View {
+    MapViewRepresentable(
+      locationManager: locationManager,
+      plantManager: plantManager
+    )
+    .accessibilityHidden(true)
+    .ignoresSafeArea()
+  }
+
+  private var logoutButton: some View {
+    VStack {
+      HStack {
+        Spacer()
+        Button(action: {
+          authManager.logout()
+        }) {
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .font(.title2)
+            .foregroundColor(.primary)
+            .padding(12)
+            .background(.ultraThinMaterial)
+            .clipShape(Circle())
+        }
+        .padding(.trailing, 20)
+      }
+      Spacer()
+    }
+  }
+
+  private var loadingIndicator: some View {
+    Group {
+      if plantManager.isLoading {
+        VStack {
+          ProgressView("Loading...")
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 100)
+      }
+    }
+  }
 
   private func setupInitialState() {
     // Request location permission and start tracking

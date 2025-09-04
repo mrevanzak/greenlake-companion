@@ -200,45 +200,50 @@ struct AgendaView: View {
       .frame(height: adjustedHeight, alignment: .top)
       .offset(y: -adjustY)
       .safeAreaInset(edge: .top, spacing: 0) {
-        HStack {
-          let toolbarButtonSize = 30.0
-          if !isLandscape {
-            Button(action: toggleSidebar) {
-              Image(systemName: "sidebar.left")
+        VStack {
+          HStack(alignment: .center) {
+            let toolbarButtonSize = 30.0
+            if !isLandscape {
+              Button(action: toggleSidebar) {
+                Image(systemName: "sidebar.left")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: toolbarButtonSize, height: toolbarButtonSize)
+              }
+            }
+            
+            Spacer()
+            
+            Menu {
+              Button {
+                print("Checklist")
+              } label: {
+                Label("Checklist", systemImage: "checklist")
+              }
+              
+              Button {
+                print("Denda")
+              } label: {
+                Label("Denda", systemImage: "dollarsign")
+              }
+            } label: {
+              Image(systemName: "square.and.arrow.up")
                 .resizable()
                 .scaledToFit()
                 .frame(width: toolbarButtonSize, height: toolbarButtonSize)
             }
+            .foregroundColor(.accentColor)
           }
+          .padding()
+          .padding(.top)
+          .padding(.horizontal)
           
           Spacer()
           
-          Menu {
-            Button {
-              print("Checklist")
-            } label: {
-              Label("Checklist", systemImage: "checklist")
-            }
-            
-            Button {
-              print("Denda")
-            } label: {
-              Label("Denda", systemImage: "dollarsign")
-            }
-          } label: {
-            Image(systemName: "square.and.arrow.up")
-              .resizable()
-              .scaledToFit()
-              .frame(width: toolbarButtonSize, height: toolbarButtonSize)
-          }
-          .foregroundColor(.accentColor)
+          Divider()
         }
-        .padding()
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
-        
-        Divider()
-          .offset(y: adjustY/2)
       }
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()

@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 21/08/25.
 //
 
+import CoreGraphics
 import CoreLocation
 import MapKit
 import SwiftUI
@@ -13,19 +14,17 @@ import SwiftUI
 struct MapViewRepresentable: UIViewRepresentable {
   @ObservedObject var locationManager: LocationManager
   @ObservedObject var plantManager: PlantManager
+  @EnvironmentObject private var filterVM: MapFilterViewModel
 
   // MARK: - Initialization
 
-  /// Initialize MapViewRepresentable
-  /// - Parameters:
-  ///   - locationManager: Location manager for user location tracking
-  ///   - plantManager: Centralized plant state manager
+  /// Convenience initializer defaulting to showing all plant types
   init(
     locationManager: LocationManager,
     plantManager: PlantManager
   ) {
-    self.locationManager = locationManager
-    self.plantManager = plantManager
+    self._locationManager = ObservedObject(wrappedValue: locationManager)
+    self._plantManager = ObservedObject(wrappedValue: plantManager)
   }
 
   // MARK: - UIViewRepresentable Implementation
@@ -47,6 +46,9 @@ struct MapViewRepresentable: UIViewRepresentable {
 
     // Add long press gesture recognizer
     addLongPressGesture(to: mapView, context: context)
+
+    // Add tap gesture recognizer for path drawing
+    addTapGesture(for: mapView, context: context)
 
     return mapView
   }
@@ -79,6 +81,9 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsCompass = false
     mapView.showsScale = false
     mapView.showsTraffic = false
+
+    mapView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+
   }
 
   /// Configure user interaction capabilities
@@ -112,41 +117,129 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.addGestureRecognizer(longPressGesture)
   }
 
+  /// Add tap gesture recognizer to the map for path drawing
+  private func addTapGesture(for mapView: MKMapView, context: Context) {
+    let tapGesture = UITapGestureRecognizer(
+      target: context.coordinator,
+      action: #selector(Coordinator.handlePathTap(_:))
+    )
+    mapView.addGestureRecognizer(tapGesture)
+  }
+
   /// Update map annotations when plants change
   private func updateAnnotations(on mapView: MKMapView) {
-    // Remove existing annotations
-    let existingAnnotations = mapView.annotations.filter { !($0 is MKUserLocation) }
-    mapView.removeAnnotations(existingAnnotations)
+    // Determine which plants should be visible based on selected types
+    let allPlants = plantManager.plants
+    let visiblePlants =
+      filterVM.selectedPlantTypes.isEmpty
+      ? allPlants
+      : allPlants.filter { filterVM.selectedPlantTypes.contains($0.type) }
 
-    // Remove existing overlays
-    let existingOverlays = mapView.overlays
-    mapView.removeOverlays(existingOverlays)
+    // --- Annotations: incremental diff (PlantAnnotation only) ---
+    let existingAnnotations = mapView.annotations
+      .compactMap { $0 as? PlantAnnotation }
+    let existingIds = Set(existingAnnotations.map { $0.id })
+    let desiredIds = Set(visiblePlants.filter { $0.type == .tree }.map { $0.id })
 
-    // Add new plant annotations
-    let annotations = plantManager.plants.map { PlantAnnotation(plant: $0) }
-    mapView.addAnnotations(annotations)
+    // Remove annotations no longer needed
+    let annotationsToRemove = existingAnnotations.filter { !desiredIds.contains($0.id) }
+    if !annotationsToRemove.isEmpty { mapView.removeAnnotations(annotationsToRemove) }
 
-    // Add tree radius overlays
-    let treeOverlays = plantManager.plants
-      .compactMap { plant -> MKCircle? in
-        guard plant.type == .tree, let radius = plant.radius else { return nil }
-        return MKCircle(center: plant.location, radius: radius)
+    // Add missing annotations
+    let idsToAdd = desiredIds.subtracting(existingIds)
+    let annotationsToAdd =
+      visiblePlants
+      .filter { $0.type == .tree && idsToAdd.contains($0.id) }
+      .map { PlantAnnotation(plant: $0) }
+    if !annotationsToAdd.isEmpty { mapView.addAnnotations(annotationsToAdd) }
+
+    // --- Overlays: circles (recreate) ---
+    // Remove existing MKCircle overlays (tree radii) then add desired ones; circles don't carry IDs
+    let circleOverlays = mapView.overlays.compactMap { $0 as? MKCircle }
+    if !circleOverlays.isEmpty { mapView.removeOverlays(circleOverlays) }
+    let desiredCircles = visiblePlants.compactMap { plant -> MKCircle? in
+      guard plant.type == .tree, let radius = plant.radius else { return nil }
+      return MKCircle(center: plant.location, radius: radius)
+    }
+    if !desiredCircles.isEmpty {
+      print("🌳 Creating \(desiredCircles.count) tree overlays")
+      mapView.addOverlays(desiredCircles)
+    }
+
+    // --- Overlays: path polylines/polygons (diff using PlantPolyline/PlantPolygon with plantId) ---
+    let existingPathOverlays = mapView.overlays.compactMap { overlay -> (UUID, MKOverlay)? in
+      if let polygon = overlay as? PlantPolygon { return (polygon.plantId, polygon) }
+      if let polyline = overlay as? PlantPolyline { return (polyline.plantId, polyline) }
+      return nil
+    }
+    let existingPathIds = Set(existingPathOverlays.map { $0.0 })
+    let desiredPathIds = Set(
+      visiblePlants.filter { $0.type != .tree && $0.path != nil }.map { $0.id })
+
+    // Remove path overlays no longer needed
+    let overlaysToRemove =
+      existingPathOverlays
+      .filter { !desiredPathIds.contains($0.0) }
+      .map { $0.1 }
+    if !overlaysToRemove.isEmpty { mapView.removeOverlays(overlaysToRemove) }
+
+    // Add missing path overlays
+    let pathIdsToAdd = desiredPathIds.subtracting(existingPathIds)
+    let overlaysToAdd: [MKOverlay] = visiblePlants.compactMap { plant in
+      guard plant.type != .tree, let path = plant.path, pathIdsToAdd.contains(plant.id) else {
+        return nil
       }
+      if path.count < 3 { return PlantPolyline(plantId: plant.id, coordinates: path) }
+      return PlantPolygon(plantId: plant.id, coordinates: path)
+    }
+    if !overlaysToAdd.isEmpty {
+      print("🌿 Creating \(overlaysToAdd.count) path overlays")
+      mapView.addOverlays(overlaysToAdd)
+    }
 
-    print("🌳 Creating \(treeOverlays.count) tree overlays")
-    mapView.addOverlays(treeOverlays)
+    // --- Temporary plant overlays/annotation (respect filter) ---
+    // Remove any plain MKPolyline/MKPolygon that are not our typed variants to avoid duplicates
+    let plainPolylinePolygon = mapView.overlays.filter { overlay in
+      (overlay is MKPolyline && !(overlay is PlantPolyline))
+        || (overlay is MKPolygon && !(overlay is PlantPolygon))
+    }
+    if !plainPolylinePolygon.isEmpty { mapView.removeOverlays(plainPolylinePolygon) }
 
-    // Add temporary plant annotation if exists
-    if let tempPlant = plantManager.temporaryPlant {
-      let tempAnnotation = PlantAnnotation(plant: tempPlant)
-      mapView.addAnnotation(tempAnnotation)
-
-      // Add temporary plant radius overlay if it's a tree
-      if tempPlant.type == .tree, let radius = tempPlant.radius {
-        let tempOverlay = MKCircle(center: tempPlant.location, radius: radius)
-        print("🌱 Adding temporary plant overlay with radius: \(radius)m")
-        mapView.addOverlay(tempOverlay)
+    if let tempPlant = plantManager.temporaryPlant,
+      filterVM.selectedPlantTypes.isEmpty
+        || filterVM.selectedPlantTypes.contains(tempPlant.type)
+    {
+      if tempPlant.type == .tree {
+        let tempAnnotation = PlantAnnotation(plant: tempPlant)
+        mapView.addAnnotation(tempAnnotation)
+        if let radius = tempPlant.radius {
+          let tempOverlay = MKCircle(center: tempPlant.location, radius: radius)
+          print("🌱 Adding temporary plant overlay with radius: \(radius)m")
+          mapView.addOverlay(tempOverlay)
+        }
+      } else if let path = tempPlant.path {
+        let tempPathOverlay: MKOverlay =
+          (path.count < 3)
+          ? MKPolyline(coordinates: path, count: path.count)
+          : MKPolygon(coordinates: path, count: path.count)
+        print("🌱 Adding temporary plant path overlay with \(path.count) points")
+        mapView.addOverlay(tempPathOverlay)
       }
+    }
+
+    // --- Current path drawing overlay ---
+    if plantManager.isDrawingPath {
+      let currentPathOverlay: MKOverlay =
+        (plantManager.currentPathPoints.count < 3)
+        ? MKPolyline(
+          coordinates: plantManager.currentPathPoints,
+          count: plantManager.currentPathPoints.count)
+        : MKPolygon(
+          coordinates: plantManager.currentPathPoints,
+          count: plantManager.currentPathPoints.count)
+      print(
+        "✏️ Adding current path drawing overlay with \(plantManager.currentPathPoints.count) points")
+      mapView.addOverlay(currentPathOverlay)
     }
   }
 }
@@ -279,6 +372,67 @@ extension MapViewRepresentable {
       impactFeedback.impactOccurred()
     }
 
+    /// Handle tap gesture for path drawing and overlay selection
+    @objc func handlePathTap(_ gesture: UITapGestureRecognizer) {
+      let mapView = gesture.view as! MKMapView
+      let point = gesture.location(in: mapView)
+
+      // If drawing, append point and return
+      if parent.plantManager.isDrawingPath {
+        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+        parent.plantManager.addPathPoint(coordinate)
+        return
+      }
+
+      // Otherwise, hit-test overlays for selection
+      if let plant = hitTestOverlays(at: point, in: mapView) {
+        isSelectingPlant = true
+        parent.plantManager.selectPlant(plant)
+        centerMapOnPlant(plant, in: mapView)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          self.isSelectingPlant = false
+        }
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+      }
+    }
+
+    /// Hit-test tap against overlay renderers to find the plant under the tap.
+    /// Converts to renderer space using `renderer.point(for:)` then checks:
+    /// - Polygon: `renderer.path.contains(point)`
+    /// - Polyline: stroked path with tolerance contains point
+    private func hitTestOverlays(at point: CGPoint, in mapView: MKMapView) -> PlantInstance? {
+      for overlay in mapView.overlays.reversed() {
+        if overlay is MKCircle { continue }
+
+        if let polygon = overlay as? PlantPolygon,
+          let renderer = mapView.renderer(for: polygon) as? MKPolygonRenderer,
+          let cgPath = renderer.path
+        {
+          let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+          let mapPoint = MKMapPoint(coordinate)
+          let rendererPoint = renderer.point(for: mapPoint)
+          if cgPath.contains(rendererPoint) {
+            return parent.plantManager.plants.first(where: { $0.id == polygon.plantId })
+          }
+        } else if let polyline = overlay as? PlantPolyline,
+          let renderer = mapView.renderer(for: polyline) as? MKPolylineRenderer,
+          let cgPath = renderer.path
+        {
+          let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+          let mapPoint = MKMapPoint(coordinate)
+          let rendererPoint = renderer.point(for: mapPoint)
+          let tolerance = max(22.0, CGFloat(renderer.lineWidth) + 16.0)
+          let stroked = cgPath.copy(
+            strokingWithWidth: tolerance, lineCap: .round, lineJoin: .round, miterLimit: 0)
+          if stroked.contains(rendererPoint) {
+            return parent.plantManager.plants.first(where: { $0.id == polyline.plantId })
+          }
+        }
+      }
+      return nil
+    }
+
     // MARK: - MKMapViewDelegate
 
     /// Configure annotation views for plants
@@ -377,7 +531,7 @@ extension MapViewRepresentable {
       parent.plantManager.selectPlant(nil)
     }
 
-    /// Configure overlay renderers for tree radius circles
+    /// Configure overlay renderers for tree radius circles, path polygons, and polylines
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
       print("🎨 Rendering overlay: \(type(of: overlay))")
 
@@ -387,6 +541,51 @@ extension MapViewRepresentable {
         renderer.strokeColor = UIColor.systemGreen.withAlphaComponent(0.6)
         renderer.lineWidth = 2.0
         print("🌿 Created circle renderer with radius: \(circle.radius)m")
+        return renderer
+      }
+
+      if let polyline = overlay as? MKPolyline {
+        let renderer = MKPolylineRenderer(polyline: polyline)
+
+        // Check if this is a current path drawing overlay
+        if parent.plantManager.isDrawingPath
+          && polyline.pointCount == parent.plantManager.currentPathPoints.count
+        {
+          // Current path drawing gets a different style
+          renderer.strokeColor = UIColor.systemOrange.withAlphaComponent(0.9)
+          renderer.lineWidth = 3.0
+          print(
+            "✏️ Created current path drawing polyline renderer with \(polyline.pointCount) points")
+        } else {
+          // Existing path overlays get the standard style
+          renderer.strokeColor = UIColor.systemTeal.withAlphaComponent(0.8)
+          renderer.lineWidth = 2.0
+          print("🌿 Created polyline renderer with \(polyline.pointCount) points")
+        }
+
+        return renderer
+      }
+
+      if let polygon = overlay as? MKPolygon {
+        let renderer = MKPolygonRenderer(polygon: polygon)
+
+        // Check if this is a current path drawing overlay
+        if parent.plantManager.isDrawingPath
+          && polygon.pointCount == parent.plantManager.currentPathPoints.count
+        {
+          // Current path drawing gets a different style
+          renderer.fillColor = UIColor.systemOrange.withAlphaComponent(0.2)
+          renderer.strokeColor = UIColor.systemOrange.withAlphaComponent(0.9)
+          renderer.lineWidth = 3.0
+          print("✏️ Created current path drawing renderer with \(polygon.pointCount) points")
+        } else {
+          // Existing path overlays get the standard style
+          renderer.fillColor = UIColor.systemTeal.withAlphaComponent(0.3)
+          renderer.strokeColor = UIColor.systemTeal.withAlphaComponent(0.8)
+          renderer.lineWidth = 2.0
+          print("🌿 Created polygon renderer with \(polygon.pointCount) points")
+        }
+
         return renderer
       }
 
