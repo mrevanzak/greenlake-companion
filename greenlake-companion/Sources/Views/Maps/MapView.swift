@@ -26,13 +26,23 @@ struct MapView: View {
       // Map background
       mapContent
 
-      // Top controls overlay
-      logoutButton
-
       // Loading indicator overlay
       loadingIndicator
 
-      TopControlView()
+      VStack {
+        HStack {
+          AccountButton()
+
+          Spacer()
+
+          TopControlView()
+
+        }
+        .padding(.top, 24)
+        .padding(.horizontal, 22)
+        //            .background(.ultraThinMaterial)
+        Spacer()
+      }
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -62,22 +72,15 @@ struct MapView: View {
   }
 
   private var logoutButton: some View {
-    VStack {
-      HStack {
-        Spacer()
-        Button(action: {
-          authManager.logout()
-        }) {
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .font(.title2)
-            .foregroundColor(.primary)
-            .padding(12)
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-        }
-        .padding(.trailing, 20)
-      }
-      Spacer()
+    Button(action: {
+      authManager.logout()
+    }) {
+      Image(systemName: "rectangle.portrait.and.arrow.right")
+        .font(.title2)
+        .foregroundColor(.primary)
+        .padding(12)
+        .background(.ultraThinMaterial)
+        .clipShape(Circle())
     }
   }
 

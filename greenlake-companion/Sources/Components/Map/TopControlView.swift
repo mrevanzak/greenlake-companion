@@ -9,45 +9,52 @@ import SwiftUI
 
 struct TopControlView: View {
   @EnvironmentObject private var filterVM: MapFilterViewModel
-  @State private var selectedItem: String = "Mode"
+
+  @State private var selectedItem: String = "Pencatatan"
   @State private var showMenu = false
+
+  @Environment(\.colorScheme) private var colorScheme
 
   private let items = ["Pencatatan", "Ubah Peta"]
 
   var body: some View {
     HStack(alignment: .top) {
-      VStack(alignment: .leading, spacing: 0) {
-        expandableButton
+      Text("Mode")
+        .foregroundColor(.primary)
+        .font(.system(size: 16, weight: .semibold))
+        .frame(height: 32)
+        .opacity(0.7)
+      expandableButton
 
-        Menu {
-          ForEach(PlantType.allCases) { type in
-            Button(action: { filterVM.toggle(type) }) {
-              Label(
-                type.displayName,
-                systemImage: filterVM.selectedPlantTypes.contains(type)
-                  ? "checkmark.circle.fill" : "circle"
-              )
-            }
+      Menu {
+        ForEach(PlantType.allCases) { type in
+          Button(action: { filterVM.toggle(type) }) {
+            Label(
+              type.displayName,
+              systemImage: filterVM.selectedPlantTypes.contains(type)
+                ? "checkmark.circle.fill" : "circle"
+            )
           }
-          Divider()
-          Button("Show All", action: { filterVM.showAll() })
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "square.3.layers.3d.down.right")
-            Text("Layers")
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 10)
-          .background(.ultraThinMaterial)
-          .clipShape(Capsule())
         }
-        .accessibilityLabel("Layer filters")
-        Spacer()
+        Divider()
+        Button("Show All", action: { filterVM.showAll() })
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "square.3.layers.3d.down.right")
+          Text("Layers")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
       }
-      Spacer()
+      .accessibilityLabel("Layer filters")
     }
-    .padding(.top, 29)
-    .padding(.horizontal, 16)
+    .padding(4)
+    .padding(.leading, 12)
+    .background(Color(.systemGray5).opacity(0.3))
+    .background(.ultraThinMaterial)
+    .cornerRadius(20)
   }
 
   private var expandableButton: some View {
@@ -57,7 +64,7 @@ struct TopControlView: View {
       }
     }) {
       HStack(alignment: .top, spacing: 8) {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
           if showMenu {
             ForEach(items, id: \.self) { item in
               Button(action: {
@@ -67,8 +74,10 @@ struct TopControlView: View {
                 }
               }) {
                 Text(item)
-                  .font(.system(size: 16, weight: .medium))
+                  .font(.system(size: 16, weight: .semibold))
                   .foregroundColor(.primary)
+                  .padding(.vertical, 6)
+                  .padding(.horizontal, 6)
                 //                                        .padding()
                 //                                        .frame(maxWidth: .infinity, alignment: .leading)
               }
@@ -76,27 +85,32 @@ struct TopControlView: View {
 
           } else {
             Text(selectedItem)
-              .font(.system(size: 16, weight: .medium))
+              .font(.system(size: 16, weight: .semibold))
+              .padding(.vertical, 6)
+              .padding(.horizontal, 6)
               .foregroundColor(.primary)
-            //                            .padding()
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
 
         Image(systemName: "chevron.down")
-          .foregroundColor(showMenu ? .secondary : .primary)
+          .foregroundColor(showMenu ? .primary : .primary)
           .rotationEffect(.degrees(showMenu ? 180 : 0))
           .animation(.easeInOut(duration: 0.3), value: showMenu)
-          .frame(width: 24, height: 24)
+          .frame(width: 24, height: 32)
         //                        .background(.black)
 
       }
       .padding(.horizontal, 8)
       //                .padding(.vertical, 8)
       //                .frame(height: showMenu ? 100 : 44)
-      .frame(width: 200)
-      .background(.regularMaterial)
+      .frame(width: 175)
+      .background(Color.white.opacity(colorScheme == .dark ? 0.1 : 1.0))
       .clipShape(RoundedRectangle(cornerRadius: 16))
     }
   }
 }
+
+//#Preview {
+//    TopControlView()
+//}
