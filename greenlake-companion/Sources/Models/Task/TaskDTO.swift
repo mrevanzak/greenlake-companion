@@ -10,13 +10,13 @@ import Foundation
 /// Request model for creating a new task
 struct CreateTaskRequest: Codable {
   let taskName: String
+  let location: String
   let urgency: TaskType
   let dueDate: Date
   let plantId: UUID
-  let area: String?
+  let area: Double?
   let unit: String?
   let description: String?
-  let location: String
 
   enum CodingKeys: String, CodingKey {
     case taskName
@@ -34,7 +34,7 @@ struct CreateTaskRequest: Codable {
     urgency: TaskType,
     dueDate: Date,
     plantId: UUID,
-    area: String? = nil,
+    area: Double? = nil,
     unit: String? = nil,
     description: String? = nil,
     location: String,
@@ -58,7 +58,7 @@ struct CreateTaskResponse: Codable {
   let urgency: TaskType
   let dueDate: Date
   let plantId: UUID
-  let area: String?
+  let area: Double?
   let unit: String?
   let description: String?
   let location: String
@@ -138,6 +138,9 @@ struct TaskResponse: Codable {
   let author: String
   let title: String
   let description: String?
+  let area: Double?
+  let unit: String?
+  let location: String
   let status: String
   let urgency: String
   let plantType: String
@@ -153,6 +156,9 @@ struct TaskResponse: Codable {
     case author
     case title = "taskName"
     case description
+    case area
+    case unit
+    case location
     case status
     case urgency
     case plantType = "plant_type"
@@ -213,9 +219,13 @@ extension TaskResponse {
 
     return LandscapingTask(
       title: title,
+      location: location,
       description: description ?? "",
+      area: area ?? 0,
+      unit: unit ?? "",
       taskType: taskType,
       plantType: mappedPlantType,
+      plant_name: plantName,
       status: taskStatus,
       dueDate: dueDate,
       dateCreated: createdAt,

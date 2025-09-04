@@ -418,7 +418,7 @@ class PDFBuilder {
     // Draw Key-Value Details
     let detailsFont = UIFont.systemFont(ofSize: 10, weight: .regular)
     let details: [(key: String, value: String)] = [
-      ("Tanaman", task.plantInstance),
+      ("Tanaman", task.plant_name),
       ("Lokasi", task.location),
       ("Ukuran", "\(String(format: "%.2f", task.size)) \(task.unit)"),
       ("Tenggat Waktu", dateFormatter.string(from: task.dueDate)),
@@ -478,7 +478,7 @@ class PDFBuilder {
 
     let detailsFont = UIFont.systemFont(ofSize: 10, weight: .regular)
     let details: [(key: String, value: String)] = [
-      ("Plant", task.plantInstance), ("Location", task.location),
+      ("Plant", task.plant_name), ("Location", task.location),
       ("Size", "\(task.size) \(task.unit)"), ("Deadline", dateFormatter.string(from: task.dueDate)),
     ]
     let valueText = NSAttributedString(
@@ -673,7 +673,7 @@ class PDFBuilder {
   private func _drawKeyValueDetails(for task: LandscapingTask, fontSize: CGFloat = 10.0) {
     let detailsFont = UIFont.systemFont(ofSize: fontSize, weight: .regular)
     let details: [(key: String, value: String)] = [
-      ("Tanaman", task.plantInstance),
+      ("Tanaman", task.plant_name),
       ("Lokasi", task.location),
       ("Ukuran", "\(String(format: "%.2f", task.size)) \(task.unit)"),
       ("Tenggat Waktu", dateFormatter.string(from: task.dueDate)),

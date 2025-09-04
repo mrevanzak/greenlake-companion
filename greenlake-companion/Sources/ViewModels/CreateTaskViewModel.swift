@@ -17,9 +17,10 @@ class CreateTaskViewModel: ObservableObject {
   @Published var selectedConditionTags: Set<PlantConditionTag> = []
   @Published var description: String = ""
   @Published var taskName: String = ""
+  @Published var location: String = ""
   @Published var taskType: TaskType = .minor
   @Published var area: String = ""
-  @Published var unit: String = ""
+  @Published var unit: UnitType = .m2
   @Published var dueDate: Date =
     Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
   @Published var isLoading: Bool = false
@@ -126,10 +127,10 @@ class CreateTaskViewModel: ObservableObject {
         urgency: taskType,
         dueDate: dueDate,
         plantId: plantInstance.id,
-        area: area.isEmpty ? nil : area,
-        unit: unit.isEmpty ? nil : unit,
+        area: Double(area.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "0" : area),
+        unit: unit.rawValue,
         description: description.isEmpty ? nil : description,
-        location: generateLocationString(),
+        location: location,
         conditions: selectedConditionTags.isEmpty ? nil : selectedConditionTags.map { $0.rawValue }
       )
 
@@ -151,9 +152,10 @@ class CreateTaskViewModel: ObservableObject {
   func resetForm() {
     taskName = ""
     selectedConditionTags.removeAll()
+    location = ""
     description = ""
     taskType = .minor
-    unit = ""
+    unit = .m2
     area = ""
     dueDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
     clearImages()
