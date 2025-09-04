@@ -147,3 +147,50 @@ enum AuthEndpoint: APIEndpoint {
     }
   }
 }
+
+/// Task-specific API endpoints
+enum TaskEndpoint: APIEndpoint {
+  case createTask
+  case fetchTasks
+  case fetchTask(id: UUID)
+  case updateTask(id: UUID)
+  case deleteTask(id: UUID)
+
+  var path: String {
+    switch self {
+    case .createTask:
+      return "/tasks/create"
+    case .fetchTasks:
+      return "/tasks"
+    case .fetchTask(let id):
+      return "/tasks/\(id)"
+    case .updateTask(let id):
+      return "/tasks/\(id)"
+    case .deleteTask(let id):
+      return "/tasks/\(id)"
+    }
+  }
+
+  var method: HTTPMethod {
+    switch self {
+    case .createTask:
+      return .POST
+    case .fetchTasks, .fetchTask:
+      return .GET
+    case .updateTask:
+      return .PUT
+    case .deleteTask:
+      return .DELETE
+    }
+  }
+
+  var body: Encodable? {
+    switch self {
+    case .createTask, .updateTask:
+      // This will be set by the service when making the request
+      return nil
+    default:
+      return nil
+    }
+  }
+}

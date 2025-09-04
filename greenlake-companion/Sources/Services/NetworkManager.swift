@@ -25,6 +25,20 @@ protocol NetworkManagerProtocol {
   ///   - body: The request body to send
   /// - Returns: Decoded response of type T
   func request<T: Codable>(_ endpoint: APIEndpoint, with body: Encodable) async throws -> T
+
+  /// Make a multipart form data request with file uploads
+  /// - Parameters:
+  ///   - endpoint: The API endpoint to request
+  ///   - request: The request body to send as form fields
+  ///   - files: Array of file data to upload
+  ///   - fileFieldName: The field name for file uploads (default: "files")
+  /// - Returns: Decoded response of type T
+  func uploadMultipart<T: Codable>(
+    _ endpoint: APIEndpoint,
+    with request: Encodable,
+    files: [Data],
+    fileFieldName: String
+  ) async throws -> T
 }
 
 /// Centralized network management service for handling all API requests
@@ -124,6 +138,18 @@ class NetworkManager: NetworkManagerProtocol {
     return try decoder.decode(T.self, from: data)
   }
 
+  func uploadMultipart<T: Codable>(
+    _ endpoint: APIEndpoint,
+    with request: Encodable,
+    files: [Data],
+    fileFieldName: String = "files"
+  ) async throws -> T {
+    let multipartRequest = try buildMultipartRequest(
+      for: endpoint, with: request, files: files, fileFieldName: fileFieldName)
+    let data = try await performRequest(multipartRequest)
+    return try decoder.decode(T.self, from: data)
+  }
+
   // MARK: - Private Methods
 
   /// Build a URLRequest for the given endpoint
@@ -177,6 +203,99 @@ class NetworkManager: NetworkManagerProtocol {
         throw NetworkError.encodingError(error)
       }
     }
+
+    return request
+  }
+
+  /// Build a multipart form data URLRequest for file uploads
+  private func buildMultipartRequest(
+    for endpoint: APIEndpoint,
+    with body: Encodable,
+    files: [Data],
+    fileFieldName: String
+  ) throws -> URLRequest {
+    // Construct the full URL
+    var urlComponents = URLComponents(string: baseURL + endpoint.path)
+
+    // Add query parameters if present
+    if let queryParams = endpoint.queryParameters {
+      urlComponents?.queryItems = queryParams.map { key, value in
+        URLQueryItem(name: key, value: value)
+      }
+    }
+
+    guard let url = urlComponents?.url else {
+      throw NetworkError.invalidURL
+    }
+
+    // Create the request
+    var request = URLRequest(url: url)
+    request.httpMethod = endpoint.method.rawValue
+    request.timeoutInterval = timeoutInterval
+
+    // Create multipart form data
+    let boundary = "Boundary-\(UUID().uuidString)"
+    request.setValue(
+      "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+    // Set custom headers if provided (but don't override Content-Type)
+    endpoint.headers?.forEach { key, value in
+      if key.lowercased() != "content-type" {
+        request.setValue(value, forHTTPHeaderField: key)
+      }
+    }
+
+    // Add authentication header for protected endpoints if not already set
+    if endpoint.headers?["Authorization"] == nil && requiresAuthentication(endpoint) {
+      if let token = AuthManager.shared.accessToken {
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+      }
+    }
+
+    // Build multipart body
+    var bodyData = Data()
+
+    // Add form fields from the request object
+    do {
+      let jsonData = try encoder.encode(body)
+      if let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+        for (key, value) in jsonObject {
+          let stringValue: String
+          if let dateValue = value as? Date {
+            // Format date as ISO string
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+            stringValue = dateFormatter.string(from: dateValue)
+          } else {
+            stringValue = String(describing: value)
+          }
+
+          bodyData.append("--\(boundary)\r\n".data(using: .utf8)!)
+          bodyData.append(
+            "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
+          bodyData.append("\(stringValue)\r\n".data(using: .utf8)!)
+        }
+      }
+    } catch {
+      throw NetworkError.encodingError(error)
+    }
+
+    // Add file uploads
+    for (index, fileData) in files.enumerated() {
+      bodyData.append("--\(boundary)\r\n".data(using: .utf8)!)
+      bodyData.append(
+        "Content-Disposition: form-data; name=\"\(fileFieldName)\"; filename=\"image_\(index).jpg\"\r\n"
+          .data(using: .utf8)!)
+      bodyData.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+      bodyData.append(fileData)
+      bodyData.append("\r\n".data(using: .utf8)!)
+    }
+
+    // Close boundary
+    bodyData.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+    request.httpBody = bodyData
 
     return request
   }

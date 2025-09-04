@@ -13,10 +13,8 @@ enum Mode {
   case update
 }
 
-struct PlantDetailView: View {
-  let plant: PlantInstance
+struct PlantFormView: View {
   let mode: Mode
-  let onDismiss: () -> Void
 
   @StateObject private var plantManager = PlantManager.shared
 
@@ -26,17 +24,26 @@ struct PlantDetailView: View {
   @State private var pathPoints: [CLLocationCoordinate2D] = []
   @State private var showingDeleteConfirmation = false
 
-  private func initialState(plant: PlantInstance?) {
-    if let plant = plant {
-      nameInput = plant.name
-      typeInput = plant.type
-      radiusInput = plant.radius ?? 5.0
-      pathPoints = plant.path ?? []
+  @Environment(\.dismiss) var dismiss
 
-      // Sync with PlantManager's current path points for non-tree types
-      if plant.type != .tree {
-        plantManager.currentPathPoints = plant.path ?? []
-      }
+  var plant: PlantInstance {
+    switch mode {
+    case .create:
+      return plantManager.temporaryPlant ?? PlantInstance.empty()
+    case .update:
+      return plantManager.selectedPlant ?? PlantInstance.empty()
+    }
+  }
+
+  private func initialState(plant: PlantInstance) {
+    nameInput = plant.name
+    typeInput = plant.type
+    radiusInput = plant.radius ?? 5.0
+    pathPoints = plant.path ?? []
+
+    // Sync with PlantManager's current path points for non-tree types
+    if plant.type != .tree {
+      plantManager.currentPathPoints = plant.path ?? []
     }
   }
 
@@ -72,22 +79,6 @@ struct PlantDetailView: View {
   }
 
   var body: some View {
-    ZStack {
-      Color(.systemBackground)
-        .ignoresSafeArea()
-
-      VStack(spacing: 0) {
-        headerBar
-        Divider()
-
-        mainForm
-      }
-    }
-  }
-
-  // MARK: - View Components
-
-  private var mainForm: some View {
     Form {
       detailsSection
 
@@ -99,14 +90,18 @@ struct PlantDetailView: View {
         deleteSection
       }
     }
-    .contentMargins(.horizontal, 4)
     .scrollContentBackground(.hidden)
     .background(.clear)
+    .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button("Save") {
+          onSave()
+        }
+      }
+    }
     .onAppear {
       initialState(plant: plant)
-    }
-    .onDisappear {
-      plantManager.stopPathDrawing()
     }
     .onChange(of: plant) { oldPlant, newPlant in
       initialState(plant: newPlant)
@@ -138,10 +133,13 @@ struct PlantDetailView: View {
     }
   }
 
+  // MARK: - View Components
+
   private var detailsSection: some View {
     Section(
       header: Text("Details"),
-      footer: Text("Coordinates: \(plant.location.latitude), \(plant.location.longitude)")
+      footer: Text(
+        "Coordinates: \(plant.location.latitude ?? 0), \(plant.location.longitude ?? 0)")
     ) {
       TextField("Name", text: $nameInput)
         .textInputAutocapitalization(.words)
@@ -178,7 +176,7 @@ struct PlantDetailView: View {
 
       }
     }
-    .listRowBackground(Color.systemGray6)
+    .listRowBackground(Color(.systemGray6))
   }
 
   private var areaDrawingSection: some View {
@@ -219,7 +217,7 @@ struct PlantDetailView: View {
           .fontWeight(.medium)
       }
     }
-    .listRowBackground(Color.systemGray6)
+    .listRowBackground(Color(.systemGray6))
   }
 
   private var deleteSection: some View {
@@ -240,49 +238,12 @@ struct PlantDetailView: View {
     ) {
       Button("Delete", role: .destructive) {
         onDelete()
-        onDismiss()
+        dismiss()
       }
       Button("Cancel", role: .cancel) {}
     } message: {
       Text("Are you sure you want to delete '\(plant.name)'? This action cannot be undone.")
     }
-    .listRowBackground(Color.systemGray6)
-  }
-}
-
-// MARK: - Private Views
-
-extension PlantDetailView {
-  private var headerButtonWidth: CGFloat { 72 }
-
-  private var headerBar: some View {
-    HStack(alignment: .center) {
-      Button(action: { onDismiss() }) {
-        Text("Cancel")
-          .font(.body)
-          .foregroundColor(.secondary)
-      }
-      .frame(width: headerButtonWidth, alignment: .leading)
-
-      Spacer()
-
-      Text(mode == .create ? "New Plant" : plant.name)
-        .font(.headline)
-        .foregroundColor(.primary)
-        .lineLimit(1)
-        .truncationMode(.middle)
-
-      Spacer()
-
-      Button(action: { onSave() }) {
-        Text("Save")
-          .font(.body)
-      }
-      .disabled(typeInput != .tree && pathPoints.count < 3)
-      .frame(width: headerButtonWidth, alignment: .trailing)
-    }
-    .padding(.horizontal)
-    .padding(.top, 4)
-    .padding(.bottom, 8)
+    .listRowBackground(Color(.systemGray6))
   }
 }
