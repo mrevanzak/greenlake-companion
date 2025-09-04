@@ -27,6 +27,12 @@ typealias PlantsResponse = APIResponse<[PlantInstance]>
 /// Specific response for single plant endpoint
 typealias PlantResponse = APIResponse<PlantInstance>
 
+/// Specific response for tasks endpoint
+typealias TasksAPIResponse = APIResponse<[TaskResponse]>
+
+/// Specific response for single task endpoint
+typealias TaskAPIResponse = APIResponse<TaskResponse>
+
 /// API error response structure
 struct APIError: Codable, LocalizedError {
   let code: String

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AgendaView: View {
+  @StateObject private var viewModel = AgendaViewModel()
   @State private var columnVisibility = NavigationSplitViewVisibility.all
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
@@ -16,99 +17,7 @@ struct AgendaView: View {
   @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
   @State private var isContentVisible: Bool = true
 
-  @StateObject private var filterViewModel = FilterViewModel()
-
-  @State private var searchText = ""
   @State private var isFilterPresented = false
-
-  @State private var selectedTask: LandscapingTask?
-  var filteredTasks: [LandscapingTask] {
-    // 1. Start with the full list of tasks.
-    var processedTasks = sampleTasks
-
-    // 2. Apply all enum-based filters from the ViewModel.
-    processedTasks = processedTasks.filter { task in
-      let typeMatch =
-        filterViewModel.taskType.isEmpty || filterViewModel.taskType.contains(task.taskType)
-      let urgencyMatch =
-        filterViewModel.urgency.isEmpty || filterViewModel.urgency.contains(task.urgencyLabel)
-      let plantMatch =
-        filterViewModel.plantType.isEmpty || filterViewModel.plantType.contains(task.plantType)
-      let statusMatch =
-        filterViewModel.status.isEmpty || filterViewModel.status.contains(task.status)
-
-      return typeMatch && urgencyMatch && plantMatch && statusMatch
-    }
-
-    // 3. Apply the date range filter if the date range is valid AND not the default.
-    let isDefaultDateRange = Calendar.current.isDate(
-      filterViewModel.startDate, inSameDayAs: filterViewModel.endDate)
-
-    if filterViewModel.startDate <= filterViewModel.endDate && !isDefaultDateRange {
-
-      // To include the entire end date, we calculate the start of the *next* day.
-      let endOfDay =
-        Calendar.current.date(
-          byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: filterViewModel.endDate))
-        ?? filterViewModel.endDate
-      let startOfDay = Calendar.current.startOfDay(for: filterViewModel.startDate)
-
-      processedTasks = processedTasks.filter { task in
-        return task.dateCreated >= startOfDay && task.dateCreated < endOfDay
-      }
-    }
-
-    // 4. Apply the search text filter to the already-filtered list.
-    if !searchText.isEmpty {
-      processedTasks = processedTasks.filter { task in
-        task.title.localizedCaseInsensitiveContains(searchText)
-          || task.description.localizedCaseInsensitiveContains(searchText)
-      }
-    }
-
-    // 5. Apply sorting as the final step.
-    // (Assuming you have SortKey cases like .dateCreated and .title)
-    switch filterViewModel.sortKey {
-    case .dateCreated:
-      processedTasks.sort {
-        if filterViewModel.sortOrder == .ascending {
-          return $0.dateCreated < $1.dateCreated
-        } else {
-          return $0.dateCreated > $1.dateCreated
-        }
-      }
-
-    case .dateModified, .dateClosed:
-      processedTasks.sort { lhs, rhs in
-        // Determine which optional date property to use based on the sort key
-        let lhsDate = (filterViewModel.sortKey == .dateModified) ? lhs.dateModified : lhs.dateClosed
-        let rhsDate = (filterViewModel.sortKey == .dateModified) ? rhs.dateModified : rhs.dateClosed
-
-        let isAscending = filterViewModel.sortOrder == .ascending
-
-        switch (lhsDate, rhsDate) {
-        // Case 1: Both tasks have a valid date. Compare them normally.
-        case let (l?, r?):
-          return isAscending ? l < r : l > r
-
-        // Case 2: Only the left task has a date, so it comes first.
-        case (_?, nil):
-          return true
-
-        // Case 3: Only the right task has a date, so it comes first.
-        case (nil, _?):
-          return false
-
-        // Case 4: Both are nil, so their order doesn't matter.
-        case (nil, nil):
-          return false
-        }
-      }
-    }
-
-    // 6. Return the final, processed list.
-    return processedTasks
-  }
 
   var body: some View {
     GeometryReader { geometry in
@@ -125,7 +34,7 @@ struct AgendaView: View {
               HStack {
                 Image(systemName: "magnifyingglass")
                   .foregroundColor(.secondary)
-                TextField("Search Tasks", text: $searchText)
+                TextField("Search Tasks", text: $viewModel.searchText)
                 Image(systemName: "microphone.fill")
                   .foregroundColor(.secondary)
               }
@@ -139,14 +48,14 @@ struct AgendaView: View {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                   .resizable()
                   .frame(width: 30, height: 30)
-                  .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
+                  .foregroundColor(viewModel.filterViewModel.isDefaultState ? .secondary : .blue)
               }
               .popover(
                 isPresented: $isFilterPresented,
                 attachmentAnchor: .point(.trailing),
                 arrowEdge: .leading
               ) {
-                FilterPopover(viewModel: filterViewModel)
+                FilterPopover(viewModel: viewModel.filterViewModel)
                   .presentationCompactAdaptation(.popover)
               }
             }
@@ -156,18 +65,69 @@ struct AgendaView: View {
 
           ScrollView {
             LazyVStack(spacing: 0) {
-              ForEach(filteredTasks) { task in
-                TaskPreview(task: task)
-                  .padding()
-                  .background(selectedTask == task ? Color.blue : .clear)
-                  .foregroundColor(selectedTask == task ? Color.white : .primary)
-                  .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                      selectedTask = task
+              if viewModel.isLoading {
+                // Loading state
+                VStack(spacing: 16) {
+                  ProgressView("Loading tasks...")
+                    .font(.headline)
+                  Text("Please wait while we fetch your tasks")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 50)
+              } else if let errorMessage = viewModel.errorMessage {
+                // Error state
+                VStack(spacing: 16) {
+                  Image(systemName: "exclamationmark.triangle")
+                    .font(.largeTitle)
+                    .foregroundColor(.red)
+                  Text("Error Loading Tasks")
+                    .font(.headline)
+                  Text(errorMessage)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                  Button("Retry") {
+                    Task {
+                      await viewModel.loadTasks()
                     }
                   }
+                  .buttonStyle(.borderedProminent)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 50)
+              } else if viewModel.filteredTasks.isEmpty {
+                // Empty state
+                VStack(spacing: 16) {
+                  Image(systemName: "list.bullet")
+                    .font(.largeTitle)
+                    .foregroundColor(.secondary)
+                  Text("No Tasks Found")
+                    .font(.headline)
+                  Text("No tasks match your current filters")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 50)
+              } else {
+                // Tasks list
+                ForEach(viewModel.filteredTasks) { task in
+                  TaskPreview(task: task)
+                    .padding()
+                    .background(viewModel.selectedTask == task ? Color.blue : .clear)
+                    .foregroundColor(viewModel.selectedTask == task ? Color.white : .primary)
+                    .onTapGesture {
+                      withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.selectTask(task)
+                      }
+                    }
 
-                Divider()
+                  Divider()
+                }
               }
             }
           }
@@ -177,7 +137,7 @@ struct AgendaView: View {
       } detail: {
         VStack {
           ScrollView {
-            if let selectedTask {
+            if let selectedTask = viewModel.selectedTask {
               TaskDetailView(task: selectedTask)
                 .opacity(isContentVisible ? 1 : 0)
                 .onChange(of: selectedTask) {
@@ -197,7 +157,7 @@ struct AgendaView: View {
           }
           .navigationSplitViewStyle(.balanced)
           .onAppear {
-            selectedTask = filteredTasks[0]
+            viewModel.selectFirstTaskIfNeeded()
           }
         }
         .toolbar(.hidden)
@@ -254,6 +214,11 @@ struct AgendaView: View {
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()
         adjustedHeight = UIScreen.main.bounds.height + adjustY
+      }
+      .onAppear {
+        Task {
+          await viewModel.loadTasks()
+        }
       }
     }
   }

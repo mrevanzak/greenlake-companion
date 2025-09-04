@@ -14,11 +14,12 @@ protocol TaskServiceProtocol {
   ///   - request: The task creation request
   ///   - images: Optional array of image data to upload
   /// - Returns: The created task response
-  func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws -> TaskResponse
+  func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws
+    -> CreateTaskResponse
 
   /// Fetch all tasks
-  /// - Returns: Array of task responses
-  func fetchTasks() async throws -> [TaskResponse]
+  /// - Returns: Array of landscaping tasks
+  func fetchTasks() async throws -> [LandscapingTask]
 
   /// Fetch a specific task by ID
   /// - Parameter id: The task ID
@@ -51,13 +52,15 @@ class TaskService: TaskServiceProtocol {
 
   // MARK: - TaskServiceProtocol Implementation
 
-  func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws -> TaskResponse {
+  func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws
+    -> CreateTaskResponse
+  {
     do {
       print("📋 Creating task in API...")
 
       // If we have images, use multipart upload, otherwise use regular JSON
       if !images.isEmpty {
-        let response: TaskAPIResponse = try await networkManager.uploadMultipart(
+        let response: APIResponse<CreateTaskResponse> = try await networkManager.uploadMultipart(
           TaskEndpoint.createTask,
           with: request,
           files: images,
@@ -66,7 +69,7 @@ class TaskService: TaskServiceProtocol {
         print("✅ Successfully created task with images in API")
         return response.data
       } else {
-        let response: TaskAPIResponse = try await networkManager.request(
+        let response: APIResponse<CreateTaskResponse> = try await networkManager.request(
           TaskEndpoint.createTask, with: request)
         print("✅ Successfully created task in API")
         return response.data
@@ -77,12 +80,16 @@ class TaskService: TaskServiceProtocol {
     }
   }
 
-  func fetchTasks() async throws -> [TaskResponse] {
+  func fetchTasks() async throws -> [LandscapingTask] {
     do {
       print("📋 Fetching tasks from API...")
       let response: TasksAPIResponse = try await networkManager.request(TaskEndpoint.fetchTasks)
       print("✅ Successfully decoded \(response.data.count) tasks from API")
-      return response.data
+
+      // Convert TaskResponse to LandscapingTask using the adapter
+      let landscapingTasks = response.data.map { $0.toLandscapingTask() }
+      print("✅ Successfully converted \(landscapingTasks.count) tasks to LandscapingTask format")
+      return landscapingTasks
     } catch {
       print("❌ Error fetching tasks from API: \(error)")
       throw error
