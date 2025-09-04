@@ -13,6 +13,8 @@ struct CreateTaskRequest: Codable {
   let urgency: TaskType
   let dueDate: Date
   let plantId: UUID
+  let area: String?
+  let unit: String?
   let description: String?
   let location: String
 
@@ -21,6 +23,8 @@ struct CreateTaskRequest: Codable {
     case urgency
     case dueDate = "due_date"
     case plantId = "plant_id"
+    case area
+    case unit
     case description
     case location
   }
@@ -30,6 +34,8 @@ struct CreateTaskRequest: Codable {
     urgency: TaskType,
     dueDate: Date,
     plantId: UUID,
+    area: String? = nil,
+    unit: String? = nil,
     description: String? = nil,
     location: String,
     conditions: [String]? = nil
@@ -38,6 +44,8 @@ struct CreateTaskRequest: Codable {
     self.urgency = urgency
     self.dueDate = dueDate
     self.plantId = plantId
+    self.area = area
+    self.unit = unit
     self.description = description
     self.location = location
   }
@@ -50,6 +58,8 @@ struct CreateTaskResponse: Codable {
   let urgency: TaskType
   let dueDate: Date
   let plantId: UUID
+  let area: String?
+  let unit: String?
   let description: String?
   let location: String
   let status: TaskStatus
@@ -62,6 +72,8 @@ struct CreateTaskResponse: Codable {
     case urgency
     case dueDate = "due_date"
     case plantId = "plant_id"
+    case area
+    case unit
     case description
     case location
     case status

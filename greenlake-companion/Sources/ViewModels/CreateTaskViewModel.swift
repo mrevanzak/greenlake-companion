@@ -18,6 +18,8 @@ class CreateTaskViewModel: ObservableObject {
   @Published var description: String = ""
   @Published var taskName: String = ""
   @Published var taskType: TaskType = .minor
+  @Published var area: String = ""
+  @Published var unit: String = ""
   @Published var dueDate: Date =
     Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
   @Published var isLoading: Bool = false
@@ -124,6 +126,8 @@ class CreateTaskViewModel: ObservableObject {
         urgency: taskType,
         dueDate: dueDate,
         plantId: plantInstance.id,
+        area: area.isEmpty ? nil : area,
+        unit: unit.isEmpty ? nil : unit,
         description: description.isEmpty ? nil : description,
         location: generateLocationString(),
         conditions: selectedConditionTags.isEmpty ? nil : selectedConditionTags.map { $0.rawValue }
@@ -149,6 +153,8 @@ class CreateTaskViewModel: ObservableObject {
     selectedConditionTags.removeAll()
     description = ""
     taskType = .minor
+    unit = ""
+    area = ""
     dueDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
     clearImages()
     clearGlobalError()
