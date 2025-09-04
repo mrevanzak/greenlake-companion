@@ -5,7 +5,6 @@
 //  Created by AI Assistant on 21/08/25.
 //
 
-import AlertKit
 import MapKit
 import SwiftUI
 
@@ -47,18 +46,6 @@ struct MapView: View {
     ) {
       MainSheetView()
     }
-    .alert(
-      isPresent: $plantManager.isLoading,
-      view: AlertAppleMusic16View(title: "Loading", subtitle: nil, icon: .spinnerLarge)
-    )
-    .alert(
-      isPresent: .constant(plantManager.error != nil),
-      view: AlertAppleMusic16View(
-        title: "Error",
-        subtitle:
-          plantManager.error?.localizedDescription,
-        icon: .error)
-    )
   }
 
   // MARK: - View Components

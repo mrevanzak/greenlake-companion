@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		C5CD14982E688F790081E7F2 /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C5CD14972E688F790081E7F2 /* AlertKit */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		C5D989E92E56C324000AD3E6 /* greenlake-companion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "greenlake-companion.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -27,7 +23,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C5CD14982E688F790081E7F2 /* AlertKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +65,6 @@
 			);
 			name = "greenlake-companion";
 			packageProductDependencies = (
-				C5CD14972E688F790081E7F2 /* AlertKit */,
 			);
 			productName = "greenlake-companion";
 			productReference = C5D989E92E56C324000AD3E6 /* greenlake-companion.app */;
@@ -101,7 +95,6 @@
 			mainGroup = C5D989E02E56C324000AD3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				C5CD14962E688F790081E7F2 /* XCRemoteSwiftPackageReference "AlertKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C5D989EA2E56C324000AD3E6 /* Products */;
@@ -262,7 +255,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2N2R44UYM5;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
@@ -293,7 +286,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2N2R44UYM5;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
@@ -339,25 +332,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		C5CD14962E688F790081E7F2 /* XCRemoteSwiftPackageReference "AlertKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparrowcode/AlertKit";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.1.9;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		C5CD14972E688F790081E7F2 /* AlertKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C5CD14962E688F790081E7F2 /* XCRemoteSwiftPackageReference "AlertKit" */;
-			productName = AlertKit;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C5D989E12E56C324000AD3E6 /* Project object */;
 }

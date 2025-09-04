@@ -5,7 +5,6 @@
 //  Created by AI Assistant on 05/01/25.
 //
 
-import AlertKit
 import CoreLocation
 import PhotosUI
 import SwiftUI
@@ -86,14 +85,6 @@ struct CreateTaskView: View {
         }
       )
     }
-    .alert(
-      isPresent: $viewModel.isLoading,
-      view: AlertAppleMusic16View(title: "Loading...", subtitle: nil, icon: .spinnerLarge)
-    )
-    .alert(
-      isPresent: $viewModel.showErrorAlert,
-      view: AlertAppleMusic16View(title: "Error", subtitle: viewModel.errorMessage, icon: .error)
-    )
   }
 
   // MARK: - Images Section
