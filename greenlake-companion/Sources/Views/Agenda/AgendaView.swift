@@ -108,10 +108,10 @@ struct AgendaView: View {
       NavigationSplitView(columnVisibility: $columnVisibility) {
         VStack(spacing: 0) {
           VStack(alignment: .leading, spacing: 12) {
-            Text("Agenda")
-              .font(.largeTitle)
-              .fontWeight(.bold)
-              .padding(.horizontal)
+//            Text("Agenda")
+//              .font(.largeTitle)
+//              .fontWeight(.bold)
+//              .padding(.horizontal)
             
             // Search Bar
             HStack(spacing: 10) {
