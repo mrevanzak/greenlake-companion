@@ -15,12 +15,37 @@ struct TaskDetailView: View {
     VStack(alignment: .leading, spacing: 30) {
       VStack(alignment: .leading, spacing: 20) {
         // Header
-        HStack(alignment: .bottom) {
+        HStack(alignment: .top) {
           Text(task.title)
             .font(.title)
             .fontWeight(.bold)
           
           Spacer()
+          
+          Menu {
+            Button {
+              print("Berita Acara")
+            } label: {
+              Label("Berita Acara", systemImage: "text.document")
+            }
+            
+            Button {
+              print("Pengingat")
+            } label: {
+              Label("Pengingat", systemImage: "exclamationmark.bubble")
+            }
+          } label: {
+            HStack{
+              Text("Bagikan")
+              Divider()
+              Image(systemName: "chevron.down")
+            }
+            .frame(height: 40)
+            .padding(.horizontal, 10)
+            .foregroundColor(.white)
+            .background(.gray)
+            .cornerRadius(10)
+          }
           
           Menu {
             Button("Option A", action: { print("Option A selected") })
@@ -48,7 +73,7 @@ struct TaskDetailView: View {
             Text("Lokasi")
               .font(.subheadline)
               .foregroundColor(.secondary)
-          
+            
             Spacer()
             
             Text(task.location)
@@ -56,16 +81,30 @@ struct TaskDetailView: View {
               .foregroundColor(.primary)
               .bold()
           }
-
+          
           // Tanaman
           HStack {
             Text("Tanaman")
               .font(.subheadline)
               .foregroundColor(.secondary)
-          
+            
             Spacer()
             
             Text(task.plantInstance)
+              .font(.subheadline)
+              .foregroundColor(.primary)
+              .bold()
+          }
+          
+          // Ukuran
+          HStack {
+            Text("Ukuran")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Text("\(String(format: "%.2f", task.size)) \(task.unit)")
               .font(.subheadline)
               .foregroundColor(.primary)
               .bold()
@@ -76,7 +115,7 @@ struct TaskDetailView: View {
             Text("Tenggat Waktu")
               .font(.subheadline)
               .foregroundColor(.secondary)
-          
+            
             Spacer()
             
             let dueDateStr = dateFormatter.string(from: task.dueDate)

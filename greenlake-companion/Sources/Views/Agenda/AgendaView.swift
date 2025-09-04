@@ -13,7 +13,7 @@ struct AgendaView: View {
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
   
-  @State private var adjustedScreenHeight = UIScreen.main.bounds.height + 80
+  @State private var adjustedHeight = UIScreen.main.bounds.height + adjustY
   @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
   @State private var isContentVisible: Bool = true
   
@@ -21,7 +21,6 @@ struct AgendaView: View {
   
   @State private var searchText = ""
   @State private var isFilterPresented = false
-  @State private var isExportPresented = false
   
   @State private var selectedTask: LandscapingTask?
   var filteredTasks: [LandscapingTask] {
@@ -30,10 +29,10 @@ struct AgendaView: View {
     
     // 2. Apply all enum-based filters from the ViewModel.
     processedTasks = processedTasks.filter { task in
-      let typeMatch = filterViewModel.taskType.contains(task.taskType)
-      let urgencyMatch = filterViewModel.urgency.contains(task.urgencyLabel)
-      let plantMatch = filterViewModel.plantType.contains(task.plantType)
-      let statusMatch = filterViewModel.status.contains(task.status)
+      let typeMatch = filterViewModel.taskType.isEmpty || filterViewModel.taskType.contains(task.taskType)
+      let urgencyMatch = filterViewModel.urgency.isEmpty || filterViewModel.urgency.contains(task.urgencyLabel)
+      let plantMatch = filterViewModel.plantType.isEmpty || filterViewModel.plantType.contains(task.plantType)
+      let statusMatch = filterViewModel.status.isEmpty || filterViewModel.status.contains(task.status)
       
       return typeMatch && urgencyMatch && plantMatch && statusMatch
     }
@@ -109,10 +108,10 @@ struct AgendaView: View {
       NavigationSplitView(columnVisibility: $columnVisibility) {
         VStack(spacing: 0) {
           VStack(alignment: .leading, spacing: 12) {
-            Text("Agenda")
-              .font(.largeTitle)
-              .fontWeight(.bold)
-              .padding(.horizontal)
+//            Text("Agenda")
+//              .font(.largeTitle)
+//              .fontWeight(.bold)
+//              .padding(.horizontal)
             
             // Search Bar
             HStack(spacing: 10) {
@@ -124,7 +123,7 @@ struct AgendaView: View {
                   .foregroundColor(.secondary)
               }
               .padding(10)
-              .background(Color(.systemGray6))
+              .background(isLandscape ? Color.systemGray6 : Color.systemGray4)
               .cornerRadius(10)
               
               Button {
@@ -133,8 +132,7 @@ struct AgendaView: View {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                   .resizable()
                   .frame(width: 30, height: 30)
-                //TODO: Fix bug
-                //                                .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
+                  .foregroundColor(filterViewModel.isDefaultState ? .secondary : .blue)
               }
               .popover(
                 isPresented: $isFilterPresented,
@@ -161,13 +159,13 @@ struct AgendaView: View {
                       selectedTask = task
                     }
                   }
-
+                
                 Divider()
               }
             }
           }
         }
-        .toolbar(removing: isLandscape ? .sidebarToggle : nil)
+        .toolbar(.hidden)
         .navigationSplitViewColumnWidth(sidebarWidth)
       }
       detail: {
@@ -177,15 +175,15 @@ struct AgendaView: View {
               TaskDetailView(task: selectedTask)
                 .opacity(isContentVisible ? 1 : 0)
                 .onChange(of: selectedTask) {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isContentVisible = false
+                  withAnimation(.easeOut(duration: 0.2)) {
+                    isContentVisible = false
+                  }
+                  
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.easeIn(duration: 0.2)) {
+                      isContentVisible = true
                     }
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        withAnimation(.easeIn(duration: 0.2)) {
-                            isContentVisible = true
-                        }
-                    }
+                  }
                 }
             } else {
               EmptyView()
@@ -195,45 +193,92 @@ struct AgendaView: View {
           .onAppear {
             selectedTask = filteredTasks[0]
           }
-          .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-              HStack {
-                Spacer()
-                Button {
-                  isExportPresented = true
-                } label: {
-                  Image(systemName: "square.and.arrow.up")
-                    .padding(.trailing)
-                }
-                .popover(
-                  isPresented: $isExportPresented,
-                  attachmentAnchor: .point(.bottom),
-                  arrowEdge: .top
-                ) {
-                  ExportPopover()
-                    .presentationCompactAdaptation(.popover)
-                }
-              }
-              .offset(y: -5)
-            }
-          }
         }
+        .toolbar(.hidden)
         .padding(.horizontal)
+      }
+      .frame(height: adjustedHeight, alignment: .top)
+      .offset(y: -adjustY)
+      .safeAreaInset(edge: .top, spacing: 0) {
+        VStack {
+          HStack(alignment: .center) {
+            let toolbarButtonSize = 30.0
+            if !isLandscape {
+              Button(action: toggleSidebar) {
+                Image(systemName: "sidebar.left")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: toolbarButtonSize, height: toolbarButtonSize)
+              }
+            }
+            
+            Spacer()
+            
+            Menu {
+              Button {
+                print("Checklist")
+              } label: {
+                Label("Checklist", systemImage: "checklist")
+              }
+              
+              Button {
+                print("Denda")
+              } label: {
+                Label("Denda", systemImage: "dollarsign")
+              }
+            } label: {
+              Image(systemName: "square.and.arrow.up")
+                .resizable()
+                .scaledToFit()
+                .frame(width: toolbarButtonSize, height: toolbarButtonSize)
+            }
+            .foregroundColor(.accentColor)
+          }
+          .padding()
+          .padding(.top)
+          .padding(.horizontal)
+          
+          Spacer()
+          
+          Divider()
+        }
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
       }
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()
-        adjustedScreenHeight = UIScreen.main.bounds.height + 80
+        adjustedHeight = UIScreen.main.bounds.height + adjustY
       }
     }
-    .ignoresSafeArea()
-    .frame(height: adjustedScreenHeight, alignment: .top)
+  }
+  
+  private struct AgendaToolbar: View {
+    var body: some View {
+      
+    }
   }
   
   private func isDeviceInLandscape() -> Bool {
     return UIScreen.main.bounds.width > UIScreen.main.bounds.height
   }
+  
+  private func toggleSidebar() {
+    withAnimation {
+      columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
+    }
+  }
 }
 
 #Preview {
-  AgendaView()
+  TabView {
+    AgendaView()
+      .tabItem{
+        Label("Tab 1", image: "map")
+      }
+    
+    AgendaView()
+      .tabItem{
+        Label("Tab 2", image: "map")
+      }
+  }
 }

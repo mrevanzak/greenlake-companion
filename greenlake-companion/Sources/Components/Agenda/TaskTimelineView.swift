@@ -10,15 +10,17 @@ import SwiftUI
 struct TaskTimelineView: View {
   let task: LandscapingTask
 
+  //  @State private var highlightedImage: Image?
+
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 0) {
-        ForEach(task.taskTimeline) { entry in
+        ForEach(task.taskTimeline.reversed()) { entry in
           HStack(alignment: .top, spacing: 16) {
-            TimelineIndicator(status: entry.statusAfter)
+            TimelineIndicator(status: entry.statusAfter, isLast: entry.statusBefore == nil)
 
             TimelineEntryView(entry: entry)
-              .padding(.bottom, 50)
+              .padding(.bottom, 60)
           }
         }
       }
@@ -27,6 +29,7 @@ struct TaskTimelineView: View {
 
   struct TimelineIndicator: View {
     let status: TaskStatus
+    let isLast: Bool
 
     private let circleSize: CGFloat = 40
     private let lineWidth: CGFloat = 3
@@ -43,9 +46,9 @@ struct TaskTimelineView: View {
             .font(.headline.weight(.bold))
         }
 
-        if status != .selesai && status != .dialihkan && status != .terdenda {
+        if !isLast {
           Rectangle()
-            .fill(status.displayColor)
+            .fill(.secondary)
             .frame(width: lineWidth)
         }
       }
@@ -77,15 +80,14 @@ struct TaskTimelineView: View {
         }
         .frame(maxWidth: 200)
 
-        // Thumbnail image
+        // Image Carousel
         if let images = entry.images, !images.isEmpty {
           ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 20) {
               ForEach(images.indices, id: \.self) { index in
-                images[index]
+                Image(uiImage: images[index])
                   .resizable()
                   .scaledToFit()
-                  .foregroundColor(.indigo)
                   .frame(height: 200)
               }
             }
@@ -138,7 +140,6 @@ struct TaskTimelineView: View {
               .cornerRadius(10)
           }
         }
-
       }
       .padding(.leading, 20)
     }

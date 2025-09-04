@@ -14,6 +14,8 @@ let dateFormatter: DateFormatter = {
   return formatter
 }()
 
+let adjustY = 60.0
+
 enum SortKey: String, CaseIterable, Identifiable {
   case dateCreated = "Date Created"
   case dateModified = "Date Modified"

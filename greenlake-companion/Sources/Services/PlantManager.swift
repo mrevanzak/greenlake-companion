@@ -101,6 +101,8 @@ class PlantManager: ObservableObject {
       let createdPlant = try await plantService.createPlant(tempPlant)
       plants.append(createdPlant)
       clearTemporaryPlant()
+      // Stop path drawing when saving
+      stopPathDrawing()
     } catch let serviceError {
       self.error = PlantError.createFailed(serviceError)
     }
@@ -169,6 +171,8 @@ class PlantManager: ObservableObject {
 
     isLoading = false
     selectedPlant = nil
+    // Stop path drawing when updating
+    stopPathDrawing()
   }
 
   /// Delete a plant from the system
@@ -192,11 +196,17 @@ class PlantManager: ObservableObject {
     }
 
     isLoading = false
+    // Stop path drawing when deleting
+    stopPathDrawing()
   }
 
   /// Select a plant for detailed viewing/editing
   /// - Parameter plant: The plant to select
   func selectPlant(_ plant: PlantInstance?) {
+    // Stop path drawing when switching plants
+    if selectedPlant?.id != plant?.id {
+      stopPathDrawing()
+    }
     selectedPlant = plant
   }
 

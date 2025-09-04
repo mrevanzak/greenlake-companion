@@ -1,11 +1,3 @@
-//
-//  PDFSampleView.swift
-//  greenlake-companion
-//
-//  Debug-only sample to generate and preview a PDF.
-//  Created by Savio Enoson on 02/09/25.
-//
-
 import PDFKit
 import SwiftUI
 
@@ -14,12 +6,28 @@ struct PDFSampleView: View {
 
   var body: some View {
     VStack {
-      Button("Generate and Preview PDF") {
-        generatePDF()
+      Menu {
+        Button("Checklist Harian", action: generateTaskChecklistPDF)
+        Button("Laporan Denda", action: generateFinePDF)
+        Button("Reminder Task", action: generateTaskReminder)
+        Button("Berita Acara", action: { print("Option C selected") })
+      } label: {
+        HStack {
+          Text("Generate PDF Files")
+          Divider()
+          Image(systemName: "chevron.down")
+        }
+        .frame(height: 120)
+        .padding(.horizontal, 20)
+        .foregroundColor(.white)
+        .background(.blue)
+        .cornerRadius(10)
       }
-      .font(.title)
-      .buttonStyle(.borderedProminent)
+      .font(.largeTitle)
     }
+    //    .task {
+    //    }
+    //      generatePDF()
     .padding()
     .sheet(item: $pdfPreview) { pdfDataWrapper in
       NavigationView {
@@ -28,54 +36,63 @@ struct PDFSampleView: View {
           .navigationBarTitleDisplayMode(.inline)
           .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-              Button("Done") { self.pdfPreview = nil }
+              Button("Close") {
+                self.pdfPreview = nil
+              }
             }
           }
       }
     }
   }
 
-  private func generatePDF() {
-    // Replace with real images or adjust names to match your asset catalog.
-    guard let img1 = UIImage(named: "img1"),
-      let img2 = UIImage(named: "img2"),
-      let img3 = UIImage(named: "img3"),
-      let img4 = UIImage(named: "img4")
-    else {
-      print(
-        "⚠️ Error: Could not load one or more images from assets. Make sure 'img1' through 'img4' exist."
-      )
-      return
-    }
-
-    let reportTitle = "Quarterly Progress Report"
-    let longParagraph = """
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla.
-      """
-
+  private func generateTaskChecklistPDF() {
+    let reportTitle = "REKAPITULASI PEKERJAAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
-      pdf.drawTitle(text: reportTitle)
-      pdf.drawParagraph(
-        text:
-          "This document outlines the key achievements and milestones from the past quarter. We have seen significant growth in user engagement and market penetration."
-      )
-      pdf.drawImage(image: img1, alignment: .center)
-      pdf.drawParagraph(text: longParagraph)
-      pdf.drawHorizontalRule()
-      pdf.drawTitle(text: "Image Gallery", alignment: .left)
-      pdf.drawParagraph(
-        text:
-          "A selection of images from recent company events and product launches. The following images are aligned to the center as a group."
-      )
-      pdf.drawImageList(images: [img2, img3, img4], alignment: .center)
-      pdf.drawParagraph(text: "End of report.", alignment: .center)
+      pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
+
+      let tasksToDraw = Array(sampleTasks.prefix(5))
+      pdf.drawTasks(tasks: tasksToDraw)
+    }
+
+    self.pdfPreview = PDFDataWrapper(data: pdfData)
+  }
+
+  private func generateFinePDF() {
+    let reportTitle = "LAPORAN KETERLAMBATAN"
+    let creator = PDFBuilder()
+    let pdfData = creator.createPDF { pdf in
+      pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
+
+      let lateClosedTasks = sampleTasks.filter { task in
+        guard let closedDate = task.dateClosed else {
+          return false
+        }
+        return closedDate > task.dueDate
+      }
+      let tasksToDraw = Array(lateClosedTasks.prefix(10))
+
+      pdf.drawFineTable(finedTasks: tasksToDraw)
+    }
+
+    self.pdfPreview = PDFDataWrapper(data: pdfData)
+  }
+
+  private func generateTaskReminder() {
+    let reportTitle = "INFORMASI PEKERJAAN"
+    let creator = PDFBuilder()
+    let pdfData = creator.createPDF { pdf in
+      pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
+
+      let taskToDraw = sampleTasks[Int.random(in: 1...sampleTasks.count)]
+      pdf.drawTaskReminder(task: taskToDraw)
     }
 
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
 }
 
+// This block allows you to see the UI in Xcode's canvas
 #Preview {
   PDFSampleView()
 }
