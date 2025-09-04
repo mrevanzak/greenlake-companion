@@ -70,7 +70,7 @@ struct TaskDetailView: View {
         VStack(alignment: .leading) {
           // Lokasi
           HStack {
-            Text("Lokasi")
+              Text("Lokasi")
               .font(.subheadline)
               .foregroundColor(.secondary)
             
@@ -90,11 +90,24 @@ struct TaskDetailView: View {
             
             Spacer()
             
-            Text(task.plantInstance)
+            Text(task.plant_name)
               .font(.subheadline)
               .foregroundColor(.primary)
               .bold()
           }
+            
+            HStack {
+              Text("Jenis Tanaman")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+              
+              Spacer()
+              
+                Text(task.plantType.displayName)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+                .bold()
+            }
           
           // Ukuran
           HStack {
@@ -104,7 +117,7 @@ struct TaskDetailView: View {
             
             Spacer()
             
-            Text("\(String(format: "%.2f", task.size)) \(task.unit)")
+            Text("\(String(format: "%.2f", task.area)) \(task.unit)")
               .font(.subheadline)
               .foregroundColor(.primary)
               .bold()
@@ -143,7 +156,7 @@ struct TaskDetailView: View {
         
         // Details
         VStack(alignment: .leading) {
-          Text("Catatan")
+          Text("Deskripsi Pekerjaan")
             .font(.subheadline)
             .foregroundColor(.secondary)
           

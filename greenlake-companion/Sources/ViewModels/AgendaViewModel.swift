@@ -56,6 +56,7 @@ class AgendaViewModel: ObservableObject {
     } catch {
       errorMessage = error.localizedDescription
       print("❌ Error loading tasks: \(error)")
+      print(error.localizedDescription)
     }
     isLoading = false
   }

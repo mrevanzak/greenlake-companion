@@ -222,6 +222,10 @@ struct CreateTaskView: View {
           .font(.caption)
           .foregroundColor(.red)
       }
+        
+        TextField("Lokasi Detail", text: $viewModel.location)
+        .textInputAutocapitalization(.sentences)
+        .autocorrectionDisabled(false)
 
       Picker("Jenis Tugas", selection: $viewModel.taskType) {
         ForEach(TaskType.allCases) { type in
@@ -250,9 +254,11 @@ struct CreateTaskView: View {
         .textInputAutocapitalization(.sentences)
         .autocorrectionDisabled(false)
         
-        TextField("Unit", text: $viewModel.unit)
-        .textInputAutocapitalization(.sentences)
-        .autocorrectionDisabled(false)
+        Picker("Unit", selection: $viewModel.unit) {
+          ForEach(UnitType.allCases) { type in
+            Text(type.displayName).tag(type)
+          }
+        }
 
       TextField("Deskripsi", text: $viewModel.description, axis: .vertical)
         .lineLimit(5...10)

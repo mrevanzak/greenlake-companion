@@ -96,18 +96,34 @@ class TaskService: TaskServiceProtocol {
     }
   }
 
-  func fetchTask(id: UUID) async throws -> TaskResponse {
-    do {
-      print("📋 Fetching task \(id) from API...")
-      let response: TaskAPIResponse = try await networkManager.request(
-        TaskEndpoint.fetchTask(id: id))
-      print("✅ Successfully fetched task from API")
-      return response.data
-    } catch {
-      print("❌ Error fetching task from API: \(error)")
-      throw error
+    func fetchTask(id: UUID) async throws -> TaskResponse {
+      do {
+        let response: TaskAPIResponse = try await networkManager.request(
+          TaskEndpoint.fetchTask(id: id))
+        print("✅ Successfully fetched task from API")
+        return response.data
+      } catch {
+        print("❌ Error fetching task from API: \(error)")
+        
+        if let decodingError = error as? DecodingError {
+          switch decodingError {
+          case .typeMismatch(let type, let context):
+            print("Type mismatch for type \(type), codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+          case .keyNotFound(let key, let context):
+            print("Key '\(key)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+          case .valueNotFound(let value, let context):
+            print("Value '\(value)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+          case .dataCorrupted(let context):
+            print("Data corrupted, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+          @unknown default:
+            print("Unknown decoding error")
+          }
+        }
+        
+        throw error  // 🔴 You MUST rethrow or return a fallback to satisfy the return type
+      }
     }
-  }
+
 
   func updateTask(id: UUID, with request: UpdateTaskRequest) async throws -> TaskResponse {
     do {
