@@ -16,7 +16,31 @@ struct TopControlView: View {
   private let items = ["Pencatatan", "Ubah Peta"]
 
   var body: some View {
-    HStack(alignment: .top) {
+    HStack(alignment: .center) {
+      Menu {
+        ForEach(PlantType.allCases) { type in
+          Button(action: { filterVM.toggle(type) }) {
+            Label(
+              type.displayName,
+              systemImage: filterVM.selectedPlantTypes.contains(type)
+                ? "checkmark.circle.fill" : "circle"
+            )
+          }
+        }
+        Divider()
+        Button("Show All", action: { filterVM.showAll() })
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "square.3.layers.3d.down.right")
+          Text("Layers")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+      }
+      .accessibilityLabel("Layer filters")
+
       Text("Mode")
         .foregroundColor(.primary)
         .font(.system(size: 16, weight: .semibold))
@@ -52,8 +76,6 @@ struct TopControlView: View {
                   .foregroundColor(.primary)
                   .padding(.vertical, 6)
                   .padding(.horizontal, 6)
-                //                                        .padding()
-                //                                        .frame(maxWidth: .infinity, alignment: .leading)
               }
             }
 
@@ -72,12 +94,9 @@ struct TopControlView: View {
           .rotationEffect(.degrees(showMenu ? 180 : 0))
           .animation(.easeInOut(duration: 0.3), value: showMenu)
           .frame(width: 24, height: 32)
-        //                        .background(.black)
 
       }
       .padding(.horizontal, 8)
-      //                .padding(.vertical, 8)
-      //                .frame(height: showMenu ? 100 : 44)
       .frame(width: 175)
       .background(Color.white.opacity(colorScheme == .dark ? 0.1 : 1.0))
       .clipShape(RoundedRectangle(cornerRadius: 16))
