@@ -30,7 +30,7 @@ struct MapView: View {
       loadingIndicator
 
       VStack {
-        HStack {
+        HStack(alignment: .top) {
           AccountButton()
 
           Spacer()
@@ -40,9 +40,11 @@ struct MapView: View {
         }
         .padding(.top, 24)
         .padding(.horizontal, 22)
-        //            .background(.ultraThinMaterial)
         Spacer()
       }
+      .padding(.top, 24)
+      .padding(.horizontal, 22)
+      Spacer()
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -107,7 +109,7 @@ struct MapView: View {
 
 // MARK: - Preview
 
-//#Preview {
-//  MapView()
-//    .environmentObject(AuthManager.shared)
-//}
+#Preview {
+  MapView()
+    .environmentObject(AuthManager.shared)
+}
