@@ -9,23 +9,14 @@ import SwiftUI
 
 struct TopControlView: View {
   @EnvironmentObject private var filterVM: MapFilterViewModel
-
   @State private var selectedItem: String = "Pencatatan"
   @State private var showMenu = false
-
   @Environment(\.colorScheme) private var colorScheme
 
   private let items = ["Pencatatan", "Ubah Peta"]
 
   var body: some View {
-    HStack(alignment: .top) {
-      Text("Mode")
-        .foregroundColor(.primary)
-        .font(.system(size: 16, weight: .semibold))
-        .frame(height: 32)
-        .opacity(0.7)
-      expandableButton
-
+    HStack(alignment: .center) {
       Menu {
         ForEach(PlantType.allCases) { type in
           Button(action: { filterVM.toggle(type) }) {
@@ -49,6 +40,13 @@ struct TopControlView: View {
         .clipShape(Capsule())
       }
       .accessibilityLabel("Layer filters")
+
+      Text("Mode")
+        .foregroundColor(.primary)
+        .font(.system(size: 16, weight: .semibold))
+        .frame(height: 32)
+        .opacity(0.7)
+      expandableButton
     }
     .padding(4)
     .padding(.leading, 12)
@@ -78,8 +76,6 @@ struct TopControlView: View {
                   .foregroundColor(.primary)
                   .padding(.vertical, 6)
                   .padding(.horizontal, 6)
-                //                                        .padding()
-                //                                        .frame(maxWidth: .infinity, alignment: .leading)
               }
             }
 
@@ -98,12 +94,9 @@ struct TopControlView: View {
           .rotationEffect(.degrees(showMenu ? 180 : 0))
           .animation(.easeInOut(duration: 0.3), value: showMenu)
           .frame(width: 24, height: 32)
-        //                        .background(.black)
 
       }
       .padding(.horizontal, 8)
-      //                .padding(.vertical, 8)
-      //                .frame(height: showMenu ? 100 : 44)
       .frame(width: 175)
       .background(Color.white.opacity(colorScheme == .dark ? 0.1 : 1.0))
       .clipShape(RoundedRectangle(cornerRadius: 16))
