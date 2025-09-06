@@ -203,6 +203,9 @@ class NetworkManager: NetworkManagerProtocol {
         throw NetworkError.encodingError(error)
       }
     }
+    
+    print("➡️ Network request URL: \(request.url?.absoluteString ?? "Invalid URL")")
+    print("➡️ HTTP Method: \(request.httpMethod ?? "NO METHOD")")
 
     return request
   }

@@ -14,6 +14,7 @@ class AgendaViewModel: ObservableObject {
   // MARK: - Published Properties
 
   @Published var tasks: [LandscapingTask] = []
+  @Published var timeline: [TaskChangelog] = []
   @Published var filteredTasks: [LandscapingTask] = []
   @Published var selectedTask: LandscapingTask?
   @Published var searchText: String = ""
