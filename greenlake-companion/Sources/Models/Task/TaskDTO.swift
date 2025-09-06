@@ -218,6 +218,7 @@ extension TaskResponse {
     }
 
     return LandscapingTask(
+      id: UUID(uuidString: id) ?? UUID(),
       title: title,
       location: location,
       description: description ?? "",

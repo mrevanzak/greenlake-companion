@@ -8,7 +8,7 @@
 import Foundation
 
 struct LandscapingTask: Identifiable, Hashable {
-  let id = UUID()
+  let id : UUID
   var imageName: String {
     switch self.plantType {
     case .tree:
@@ -27,7 +27,7 @@ struct LandscapingTask: Identifiable, Hashable {
   }
   let area: Double
   let unit: String
-    
+  
   var urgencyLabel: UrgencyLabel {
     var daysUntilDue: Int {
       let calendar = Calendar.current
@@ -50,7 +50,7 @@ struct LandscapingTask: Identifiable, Hashable {
       return .long
     }
   }
-    
+  
   let taskType: TaskType
   let plantType: PlantType
   let plant_name: String
@@ -60,11 +60,8 @@ struct LandscapingTask: Identifiable, Hashable {
   let dateModified: Date?
   let dateClosed: Date?
   
-  var taskTimeline: [TaskChangelog] {
-    return generateTimeline()
-  }
-  
-    init(title: String, location: String, description: String, area: Double, unit: String, taskType: TaskType, plantType: PlantType, plant_name: String, status: TaskStatus, dueDate: Date, dateCreated: Date, dateModified: Date?, dateClosed: Date?) {
+  init(id: UUID, title: String, location: String, description: String, area: Double, unit: String, taskType: TaskType, plantType: PlantType, plant_name: String, status: TaskStatus, dueDate: Date, dateCreated: Date, dateModified: Date?, dateClosed: Date?) {
+    self.id = id
     self.title = title
     self.location = location
     self.description = description
@@ -79,77 +76,85 @@ struct LandscapingTask: Identifiable, Hashable {
     self.dateModified = dateModified
     self.dateClosed = dateClosed
   }
-  
-  private func generateTimeline() -> [TaskChangelog] {
-    var changelogs: [TaskChangelog] = []
-    
-    // 1. Define the complete potential status flows for each task type.
-    let majorFlowPath: [TaskStatus] = [.diajukan, .aktif, .diperiksa]
-    let minorFlowPath: [TaskStatus] = [.aktif]
-    
-    var historicalFlow: [TaskStatus] = []
-    
-    // 2. Determine the actual historical flow for this specific task
-    //    based on its type and current status.
-    if self.taskType == .major {
-      // If the task is in a final state, its history includes the full path.
-      if status == .selesai || status == .terdenda || status == .dialihkan {
-        historicalFlow = majorFlowPath + [status]
-      } else if let currentIndex = majorFlowPath.firstIndex(of: status) {
-        // Otherwise, its history is the path up to its current status.
-        historicalFlow = Array(majorFlowPath.prefix(through: currentIndex))
-      }
-    } else { // Minor Task
-      if status == .selesai || status == .terdenda {
-        historicalFlow = minorFlowPath + [status]
-      } else { // .aktif
-        historicalFlow = minorFlowPath
-      }
-    }
-    
-    guard !historicalFlow.isEmpty else { return [] }
-    
-    // 3. Create realistic dates for each changelog entry by distributing
-    //    them evenly between the creation and modification dates.
-    let startTime = self.dateCreated
-    let endTime = self.dateModified ?? self.dateClosed ?? Date() // Fallback to now if not modified/closed
-    let totalDuration = endTime.timeIntervalSince(startTime)
-    let stepInterval = totalDuration / Double(historicalFlow.count)
-    
-    // 4. Create a changelog for each step in the determined historical flow.
-    for (index, currentStatus) in historicalFlow.enumerated() {
-      let statusBefore = index == 0 ? nil : historicalFlow[index - 1]
-      let changeDate = startTime.addingTimeInterval(stepInterval * Double(index + 1))
-      
-      let newLog = TaskChangelog(
-        userId: "Rizky", // Mock user ID
-        taskId: self.id.uuidString,
-        date: changeDate,
-        statusBefore: statusBefore,
-        statusAfter: currentStatus,
-        description: "Status diubah menjadi \(currentStatus.displayName)." // Mock description
-      )
-      changelogs.append(newLog)
-    }
-    
-    return changelogs
-  }
 }
-
-private func generateRandomLocation() -> String {
-  let blocks = ["A", "B", "C", "D"]
-  let unitNumber = Int.random(in: 1...30)
   
-  // Safely unwrap the random element, defaulting to "A" if it somehow fails.
-  let block = blocks.randomElement() ?? "A"
-  
-  return "Blok \(block) - \(unitNumber)"
-}
-
 let sampleTasks: [LandscapingTask] = [
+//   MARK: - Major Tasks
+//  Plant Type: Pohon
+  LandscapingTask(id: UUID(), title: "Pemangkasan Berat Pohon Angsana di Jl. Darmo", location: "Blok A5", description: "Fokus pada pemotongan dahan yang menjulur ke kabel listrik dan berpotensi patah saat angin kencang.", area: 10, unit: "m2", taskType: .major, plantType: .tree, plant_name: "Pinus Ganteng", status: .aktif, dueDate: Date(timeIntervalSince1970: 1751031933), dateCreated: Date(timeIntervalSince1970: 1750599933), dateModified: Date(timeIntervalSince1970: 1750945533), dateClosed: nil)
+]
+//}
+  
+//  private func generateTimeline() -> [TaskChangelog] {
+//    var changelogs: [TaskChangelog] = []
+//
+//    // 1. Define the complete potential status flows for each task type.
+//    let majorFlowPath: [TaskStatus] = [.diajukan, .aktif, .diperiksa]
+//    let minorFlowPath: [TaskStatus] = [.aktif]
+//
+//    var historicalFlow: [TaskStatus] = []
+//
+//    // 2. Determine the actual historical flow for this specific task
+//    //    based on its type and current status.
+//    if self.taskType == .major {
+//      // If the task is in a final state, its history includes the full path.
+//      if status == .selesai || status == .terdenda || status == .dialihkan {
+//        historicalFlow = majorFlowPath + [status]
+//      } else if let currentIndex = majorFlowPath.firstIndex(of: status) {
+//        // Otherwise, its history is the path up to its current status.
+//        historicalFlow = Array(majorFlowPath.prefix(through: currentIndex))
+//      }
+//    } else { // Minor Task
+//      if status == .selesai || status == .terdenda {
+//        historicalFlow = minorFlowPath + [status]
+//      } else { // .aktif
+//        historicalFlow = minorFlowPath
+//      }
+//    }
+//
+//    guard !historicalFlow.isEmpty else { return [] }
+//
+//    // 3. Create realistic dates for each changelog entry by distributing
+//    //    them evenly between the creation and modification dates.
+//    let startTime = self.dateCreated
+//    let endTime = self.dateModified ?? self.dateClosed ?? Date() // Fallback to now if not modified/closed
+//    let totalDuration = endTime.timeIntervalSince(startTime)
+//    let stepInterval = totalDuration / Double(historicalFlow.count)
+//
+//    // 4. Create a changelog for each step in the determined historical flow.
+//    for (index, currentStatus) in historicalFlow.enumerated() {
+//      let statusBefore = index == 0 ? nil : historicalFlow[index - 1]
+//      let changeDate = startTime.addingTimeInterval(stepInterval * Double(index + 1))
+//
+//      let newLog = TaskChangelog(
+//        userId: "Rizky", // Mock user ID
+//        taskId: self.id.uuidString,
+//        date: changeDate,
+//        statusBefore: statusBefore,
+//        statusAfter: currentStatus,
+//        description: "Status diubah menjadi \(currentStatus.displayName)." // Mock description
+//      )
+//      changelogs.append(newLog)
+//    }
+//
+//    return changelogs
+//  }
+//}
+
+//  private func generateRandomLocation() -> String {
+//    let blocks = ["A", "B", "C", "D"]
+//    let unitNumber = Int.random(in: 1...30)
+//
+//    // Safely unwrap the random element, defaulting to "A" if it somehow fails.
+//    let block = blocks.randomElement() ?? "A"
+//
+//    return "Blok \(block) - \(unitNumber)"
+//  }
+//
+//  let sampleTasks: [LandscapingTask] = [
 //  // MARK: - Major Tasks
-// // Plant Type: Pohon
-    LandscapingTask(title: "Pemangkasan Berat Pohon Angsana di Jl. Darmo", location: "Blok A5", description: "Fokus pada pemotongan dahan yang menjulur ke kabel listrik dan berpotensi patah saat angin kencang.", area: 10, unit: "m2", taskType: .major, plantType: .tree, plant_name: "Pinus Ganteng", status: .aktif, dueDate: Date(timeIntervalSince1970: 1751031933), dateCreated: Date(timeIntervalSince1970: 1750599933), dateModified: Date(timeIntervalSince1970: 1750945533), dateClosed: nil)
+//  Plant Type: Pohon
+//    LandscapingTask(title: "Pemangkasan Berat Pohon Angsana di Jl. Darmo", location: "Blok A5", description: "Fokus pada pemotongan dahan yang menjulur ke kabel listrik dan berpotensi patah saat angin kencang.", area: 10, unit: "m2", taskType: .major, plantType: .tree, plant_name: "Pinus Ganteng", status: .aktif, dueDate: Date(timeIntervalSince1970: 1751031933), dateCreated: Date(timeIntervalSince1970: 1750599933), dateModified: Date(timeIntervalSince1970: 1750945533), dateClosed: nil)
 // LandscapingTask(title: "Perawatan Akar Pohon Trembesi Area Balai Kota", description: "Pemberian nutrisi khusus dan penggemburan tanah di sekitar akar untuk revitalisasi pohon bersejarah.", taskType: .major, plantType: .tree, status: .diajukan, dueDate: Date(timeIntervalSince1970: 1750869789), dateCreated: Date(timeIntervalSince1970: 1750005789), dateModified: Date(timeIntervalSince1970: 1750178589), dateClosed: nil),
 // LandscapingTask(title: "Pemeriksaan Kesehatan Pohon Beringin Tua", description: "Evaluasi struktural dan kesehatan pohon oleh arboris bersertifikat, termasuk deteksi rongga batang.", taskType: .major, plantType: .tree, status: .diperiksa, dueDate: Date(timeIntervalSince1970: 1749372198), dateCreated: Date(timeIntervalSince1970: 1749112998), dateModified: Date(timeIntervalSince1970: 1749372198), dateClosed: nil),
 // LandscapingTask(title: "Penanaman Kembali 50 Bibit Tabebuya", description: "Proyek penghijauan jalur pedestrian dengan bibit pohon Tabebuya kuning dan merah muda.", taskType: .major, plantType: .tree, status: .selesai, dueDate: Date(timeIntervalSince1970: 1750232541), dateCreated: Date(timeIntervalSince1970: 1749502941), dateModified: Date(timeIntervalSince1970: 1749675741), dateClosed: Date(timeIntervalSince1970: 1750021341)),
@@ -182,5 +187,6 @@ let sampleTasks: [LandscapingTask] = [
 // LandscapingTask(title: "Pemotongan Rumput Hias Taman Depan Kantor", description: "Memotong rumput secara rutin menggunakan mesin potong untuk menjaga ketinggian ideal 3 cm.", taskType: .minor, plantType: .groundCover, status: .aktif, dueDate: Date(timeIntervalSince1970: 1751118061), dateCreated: Date(timeIntervalSince1970: 1750371661), dateModified: Date(timeIntervalSince1970: 1750803661), dateClosed: nil),
 // LandscapingTask(title: "Penyiangan Manual Area Bunga Krokot", description: "Mencabut rumput liar secara manual di antara tanaman bunga agar tidak terganggu pertumbuhannya.", taskType: .minor, plantType: .groundCover, status: .selesai, dueDate: Date(timeIntervalSince1970: 1751197782), dateCreated: Date(timeIntervalSince1970: 1750592982), dateModified: Date(timeIntervalSince1970: 1750938582), dateClosed: Date(timeIntervalSince1970: 1751370582)),
 // LandscapingTask(title: "Penyiraman Rumput Jepang di Area Gazebo", description: "Memastikan area rumput di sekitar gazebo mendapat pasokan air yang cukup di pagi hari.", taskType: .minor, plantType: .groundCover, status: .terdenda, dueDate: Date(timeIntervalSince1970: 1750369306), dateCreated: Date(timeIntervalSince1970: 1749764506), dateModified: Date(timeIntervalSince1970: 1750023706), dateClosed: Date(timeIntervalSince1970: 1750369306))
-]
+//  ]
 //
+//}

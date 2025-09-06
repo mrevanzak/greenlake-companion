@@ -153,6 +153,7 @@ enum TaskEndpoint: APIEndpoint {
   case createTask
   case fetchTasks
   case fetchTask(id: UUID)
+  case fetchTimeline(id: UUID)
   case updateTask(id: UUID)
   case deleteTask(id: UUID)
 
@@ -164,6 +165,8 @@ enum TaskEndpoint: APIEndpoint {
       return "/tasks"
     case .fetchTask(let id):
       return "/tasks/\(id)"
+    case .fetchTimeline(let id):
+      return "/tasks/\(id)/timeline"
     case .updateTask(let id):
       return "/tasks/\(id)"
     case .deleteTask(let id):
@@ -175,7 +178,7 @@ enum TaskEndpoint: APIEndpoint {
     switch self {
     case .createTask:
       return .POST
-    case .fetchTasks, .fetchTask:
+    case .fetchTasks, .fetchTask, .fetchTimeline:
       return .GET
     case .updateTask:
       return .PUT

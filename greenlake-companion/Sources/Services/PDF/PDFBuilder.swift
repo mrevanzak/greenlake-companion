@@ -8,12 +8,14 @@
 import PDFKit
 import UIKit
 
+
 // A custom enum for image alignment for better clarity
 enum ImageAlignment {
   case left, center, right
 }
 
 class PDFBuilder {
+  var timelinesByTaskID: [UUID: [TaskChangelog]] = [:]
   /// The current vertical position on the page.
   private var currentY: CGFloat = 0
 
@@ -373,22 +375,27 @@ class PDFBuilder {
 
   /// Helper function that draws a single task's content within a given frame.
   private func drawSingleTask(task: LandscapingTask, in frame: CGRect) {
-    let internalPadding: CGFloat = 10.0
-    var contentY = frame.minY + internalPadding
-    let contentX = frame.minX + internalPadding
-    let contentWidth = frame.width - (2 * internalPadding)
+      let internalPadding: CGFloat = 10.0
+      var contentY = frame.minY + internalPadding
+      let contentX = frame.minX + internalPadding
+      let contentWidth = frame.width - (2 * internalPadding)
 
-    // Draw Images
-    if let documentation = task.taskTimeline.last?.images, !documentation.isEmpty {
-      let imageSize = CGSize(width: 100, height: 100)
-      var imageX = contentX
-      for image in documentation.prefix(2) {
-        let imageRect = CGRect(origin: CGPoint(x: imageX, y: contentY), size: imageSize)
-        image.draw(in: imageRect)
-        imageX += imageSize.width + (internalPadding / 2)
+      // Draw Images
+      let timeline = timelinesByTaskID[task.id]
+      if let documentation = timeline?.last?.photos, !documentation.isEmpty {
+          let imageSize = CGSize(width: 100, height: 100)
+          var imageX = contentX
+          
+          for photo in documentation.prefix(2) {
+              // Load image from URL
+              if let image = loadImage(from: photo.imageUrl) {
+                  let imageRect = CGRect(origin: CGPoint(x: imageX, y: contentY), size: imageSize)
+                  image.draw(in: imageRect)
+                  imageX += imageSize.width + (internalPadding / 2)
+              }
+          }
+          contentY += imageSize.height + spacing
       }
-      contentY += imageSize.height + spacing
-    }
 
     // Draw Title
     let titleFont = UIFont.systemFont(ofSize: 16, weight: .bold)
@@ -453,8 +460,9 @@ class PDFBuilder {
     let contentWidth = width - (2 * internalPadding)
 
     calculatedHeight += internalPadding  // Top padding
+    let timeline = timelinesByTaskID[task.id]
 
-    if let documentation = task.taskTimeline.last?.images, !documentation.isEmpty {
+    if let documentation = timeline?.last?.photos, !documentation.isEmpty {
       calculatedHeight += 100 + spacing  // Image height
     }
 
@@ -609,64 +617,85 @@ class PDFBuilder {
 
   /// Draws a list of images that wrap to a new line if they exceed the page width.
   private func _drawWrappingImageList(for task: LandscapingTask) {
-    guard let documentation = task.taskTimeline.last?.images, !documentation.isEmpty else {
-      return
-    }
-
-    let maxImageHeight: CGFloat = 160.0
-    let imageSpacing: CGFloat = 10.0
-
-    // --- 1. Measurement Pass ---
-    // First, calculate the total height the gallery will occupy without drawing anything.
-    var totalGalleryHeight: CGFloat = 0
-    var currentX: CGFloat = margin
-    var rowMaxHeight: CGFloat = 0
-
-    for image in documentation {
-      let aspectRatio = image.size.width / image.size.height
-      let scaledHeight = min(image.size.height, maxImageHeight)
-      let scaledWidth = scaledHeight * aspectRatio
-
-      // Check for wrap
-      if currentX + scaledWidth > pageRect.width - margin {
-        totalGalleryHeight += rowMaxHeight + imageSpacing
-        currentX = margin
-        rowMaxHeight = 0
+      guard let timeline = timelinesByTaskID[task.id],
+            let documentation = timeline.last?.photos,
+            !documentation.isEmpty else {
+          return
       }
 
-      currentX += scaledWidth + imageSpacing
-      rowMaxHeight = max(rowMaxHeight, scaledHeight)
-    }
-    totalGalleryHeight += rowMaxHeight  // Add height of the last row
+      let maxImageHeight: CGFloat = 160.0
+      let imageSpacing: CGFloat = 10.0
 
-    // --- 2. Page Break Check ---
-    checkForPageBreak(addingHeight: totalGalleryHeight)
-
-    // --- 3. Drawing Pass ---
-    // Now, perform the same layout logic, but actually draw the images.
-    currentX = margin
-    let startY = currentY
-
-    for image in documentation {
-      let aspectRatio = image.size.width / image.size.height
-      let scaledHeight = min(image.size.height, maxImageHeight)
-      let scaledWidth = scaledHeight * aspectRatio
-
-      if currentX + scaledWidth > pageRect.width - margin {
-        currentY += rowMaxHeight + imageSpacing
-        currentX = margin
-        rowMaxHeight = 0
+      // Load all images first
+      var images: [UIImage] = []
+      for photo in documentation {
+          if let image = loadImage(from: photo.imageUrl) {
+              images.append(image)
+          } else {
+              // Add placeholder if image fails to load
+              images.append(UIImage(systemName: "photo") ?? UIImage())
+          }
       }
 
-      let imageRect = CGRect(x: currentX, y: currentY, width: scaledWidth, height: scaledHeight)
-      image.draw(in: imageRect)
+      // --- 1. Measurement Pass ---
+      // First, calculate the total height the gallery will occupy without drawing anything.
+      var totalGalleryHeight: CGFloat = 0
+      var currentX: CGFloat = margin
+      var rowMaxHeight: CGFloat = 0
 
-      currentX += scaledWidth + imageSpacing
-      rowMaxHeight = max(rowMaxHeight, scaledHeight)
-    }
+      for image in images {
+          let aspectRatio = image.size.width / image.size.height
+          let scaledHeight = min(image.size.height, maxImageHeight)
+          let scaledWidth = scaledHeight * aspectRatio
 
-    // Update main Y cursor to be below the entire gallery
-    currentY = startY + totalGalleryHeight + spacing
+          // Check for wrap
+          if currentX + scaledWidth > pageRect.width - margin {
+              totalGalleryHeight += rowMaxHeight + imageSpacing
+              currentX = margin
+              rowMaxHeight = 0
+          }
+
+          currentX += scaledWidth + imageSpacing
+          rowMaxHeight = max(rowMaxHeight, scaledHeight)
+      }
+      totalGalleryHeight += rowMaxHeight  // Add height of the last row
+
+      // --- 2. Page Break Check ---
+      checkForPageBreak(addingHeight: totalGalleryHeight)
+
+      // --- 3. Drawing Pass ---
+      // Now, perform the same layout logic, but actually draw the images.
+      currentX = margin
+      let startY = currentY
+      rowMaxHeight = 0 // Reset for drawing pass
+      var currentRowMaxHeight: CGFloat = 0
+
+      for (index, image) in images.enumerated() {
+          let aspectRatio = image.size.width / image.size.height
+          let scaledHeight = min(image.size.height, maxImageHeight)
+          let scaledWidth = scaledHeight * aspectRatio
+
+          // Check if we need to wrap to next line
+          if currentX + scaledWidth > pageRect.width - margin {
+              currentY += currentRowMaxHeight + imageSpacing
+              currentX = margin
+              currentRowMaxHeight = 0
+          }
+
+          let imageRect = CGRect(x: currentX, y: currentY, width: scaledWidth, height: scaledHeight)
+          image.draw(in: imageRect)
+
+          currentX += scaledWidth + imageSpacing
+          currentRowMaxHeight = max(currentRowMaxHeight, scaledHeight)
+          
+          // Update the overall row max height for this row
+          if index == images.count - 1 || currentX + scaledWidth > pageRect.width - margin {
+              rowMaxHeight = max(rowMaxHeight, currentRowMaxHeight)
+          }
+      }
+
+      // Update main Y cursor to be below the entire gallery
+      currentY = startY + totalGalleryHeight + spacing
   }
 
   /// Draws the key-value details section for a task.
@@ -710,5 +739,14 @@ class PDFBuilder {
     }
     // Add final spacing after the block
     currentY += spacing
+  }
+  
+  private func loadImage(from urlString: String) -> UIImage? {
+      guard let url = URL(string: urlString),
+            let data = try? Data(contentsOf: url),
+            let image = UIImage(data: data) else {
+          return nil
+      }
+      return image
   }
 }

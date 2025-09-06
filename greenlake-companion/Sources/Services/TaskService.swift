@@ -15,24 +15,26 @@ protocol TaskServiceProtocol {
   ///   - images: Optional array of image data to upload
   /// - Returns: The created task response
   func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws
-    -> CreateTaskResponse
-
+  -> CreateTaskResponse
+  
   /// Fetch all tasks
   /// - Returns: Array of landscaping tasks
   func fetchTasks() async throws -> [LandscapingTask]
-
+  
   /// Fetch a specific task by ID
   /// - Parameter id: The task ID
   /// - Returns: The task response
   func fetchTask(id: UUID) async throws -> TaskResponse
-
+  
+  func fetchTimeline(id: UUID) async throws -> [TaskChangelog]
+  
   /// Update an existing task
   /// - Parameters:
   ///   - id: The task ID
   ///   - request: The update request
   /// - Returns: The updated task response
   func updateTask(id: UUID, with request: UpdateTaskRequest) async throws -> TaskResponse
-
+  
   /// Delete a task
   /// - Parameter id: The task ID
   func deleteTask(id: UUID) async throws
@@ -41,23 +43,23 @@ protocol TaskServiceProtocol {
 /// Task service implementation using the network manager
 class TaskService: TaskServiceProtocol {
   // MARK: - Properties
-
+  
   private let networkManager: NetworkManagerProtocol
-
+  
   // MARK: - Initialization
-
+  
   init(networkManager: NetworkManagerProtocol = NetworkManager()) {
     self.networkManager = networkManager
   }
-
+  
   // MARK: - TaskServiceProtocol Implementation
-
+  
   func createTask(_ request: CreateTaskRequest, with images: [Data]) async throws
-    -> CreateTaskResponse
+  -> CreateTaskResponse
   {
     do {
       print("📋 Creating task in API...")
-
+      
       // If we have images, use multipart upload, otherwise use regular JSON
       if !images.isEmpty {
         let response: APIResponse<CreateTaskResponse> = try await networkManager.uploadMultipart(
@@ -79,13 +81,13 @@ class TaskService: TaskServiceProtocol {
       throw error
     }
   }
-
+  
   func fetchTasks() async throws -> [LandscapingTask] {
     do {
       print("📋 Fetching tasks from API...")
       let response: TasksAPIResponse = try await networkManager.request(TaskEndpoint.fetchTasks)
       print("✅ Successfully decoded \(response.data.count) tasks from API")
-
+      
       // Convert TaskResponse to LandscapingTask using the adapter
       let landscapingTasks = response.data.map { $0.toLandscapingTask() }
       print("✅ Successfully converted \(landscapingTasks.count) tasks to LandscapingTask format")
@@ -95,36 +97,56 @@ class TaskService: TaskServiceProtocol {
       throw error
     }
   }
-
-    func fetchTask(id: UUID) async throws -> TaskResponse {
-      do {
-        let response: TaskAPIResponse = try await networkManager.request(
-          TaskEndpoint.fetchTask(id: id))
-        print("✅ Successfully fetched task from API")
-        return response.data
-      } catch {
-        print("❌ Error fetching task from API: \(error)")
-        
-        if let decodingError = error as? DecodingError {
-          switch decodingError {
-          case .typeMismatch(let type, let context):
-            print("Type mismatch for type \(type), codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
-          case .keyNotFound(let key, let context):
-            print("Key '\(key)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
-          case .valueNotFound(let value, let context):
-            print("Value '\(value)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
-          case .dataCorrupted(let context):
-            print("Data corrupted, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
-          @unknown default:
-            print("Unknown decoding error")
-          }
+  
+  func fetchTask(id: UUID) async throws -> TaskResponse {
+    do {
+      let response: TaskAPIResponse = try await networkManager.request(
+        TaskEndpoint.fetchTask(id: id))
+      print("✅ Successfully fetched task from API")
+      return response.data
+    } catch {
+      print("❌ Error fetching task from API: \(error)")
+      
+      if let decodingError = error as? DecodingError {
+        switch decodingError {
+        case .typeMismatch(let type, let context):
+          print("Type mismatch for type \(type), codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+        case .keyNotFound(let key, let context):
+          print("Key '\(key)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+        case .valueNotFound(let value, let context):
+          print("Value '\(value)' not found, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+        case .dataCorrupted(let context):
+          print("Data corrupted, codingPath: \(context.codingPath), debugDescription: \(context.debugDescription)")
+        @unknown default:
+          print("Unknown decoding error")
         }
-        
-        throw error  // 🔴 You MUST rethrow or return a fallback to satisfy the return type
       }
+      
+      throw error
     }
+  }
+  
+  func fetchTimeline(id: UUID) async throws -> [TaskChangelog] {
+      do {
+          print("Fetching Task Timeline from API...")
+          
+          // Decode the correct shape
+          let response: APIResponse<TimelineWrapper> = try await networkManager.request(
+              TaskEndpoint.fetchTimeline(id: id)
+          )
+          
+          print("✅ Successfully decoded timeline from API")
+          return response.data.timeline
+      } catch {
+          print("❌ Error decoding timeline response: \(error)")
+          if let decodingError = error as? DecodingError {
+              print("🔍 Decoding error details: \(decodingError)")
+          }
+          throw error
+      }
+  }
 
-
+  
   func updateTask(id: UUID, with request: UpdateTaskRequest) async throws -> TaskResponse {
     do {
       print("📋 Updating task \(id) in API...")
@@ -137,7 +159,7 @@ class TaskService: TaskServiceProtocol {
       throw error
     }
   }
-
+  
   func deleteTask(id: UUID) async throws {
     do {
       print("📋 Deleting task \(id) from API...")

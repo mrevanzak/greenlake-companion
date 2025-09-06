@@ -33,6 +33,11 @@ typealias TasksAPIResponse = APIResponse<[TaskResponse]>
 /// Specific response for single task endpoint
 typealias TaskAPIResponse = APIResponse<TaskResponse>
 
+typealias TimelinesAPIResponse = APIResponse<[TaskChangelog]>
+
+/// Specific response for single task endpoint
+typealias TimelineAPIResponse = APIResponse<TaskChangelog>
+
 /// API error response structure
 struct APIError: Codable, LocalizedError {
   let code: String
