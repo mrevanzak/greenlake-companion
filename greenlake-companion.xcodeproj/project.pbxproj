@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C58F2E7F2E6DAC29007900BE /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C58F2E7E2E6DAC29007900BE /* AlertKit */; };
+		C58F30492E6DB9DF007900BE /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C58F30482E6DB9DF007900BE /* AlertKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C58F2E7F2E6DAC29007900BE /* AlertKit in Frameworks */,
+				C58F30492E6DB9DF007900BE /* AlertKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = "greenlake-companion";
 			packageProductDependencies = (
-				C58F2E7E2E6DAC29007900BE /* AlertKit */,
+				C58F30482E6DB9DF007900BE /* AlertKit */,
 			);
 			productName = "greenlake-companion";
 			productReference = C5D989E92E56C324000AD3E6 /* greenlake-companion.app */;
@@ -101,7 +101,7 @@
 			mainGroup = C5D989E02E56C324000AD3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				C58F2E7D2E6DAC29007900BE /* XCRemoteSwiftPackageReference "AlertKit" */,
+				C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C5D989EA2E56C324000AD3E6 /* Products */;
@@ -353,7 +353,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C58F2E7D2E6DAC29007900BE /* XCRemoteSwiftPackageReference "AlertKit" */ = {
+		C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mrevanzak/AlertKit";
 			requirement = {
@@ -364,9 +364,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C58F2E7E2E6DAC29007900BE /* AlertKit */ = {
+		C58F30482E6DB9DF007900BE /* AlertKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C58F2E7D2E6DAC29007900BE /* XCRemoteSwiftPackageReference "AlertKit" */;
+			package = C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */;
 			productName = AlertKit;
 		};
 /* End XCSwiftPackageProductDependency section */
