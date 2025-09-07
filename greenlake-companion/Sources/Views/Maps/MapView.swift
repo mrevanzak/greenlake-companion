@@ -26,9 +26,6 @@ struct MapView: View {
       // Map background
       mapContent
 
-      // Loading indicator overlay
-      loadingIndicator
-
       VStack {
         HStack(alignment: .top) {
           AccountButton()
@@ -83,21 +80,6 @@ struct MapView: View {
         .padding(12)
         .background(.ultraThinMaterial)
         .clipShape(Circle())
-    }
-  }
-
-  private var loadingIndicator: some View {
-    Group {
-      if plantManager.isLoading {
-        VStack {
-          ProgressView("Loading...")
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 100)
-      }
     }
   }
 
