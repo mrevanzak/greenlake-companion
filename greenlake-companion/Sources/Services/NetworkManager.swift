@@ -55,6 +55,7 @@ class NetworkManager: NetworkManagerProtocol {
   // Global loading indicator reference counting (supports concurrent requests)
   private static var activeRequestsCount: Int = 0
   private static let activeRequestsLock = NSLock()
+  @MainActor private static var isPresentingErrorAlert: Bool = false
 
   // MARK: - Initialization
 
@@ -160,16 +161,12 @@ class NetworkManager: NetworkManagerProtocol {
   // MARK: Global Loading Presentation
   @MainActor
   private func presentGlobalLoading() {
-    AlertKitAPI.present(
-      title: "Loading...",
-      icon: .spinnerLarge,
-      style: .iOS16AppleMusic
-    )
+    LoadingAlertController.shared.present()
   }
 
   @MainActor
   private func dismissGlobalLoading() {
-    AlertKitAPI.dismissAllAlerts()
+    LoadingAlertController.shared.dismiss()
   }
 
   // MARK: Global Error Presentation
@@ -203,6 +200,9 @@ class NetworkManager: NetworkManagerProtocol {
     NetworkManager.activeRequestsLock.unlock()
     if shouldDismiss {
       Task { @MainActor in
+        if NetworkManager.isPresentingErrorAlert {
+          try? await Task.sleep(nanoseconds: 300_000_000)
+        }
         dismissGlobalLoading()
       }
     }
@@ -405,7 +405,12 @@ class NetworkManager: NetworkManagerProtocol {
     } catch let error as NetworkError {
       requestError = error
       Task { @MainActor in
+        NetworkManager.isPresentingErrorAlert = true
         presentErrorAlert(message: error.errorDescription ?? "An unexpected error occurred")
+        Task { @MainActor in
+          try? await Task.sleep(nanoseconds: 300_000_000)
+          NetworkManager.isPresentingErrorAlert = false
+        }
       }
       throw error
     } catch {
@@ -414,13 +419,23 @@ class NetworkManager: NetworkManagerProtocol {
       if let urlError = error as? URLError {
         let converted = convertURLError(urlError)
         Task { @MainActor in
+          NetworkManager.isPresentingErrorAlert = true
           presentErrorAlert(message: converted.errorDescription ?? "Network error")
+          Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            NetworkManager.isPresentingErrorAlert = false
+          }
         }
         throw converted
       } else {
         Task { @MainActor in
+          NetworkManager.isPresentingErrorAlert = true
           presentErrorAlert(
             message: NetworkError.invalidResponse.errorDescription ?? "Invalid response")
+          Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            NetworkManager.isPresentingErrorAlert = false
+          }
         }
         throw NetworkError.invalidResponse
       }
