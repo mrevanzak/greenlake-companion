@@ -172,6 +172,18 @@ class NetworkManager: NetworkManagerProtocol {
     AlertKitAPI.dismissAllAlerts()
   }
 
+  // MARK: Global Error Presentation
+  @MainActor
+  private func presentErrorAlert(message: String) {
+    AlertKitAPI.present(
+      title: "Error",
+      subtitle: message,
+      icon: .error,
+      style: .iOS16AppleMusic,
+      haptic: .error
+    )
+  }
+
   private func incrementActiveRequests() {
     NetworkManager.activeRequestsLock.lock()
     NetworkManager.activeRequestsCount += 1
@@ -392,13 +404,24 @@ class NetworkManager: NetworkManagerProtocol {
       return data
     } catch let error as NetworkError {
       requestError = error
+      Task { @MainActor in
+        presentErrorAlert(message: error.errorDescription ?? "An unexpected error occurred")
+      }
       throw error
     } catch {
       requestError = error
       // Convert other errors to appropriate NetworkError types
       if let urlError = error as? URLError {
-        throw convertURLError(urlError)
+        let converted = convertURLError(urlError)
+        Task { @MainActor in
+          presentErrorAlert(message: converted.errorDescription ?? "Network error")
+        }
+        throw converted
       } else {
+        Task { @MainActor in
+          presentErrorAlert(
+            message: NetworkError.invalidResponse.errorDescription ?? "Invalid response")
+        }
         throw NetworkError.invalidResponse
       }
     }
