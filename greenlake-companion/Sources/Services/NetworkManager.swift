@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 28/08/25.
 //
 
+import AlertKit
 import Foundation
 
 /// Protocol defining network management operations for dependency injection and testing
@@ -50,6 +51,10 @@ class NetworkManager: NetworkManagerProtocol {
   private let decoder: JSONDecoder
   private let encoder: JSONEncoder
   private let timeoutInterval: TimeInterval
+
+  // Global loading indicator reference counting (supports concurrent requests)
+  private static var activeRequestsCount: Int = 0
+  private static let activeRequestsLock = NSLock()
 
   // MARK: - Initialization
 
@@ -152,6 +157,45 @@ class NetworkManager: NetworkManagerProtocol {
 
   // MARK: - Private Methods
 
+  // MARK: Global Loading Presentation
+  @MainActor
+  private func presentGlobalLoading() {
+    AlertKitAPI.present(
+      title: "Loading...",
+      icon: .spinnerLarge,
+      style: .iOS17AppleMusic
+    )
+  }
+
+  @MainActor
+  private func dismissGlobalLoading() {
+    AlertKitAPI.dismissAllAlerts()
+  }
+
+  private func incrementActiveRequests() {
+    NetworkManager.activeRequestsLock.lock()
+    NetworkManager.activeRequestsCount += 1
+    let shouldPresent = NetworkManager.activeRequestsCount == 1
+    NetworkManager.activeRequestsLock.unlock()
+    if shouldPresent {
+      Task { @MainActor in
+        presentGlobalLoading()
+      }
+    }
+  }
+
+  private func decrementActiveRequests() {
+    NetworkManager.activeRequestsLock.lock()
+    NetworkManager.activeRequestsCount = max(0, NetworkManager.activeRequestsCount - 1)
+    let shouldDismiss = NetworkManager.activeRequestsCount == 0
+    NetworkManager.activeRequestsLock.unlock()
+    if shouldDismiss {
+      Task { @MainActor in
+        dismissGlobalLoading()
+      }
+    }
+  }
+
   /// Build a URLRequest for the given endpoint
   private func buildRequest(for endpoint: APIEndpoint) throws -> URLRequest {
     return try buildRequest(for: endpoint, with: endpoint.body)
@@ -203,7 +247,7 @@ class NetworkManager: NetworkManagerProtocol {
         throw NetworkError.encodingError(error)
       }
     }
-    
+
     print("➡️ Network request URL: \(request.url?.absoluteString ?? "Invalid URL")")
     print("➡️ HTTP Method: \(request.httpMethod ?? "NO METHOD")")
 
@@ -317,6 +361,10 @@ class NetworkManager: NetworkManagerProtocol {
 
   /// Perform the actual network request
   private func performRequest(_ request: URLRequest) async throws -> Data {
+    // Show global loading when first request begins
+    incrementActiveRequests()
+    defer { decrementActiveRequests() }
+
     let startTime = Date()
     var success = false
     var requestError: Error?
