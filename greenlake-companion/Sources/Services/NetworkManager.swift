@@ -163,7 +163,7 @@ class NetworkManager: NetworkManagerProtocol {
     AlertKitAPI.present(
       title: "Loading...",
       icon: .spinnerLarge,
-      style: .iOS17AppleMusic
+      style: .iOS16AppleMusic
     )
   }
 
