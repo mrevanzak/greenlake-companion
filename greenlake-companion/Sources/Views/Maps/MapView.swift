@@ -38,8 +38,36 @@ struct MapView: View {
           TopControlView()
 
         }
-        .padding(.top, 24)
-        .padding(.horizontal, 22)
+       
+          
+          HStack {
+              Spacer()
+              
+              Menu {
+                      ForEach(PlantType.allCases) { type in
+                        Button(action: { filterVM.toggle(type) }) {
+                          Label(
+                            type.displayName,
+                            systemImage: filterVM.selectedPlantTypes.contains(type)
+                              ? "checkmark.circle.fill" : "circle"
+                          )
+                        }
+                      }
+                      Divider()
+                      Button("Show All", action: { filterVM.showAll() })
+                    } label: {
+                      HStack(spacing: 8) {
+                        Image(systemName: "square.3.layers.3d.down.right")
+                        Text("Layers")
+                      }
+              //        .padding(.horizontal, 12)
+              //        .padding(.vertical, 10)
+                      .background(.ultraThinMaterial)
+                      .clipShape(Capsule())
+                    }
+                    .accessibilityLabel("Layer filters")
+          }
+          
         Spacer()
       }
       .padding(.top, 24)
