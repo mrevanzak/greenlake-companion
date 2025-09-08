@@ -78,12 +78,13 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsUserLocation = true
     mapView.userTrackingMode = .none
     mapView.mapType = .standard
-    mapView.showsCompass = false
+    mapView.showsCompass = true
     mapView.showsScale = false
     mapView.showsTraffic = false
 
-    mapView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-
+//      mapView.layoutMargins = .zero
+    mapView.layoutMargins = UIEdgeInsets(top: 200, left: 70, bottom: 10, right: 10)
+      
   }
 
   /// Configure user interaction capabilities
