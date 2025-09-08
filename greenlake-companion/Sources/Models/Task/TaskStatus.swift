@@ -10,10 +10,8 @@ import SwiftUI
 enum TaskStatus: String, CaseIterable, Identifiable, DisplayableParameter, Codable {
   case diajukan = "Diajukan"
   case aktif = "Aktif"
-
   case diperiksa = "Diperiksa"
   case selesai = "Selesai"
-
   case terdenda = "Terdenda"
   case dialihkan = "Dialihkan"
 

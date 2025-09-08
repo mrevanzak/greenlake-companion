@@ -6,40 +6,52 @@
 //
 
 import Foundation
-import SwiftUI
 
-struct TaskChangelog: Identifiable, Hashable {
-  let id = UUID()
-  
-  let userId : String
-  let taskId : String
-  let date : Date
-  let statusBefore : TaskStatus?
-  let statusAfter : TaskStatus
-  let description : String?
-  
-  var images: [UIImage]? {
-    let numOfImages = Int.random(in: 1...3)
-    
-    if statusBefore == nil && statusAfter == .aktif || statusAfter == .diajukan {
-      return generateImages(numOfImages: numOfImages)
-    } else if statusBefore != nil && statusAfter == .diperiksa || statusAfter == .selesai {
-      return generateImages(numOfImages: numOfImages)
-    } else {
-      return nil
-    }
-  }
-  
-  // Generate dummy data for images
-  private func generateImages(numOfImages: Int) -> [UIImage] {
-    var generatedImages: [UIImage] = []
+// MARK: - TimelineWrapper
 
-    for _ in 1...numOfImages {
-      let systemImageName = ["img1", "img2", "img3", "img4"].randomElement()
-      let newImage = UIImage(named:systemImageName!)
-      generatedImages.append(newImage!)
+struct TimelineWrapper: Codable {
+    let id: UUID
+    let taskName: String
+    let plant_name: String
+    let author: String
+    let description: String
+    let location: String
+    let status: String
+    let urgency: String
+    let due_date: Date
+    let createdAt: Date
+    let timeline: [TaskChangelog]
+}
+
+// MARK: - TaskChangelog
+
+struct TaskChangelog: Identifiable, Codable, Hashable {
+    let id = UUID()  // Local identifier
+    let fromStatus: String?
+    let toStatus: String
+    let note: String
+    let author: String
+    let createdAt: Date
+    let photos: [Photo]
+
+    // Computed properties
+    var description: String? {
+        note
     }
-    
-    return generatedImages
-  }
+
+    var toStatusEnum: TaskStatus {
+        TaskStatus(rawValue: toStatus) ?? .diajukan
+    }
+
+    var fromStatusEnum: TaskStatus? {
+        guard let fromStatus else { return nil }
+        return TaskStatus(rawValue: fromStatus)
+    }
+}
+
+// MARK: - Photo Model
+
+struct Photo: Codable, Hashable {
+    let imageUrl: String
+    let thumbnailUrl: String
 }

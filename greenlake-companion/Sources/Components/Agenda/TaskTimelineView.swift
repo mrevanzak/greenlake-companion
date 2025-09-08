@@ -9,139 +9,189 @@ import SwiftUI
 
 struct TaskTimelineView: View {
   let task: LandscapingTask
-
-  //  @State private var highlightedImage: Image?
-
+  
+  @State private var timeline: [TaskChangelog] = []
+  @State private var isLoading = false
+  @State private var errorMessage: String?
+  
+  private let taskService = TaskService()
+  
   var body: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 0) {
-        ForEach(task.taskTimeline.reversed()) { entry in
-          HStack(alignment: .top, spacing: 16) {
-            TimelineIndicator(status: entry.statusAfter, isLast: entry.statusBefore == nil)
-
-            TimelineEntryView(entry: entry)
-              .padding(.bottom, 60)
+    Group {
+      if isLoading {
+        ProgressView("Memuat timeline...")
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if let errorMessage = errorMessage {
+        Text("❌ \(errorMessage)")
+          .foregroundColor(.red)
+          .multilineTextAlignment(.center)
+          .padding()
+      } else {
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(timeline.reversed()), id: \.id) { (entry: TaskChangelog) in
+                HStack(alignment: .top, spacing: 16) {
+                  TimelineIndicator(status: entry.toStatusEnum, isLast: entry.fromStatus?.isEmpty ?? true)
+                    TimelineEntryView(entry: entry)
+                        .padding(.bottom, 60)
+                }
+            }
           }
+          .padding()
         }
       }
     }
+    .task(id: task.id) {  
+      print("🔍 TaskTimelineView task changed: \(task.id)")
+      await loadTimeline()
+    }
   }
+  
+  private func loadTimeline() async {
+    isLoading = true
+    do {
+      self.timeline = try await taskService.fetchTimeline(id: task.id)
+      self.errorMessage = nil
+    } catch {
+      self.errorMessage = error.localizedDescription
+    }
+    isLoading = false
+  }
+}
 
-  struct TimelineIndicator: View {
-    let status: TaskStatus
-    let isLast: Bool
-
-    private let circleSize: CGFloat = 40
-    private let lineWidth: CGFloat = 3
-
-    var body: some View {
-      VStack(spacing: 0) {
-        ZStack {
-          Circle()
-            .fill(status.displayColor)
-            .frame(width: circleSize, height: circleSize)
-
-          Image(systemName: status.iconName)
-            .foregroundColor(.white)
-            .font(.headline.weight(.bold))
-        }
-
-        if !isLast {
-          Rectangle()
-            .fill(.secondary)
-            .frame(width: lineWidth)
-        }
+struct TimelineIndicator: View {
+  let status: TaskStatus
+  let isLast: Bool
+  
+  private let circleSize: CGFloat = 40
+  private let lineWidth: CGFloat = 3
+  
+  var body: some View {
+    VStack(spacing: 0) {
+      ZStack {
+        Circle()
+          .fill(status.displayColor)
+          .frame(width: circleSize, height: circleSize)
+        
+        Image(systemName: status.iconName)
+          .foregroundColor(.white)
+          .font(.headline.weight(.bold))
+      }
+      
+      if !isLast {
+        Rectangle()
+          .fill(.secondary)
+          .frame(width: lineWidth)
       }
     }
   }
+}
 
-  struct TimelineEntryView: View {
-    let entry: TaskChangelog
-
-    var body: some View {
-      VStack(alignment: .leading, spacing: 10) {
-        HStack {
-          Text(entry.statusBefore?.displayName ?? "Dibuat")
-            .font(.headline)
-            .bold()
-            .foregroundColor(entry.statusBefore?.displayColor ?? .secondary)
+struct TimelineEntryView: View {
+  let entry: TaskChangelog
+  
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Text(entry.fromStatusEnum?.displayName ?? "Dibuat")
+              .font(.headline)
+              .bold()
+              .foregroundColor(entry.fromStatusEnum?.displayColor ?? .secondary)
 
           Spacer()
 
           Image(systemName: "arrow.right")
-            .font(.headline)
+              .font(.headline)
 
           Spacer()
 
-          Text(entry.statusAfter.displayName)
-            .font(.headline)
-            .bold()
-            .foregroundColor(entry.statusAfter.displayColor)
-        }
-        .frame(maxWidth: 200)
-
-        // Image Carousel
-        if let images = entry.images, !images.isEmpty {
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-              ForEach(images.indices, id: \.self) { index in
-                Image(uiImage: images[index])
-                  .resizable()
-                  .scaledToFit()
-                  .frame(height: 200)
+          Text(entry.toStatusEnum.displayName)
+              .font(.headline)
+              .bold()
+              .foregroundColor(entry.toStatusEnum.displayColor)
+      }
+      .frame(maxWidth: 200)
+      
+      // Image Carousel
+      if !entry.photos.isEmpty {
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 20) {
+            ForEach(entry.photos, id: \.self) { photo in
+              if let url = URL(string: photo.imageUrl) {
+                AsyncImage(url: url) { phase in
+                  switch phase {
+                  case .empty:
+                    ProgressView()
+                      .frame(height: 200)
+                  case .success(let image):
+                    image
+                      .resizable()
+                      .scaledToFit()
+                      .frame(height: 200)
+                      .cornerRadius(10)
+                  case .failure:
+                    Image(systemName: "photo")
+                      .resizable()
+                      .scaledToFit()
+                      .foregroundColor(.gray)
+                      .frame(height: 200)
+                  @unknown default:
+                    EmptyView()
+                  }
+                }
               }
             }
           }
         }
-
-        VStack(alignment: .leading, spacing: 20) {
-          // Header (status change, admin, time)
-          VStack(alignment: .leading) {
-            // Penanggungjawab
-            HStack {
-              Text("Penanggungjawab")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-              Spacer()
-
-              Text(entry.userId)
-                .font(.subheadline)
-                .foregroundColor(.primary)
-                .bold()
-            }
-
-            // Tanggal changelog
-            HStack {
-              Text("Tanggal")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-              Spacer()
-
-              Text(dateFormatter.string(from: entry.date))
-                .font(.subheadline)
-                .foregroundColor(.primary)
-                .bold()
-            }
-          }
-          .frame(maxWidth: 300)
-
-          // Notes
-          VStack(alignment: .leading) {
-            Text("Catatan")
+      }
+      
+      VStack(alignment: .leading, spacing: 20) {
+        // Header (status change, admin, time)
+        VStack(alignment: .leading) {
+          // Penanggungjawab
+          HStack {
+            Text("Penanggungjawab")
               .font(.subheadline)
               .foregroundColor(.secondary)
-
-            Text(entry.description ?? "")
+            
+            Spacer()
+            
+            Text(entry.author)
               .font(.subheadline)
-              .padding(10)
-              .background(Color(.systemGray6))
-              .cornerRadius(10)
+              .foregroundColor(.primary)
+              .bold()
+          }
+          
+          // Tanggal changelog
+          HStack {
+            Text("Tanggal")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Text(dateFormatter.string(from: entry.createdAt))
+              .font(.subheadline)
+              .foregroundColor(.primary)
+              .bold()
           }
         }
+        .frame(maxWidth: 300)
+        
+        // Notes
+        VStack(alignment: .leading) {
+          Text("Catatan")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+          
+          Text(entry.description ?? "")
+            .font(.subheadline)
+            .padding(10)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+        }
       }
-      .padding(.leading, 20)
     }
+    .padding(.leading, 20)
   }
 }

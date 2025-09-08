@@ -53,5 +53,6 @@ struct TaskPreview: View {
       }
       .padding(.leading, 10)
     }
+    .contentShape(Rectangle())
   }
 }
