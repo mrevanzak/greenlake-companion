@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C58F30492E6DB9DF007900BE /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C58F30482E6DB9DF007900BE /* AlertKit */; };
+		C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C570B3922E6EE93B007D8136 /* AlertKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C58F30492E6DB9DF007900BE /* AlertKit in Frameworks */,
+				C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = "greenlake-companion";
 			packageProductDependencies = (
-				C58F30482E6DB9DF007900BE /* AlertKit */,
+				C570B3922E6EE93B007D8136 /* AlertKit */,
 			);
 			productName = "greenlake-companion";
 			productReference = C5D989E92E56C324000AD3E6 /* greenlake-companion.app */;
@@ -101,7 +101,7 @@
 			mainGroup = C5D989E02E56C324000AD3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */,
+				C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C5D989EA2E56C324000AD3E6 /* Products */;
@@ -262,7 +262,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2N2R44UYM5;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -299,7 +299,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2N2R44UYM5;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -353,7 +353,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */ = {
+		C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mrevanzak/AlertKit";
 			requirement = {
@@ -364,9 +364,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C58F30482E6DB9DF007900BE /* AlertKit */ = {
+		C570B3922E6EE93B007D8136 /* AlertKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C58F30472E6DB9DF007900BE /* XCRemoteSwiftPackageReference "AlertKit" */;
+			package = C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */;
 			productName = AlertKit;
 		};
 /* End XCSwiftPackageProductDependency section */
