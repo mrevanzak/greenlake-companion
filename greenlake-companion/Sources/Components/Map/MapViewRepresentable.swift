@@ -79,13 +79,28 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.userTrackingMode = .none
     mapView.mapType = .standard
     mapView.showsCompass = true
-    mapView.showsScale = false
+    mapView.showsScale = true
     mapView.showsTraffic = false
 
 //      mapView.layoutMargins = .zero
     mapView.layoutMargins = UIEdgeInsets(top: 200, left: 70, bottom: 10, right: 10)
       
+//      addCustomCompass(to: mapView)
+
+      
   }
+    
+    /// Add compass with custom positioning
+//    private func addCustomCompass(to mapView: MKMapView) {
+//      let compassButton = MKCompassButton(mapView: mapView)
+//      compassButton.translatesAutoresizingMaskIntoConstraints = false
+//      mapView.addSubview(compassButton)
+//      
+//      NSLayoutConstraint.activate([
+//        compassButton.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
+//        compassButton.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+//      ])
+//    }
 
   /// Configure user interaction capabilities
   private func configureUserInteraction(_ mapView: MKMapView) {

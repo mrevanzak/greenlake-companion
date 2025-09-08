@@ -104,8 +104,10 @@ struct AccountButton: View {
             //            .padding(.vertical, 8)
             .background(.ultraThinMaterial.opacity(isExpanded ? 1.0 : 0))
             .cornerRadius(20)
-        Spacer()
+            .shadow(color: isExpanded ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
+//        Spacer()
         }
+            
     }
 //}
 

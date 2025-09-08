@@ -40,35 +40,16 @@ struct MapView: View {
           HStack {
               Spacer()
               
-              Menu {
-                      ForEach(PlantType.allCases) { type in
-                        Button(action: { filterVM.toggle(type) }) {
-                          Label(
-                            type.displayName,
-                            systemImage: filterVM.selectedPlantTypes.contains(type)
-                              ? "checkmark.circle.fill" : "circle"
-                          )
-                        }
-                      }
-                      Divider()
-                      Button("Show All", action: { filterVM.showAll() })
-                    } label: {
-                      HStack(spacing: 8) {
-                        Image(systemName: "square.3.layers.3d.down.right")
-                        Text("Layers")
-                      }
-              //        .padding(.horizontal, 12)
-              //        .padding(.vertical, 10)
-                      .background(.ultraThinMaterial)
-                      .clipShape(Capsule())
-                    }
-                    .accessibilityLabel("Layer filters")
+              PlantTypeLayerFilter()
           }
           
         Spacer()
       }
-      .padding(.top, 24)
-      .padding(.horizontal, 22)
+      .padding()
+      .padding(.vertical, 16)
+      .padding(.horizontal, 6)
+//      .padding(.top, 24)
+//      .padding(.horizontal, 22)
       Spacer()
     }
     .environmentObject(locationManager)
@@ -119,7 +100,7 @@ struct MapView: View {
 
 // MARK: - Preview
 
-#Preview {
-  MapView()
-    .environmentObject(AuthManager.shared)
-}
+//#Preview {
+//  MapView()
+//    .environmentObject(AuthManager.shared)
+//}
