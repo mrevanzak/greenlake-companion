@@ -155,6 +155,7 @@ enum TaskEndpoint: APIEndpoint {
   case fetchTask(id: UUID)
   case fetchTimeline(id: UUID)
   case updateTask(id: UUID)
+  case updateStatus(id: UUID)
   case deleteTask(id: UUID)
 
   var path: String {
@@ -169,6 +170,8 @@ enum TaskEndpoint: APIEndpoint {
       return "/tasks/\(id)/timeline"
     case .updateTask(let id):
       return "/tasks/\(id)"
+    case .updateStatus(let id):
+      return "/tasks/\(id)/status"
     case .deleteTask(let id):
       return "/tasks/\(id)"
     }
@@ -180,7 +183,7 @@ enum TaskEndpoint: APIEndpoint {
       return .POST
     case .fetchTasks, .fetchTask, .fetchTimeline:
       return .GET
-    case .updateTask:
+    case .updateTask, .updateStatus:
       return .PUT
     case .deleteTask:
       return .DELETE
@@ -189,7 +192,7 @@ enum TaskEndpoint: APIEndpoint {
 
   var body: Encodable? {
     switch self {
-    case .createTask, .updateTask:
+    case .createTask, .updateTask, .updateStatus:
       // This will be set by the service when making the request
       return nil
     default:

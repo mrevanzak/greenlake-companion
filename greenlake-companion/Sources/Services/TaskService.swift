@@ -35,6 +35,8 @@ protocol TaskServiceProtocol {
   /// - Returns: The updated task response
   func updateTask(id: UUID, with request: UpdateTaskRequest) async throws -> TaskResponse
   
+  func updateTaskStatus(id: UUID, status: String, note: String?, photos: [Data]) async throws -> TaskResponse
+  
   /// Delete a task
   /// - Parameter id: The task ID
   func deleteTask(id: UUID) async throws
@@ -156,6 +158,22 @@ class TaskService: TaskServiceProtocol {
       return response.data
     } catch {
       print("❌ Error updating task in API: \(error)")
+      throw error
+    }
+  }
+  
+  func updateTaskStatus(id: UUID, status: String, note: String?, photos: [Data]) async throws -> TaskResponse {
+    do {
+      let body = UpdateStatusRequest(status: status, note: note)
+      let resp: UpdateStatusAPIResponse = try await networkManager.uploadMultipart(
+        TaskEndpoint.updateStatus(id: id),
+        with: body,
+        files: photos,
+        fileFieldName: "photos"
+      )
+      return resp.data
+    } catch {
+      print("❌ updateTaskStatus error: \(error)")
       throw error
     }
   }
