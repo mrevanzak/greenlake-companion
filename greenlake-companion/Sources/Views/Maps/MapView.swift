@@ -18,7 +18,9 @@ struct MapView: View {
 
   @State private var selectedItem: String = "Mode"
   @State private var showMenu = false
-
+    @State private var mapView: MKMapView?
+        @State private var selectedMapType: CustomMapType = .satellite
+    
   private let items = ["Pencatatan", "Label", "Label 2"]
 
   var body: some View {
@@ -35,22 +37,29 @@ struct MapView: View {
           TopControlView()
 
         }
-       
-          
-          HStack {
-              Spacer()
-              
-              PlantTypeLayerFilter()
-          }
-          
+    
         Spacer()
       }
       .padding()
       .padding(.vertical, 16)
       .padding(.horizontal, 6)
-//      .padding(.top, 24)
-//      .padding(.horizontal, 22)
-      Spacer()
+      .zIndex(1)
+        
+        HStack (alignment: .top) {
+            Spacer()
+            
+            VStack (alignment: .trailing) {
+                PlantTypeLayerFilter()
+                MapTypeControl(selectedMapType: $selectedMapType)
+                Spacer()
+
+            }
+        }
+        .padding()
+        .padding(.top, 70)
+        .padding(.horizontal, 6)
+        .zIndex(0)
+        
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -73,7 +82,9 @@ struct MapView: View {
   private var mapContent: some View {
     MapViewRepresentable(
       locationManager: locationManager,
-      plantManager: plantManager
+      plantManager: plantManager,
+      mapType: $selectedMapType // Pass the binding
+
     )
     .accessibilityHidden(true)
     .ignoresSafeArea()

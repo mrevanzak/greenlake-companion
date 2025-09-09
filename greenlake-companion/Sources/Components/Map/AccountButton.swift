@@ -82,7 +82,7 @@ struct AccountButton: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, isExpanded ? 10 : 8)
-                .background(Color.white.opacity(colorScheme == .dark ? 0.1 : 1.0))
+                .background(.thinMaterial)
                 .cornerRadius(17)
                 
                 VStack(alignment: .trailing, spacing: 8) {
@@ -108,7 +108,7 @@ struct AccountButton: View {
             }
             .padding(3)
             //            .padding(.vertical, 8)
-            .background(.ultraThinMaterial.opacity(isExpanded ? 1.0 : 0))
+            .background(.thinMaterial.opacity(isExpanded ? 0.8 : 0))
             .cornerRadius(20)
             .shadow(color: isExpanded ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
 //        Spacer()
@@ -117,7 +117,7 @@ struct AccountButton: View {
     }
 //}
 
-#Preview {
-    AccountButton()
-        .environmentObject(AuthManager.shared)
-}
+//#Preview {
+//    AccountButton()
+//        .environmentObject(AuthManager.shared)
+//}

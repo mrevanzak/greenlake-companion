@@ -11,28 +11,22 @@ struct PlantTypeLayerFilter: View {
     @EnvironmentObject private var filterVM: MapFilterViewModel
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             ForEach(PlantType.allCases) { type in
                 Button(action: { filterVM.toggle(type) }) {
                     Image(systemName: iconForPlantType(type))
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(filterVM.selectedPlantTypes.contains(type) ? .green : .secondary)
+                        .foregroundColor(filterVM.selectedPlantTypes.contains(type) ? .primary : .secondary.opacity(0.5))
                         .padding(10)
-                        .background(filterVM.selectedPlantTypes.contains(type) ?
-                                    Color.green.opacity(0.2) : Color.clear)
-                    
+                        .background(Color.clear)
                 }
                 .accessibilityLabel("\(type.displayName) filter")
-                
-//                if type != PlantType.allCases.last {
-//                    Divider()
-//                }
             }
-            //            Divider()
-            
         }
-        .background(.ultraThinMaterial)
-        .cornerRadius(8)
+        .frame(width : 46)
+        .padding(.vertical, 4)
+        .background(.thinMaterial)
+        .clipShape(Capsule())
     }
     
     private func iconForPlantType(_ type: PlantType) -> String {
