@@ -33,6 +33,8 @@ struct TopControlView: View {
 //            .background(Color(.systemGray5).opacity(0.3))
             .background(.thinMaterial)
             .cornerRadius(20)
+            .shadow(color: .black.opacity(0.08), radius: 14, x: 0, y: 0)
+
 //            .frame(width: 220, height: 44)
 //            .clipShape(Capsule())
             

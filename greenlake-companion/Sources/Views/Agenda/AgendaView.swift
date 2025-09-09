@@ -42,7 +42,7 @@ struct AgendaView: View {
               Button {
                 isFilterPresented = true
               } label: {
-                Image(systemName: "line.3.horizontal.decrease.circle")
+                Image(systemName: "line.3.horizontal.decrease")
                   .resizable()
                   .frame(width: 30, height: 30)
                   .foregroundColor(viewModel.filterViewModel.isDefaultState ? .secondary : .blue)
@@ -165,58 +165,64 @@ struct AgendaView: View {
       .frame(height: adjustedHeight, alignment: .top)
       .offset(y: -adjustY)
       .safeAreaInset(edge: .top, spacing: 0) {
-        VStack {
-          HStack(alignment: .center) {
-            let toolbarButtonSize = 30.0
-            if !isLandscape {
-              Button(action: toggleSidebar) {
-                Image(systemName: "sidebar.left")
-                  .resizable()
-                  .scaledToFit()
-                  .frame(width: toolbarButtonSize, height: toolbarButtonSize)
-              }
-            }
+          
+          ZStack(alignment : .topLeading) {
+              AccountButton()
+                  .zIndex(1)
+                  .padding()
+                  .padding(.vertical, 16)
+                  .padding(.horizontal, 6)
+                 
+              
+              VStack {
+                  HStack(alignment: .center) {
+                      let toolbarButtonSize = 30.0
+                      if !isLandscape {
+                          Button(action: toggleSidebar) {
+                              Image(systemName: "sidebar.left")
+                                  .resizable()
+                                  .scaledToFit()
+                                  .frame(width: toolbarButtonSize, height: toolbarButtonSize)
+                          }
+                      }
+                      //              AccountButton()
+                      
+                      Spacer()
+                      
+                      Menu {
+                          Button {
+                              print("Checklist")
+                          } label: {
+                              Label("Checklist", systemImage: "checklist")
+                          }
+                          
+                          Button {
+                              print("Denda")
+                          } label: {
+                              Label("Denda", systemImage: "dollarsign")
+                          }
+                      } label: {
+                          Text("Export")
+                              .font(.system(size: 16, weight: .medium))
+                              .foregroundColor(.blue)
+                              .padding(.horizontal, 16)
+                              .padding(.vertical, 8)
+                              .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color.white.opacity(1))
+                              .clipShape(Capsule())
+                              .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.08), radius: 14, x: 0, y: 0)
+                      }
+                      .foregroundColor(.accentColor)
+                  }
+                  .padding()
+                  .padding(.vertical, 16)
+                  .padding(.horizontal, 6)
 
-            Spacer()
-
-            Menu {
-              Button {
-                print("Checklist")
-              } label: {
-                Label("Checklist", systemImage: "checklist")
+                  Spacer()
+                  Divider()
               }
-
-              Button {
-                print("Denda")
-              } label: {
-                Label("Denda", systemImage: "dollarsign")
-              }
-            } label: {
-                Text("Export")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(colorScheme == .dark ? Color.gray.opacity(1) : Color.white.opacity(1))
-                    .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 1)
-            }
-            .foregroundColor(.accentColor)
+              .frame(maxWidth: .infinity)
+              .background(.ultraThinMaterial)
           }
-          .padding()
-          .padding(.vertical, 16)
-          .padding(.horizontal, 6)
-            
-//          .padding()
-//          .padding(.top)
-//          .padding(.horizontal)
-
-          Spacer()
-
-          Divider()
-        }
-        .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial)
       }
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()

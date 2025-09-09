@@ -72,11 +72,11 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.userTrackingMode = .none
     mapView.mapType = displayVM.mapType
     mapView.showsCompass = true
-    mapView.showsScale = true
+    mapView.showsScale = false
     mapView.showsTraffic = false
 
     //      mapView.layoutMargins = .zero
-    mapView.layoutMargins = UIEdgeInsets(top: 200, left: 70, bottom: 10, right: 10)
+    mapView.layoutMargins = UIEdgeInsets(top: 370, left: 70, bottom: 10, right: 18)
 
     //      addCustomCompass(to: mapView)
 

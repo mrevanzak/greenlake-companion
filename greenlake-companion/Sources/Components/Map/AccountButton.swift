@@ -84,6 +84,8 @@ struct AccountButton: View {
             .padding(.vertical, isExpanded ? 10 : 8)
             .background(.thinMaterial)
             .cornerRadius(17)
+            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 0)
+
             
             VStack(alignment: .trailing, spacing: 8) {
                 if isExpanded {
@@ -110,7 +112,9 @@ struct AccountButton: View {
         //            .padding(.vertical, 8)
         .background(.thinMaterial.opacity(isExpanded ? 0.8 : 0))
         .cornerRadius(20)
-        .shadow(color: isExpanded ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
+//        .shadow(color: isExpanded ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
+        .shadow(color: .black.opacity(0.08), radius: 14, x: 0, y: 0)
+
         //        Spacer()
     }
     
