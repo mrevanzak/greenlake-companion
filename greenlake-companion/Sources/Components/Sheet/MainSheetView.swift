@@ -23,7 +23,6 @@ struct MainSheetView: View {
   @State private var searchText = ""
   @State private var isEditing = false
 
-  @StateObject var router = Router.shared
   @StateObject private var plantManager = PlantManager.shared
 
   private func onPlantChangeHandler(oldValue: PlantInstance?, newValue: PlantInstance?) {
