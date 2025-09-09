@@ -337,6 +337,7 @@ class NetworkManager: NetworkManagerProtocol {
         }
       }
     } catch {
+      print(error)
       throw NetworkError.encodingError(error)
     }
 
@@ -398,7 +399,7 @@ class NetworkManager: NetworkManagerProtocol {
       let (data, response) = try await session.data(for: request)
 
       // Validate the response
-      try validateResponse(response)
+      try validateResponse(response, data: data)
 
       success = true
       return data
@@ -443,30 +444,35 @@ class NetworkManager: NetworkManagerProtocol {
   }
 
   /// Validate the HTTP response
-  private func validateResponse(_ response: URLResponse) throws {
-    guard let httpResponse = response as? HTTPURLResponse else {
-      throw NetworkError.invalidResponse
-    }
-
-    // Check for successful status codes
-    guard (200...299).contains(httpResponse.statusCode) else {
-      // Map specific status codes to appropriate errors
-      switch httpResponse.statusCode {
-      case 401:
-        throw NetworkError.unauthorized
-      case 403:
-        throw NetworkError.forbidden
-      case 404:
-        throw NetworkError.httpError(statusCode: httpResponse.statusCode)
-      case 429:
-        throw NetworkError.rateLimitExceeded
-      case 500...599:
-        throw NetworkError.serverError
-      default:
-        throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+  private func validateResponse(_ response: URLResponse, data: Data) throws {
+      guard let httpResponse = response as? HTTPURLResponse else {
+          throw NetworkError.invalidResponse
       }
-    }
+
+      guard (200...299).contains(httpResponse.statusCode) else {
+          // Attempt to parse and print response body
+          if let bodyString = String(data: data, encoding: .utf8) {
+              print("❌ Server responded with error body: \(bodyString)")
+          }
+
+          // Throw appropriate error
+          switch httpResponse.statusCode {
+          case 401:
+              throw NetworkError.unauthorized
+          case 403:
+              throw NetworkError.forbidden
+          case 404:
+              throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+          case 429:
+              throw NetworkError.rateLimitExceeded
+          case 500...599:
+              throw NetworkError.serverError
+          default:
+              throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+          }
+      }
   }
+
 
   /// Convert URLError to NetworkError
   private func convertURLError(_ urlError: URLError) -> NetworkError {

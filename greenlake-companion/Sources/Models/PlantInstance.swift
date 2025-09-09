@@ -13,10 +13,7 @@ enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable, Displayab
   case tree = "tree"
   case groundCover = "ground_cover"
   case bush = "bush"
-
   var id: String { self.rawValue }
-
-  /// Human readable display name
   var displayName: String {
     switch self {
     case .tree: return "Pohon"
@@ -26,19 +23,18 @@ enum PlantType: String, CaseIterable, Identifiable, Codable, Hashable, Displayab
   }
 }
 
+
 /// Value-type domain model representing a plant on the map
 struct PlantInstance: Identifiable, Hashable, Codable {
   let id: UUID
   var type: PlantType
   var name: String
   var location: CLLocationCoordinate2D
+  var detail_location: String
+  var plant_condition: String
   var createdAt: Date
   var updatedAt: Date
-
-  // Tree specific properties
   var radius: Double?
-
-  // Path specific properties
   var path: [CLLocationCoordinate2D]?
 
   init(
@@ -46,6 +42,8 @@ struct PlantInstance: Identifiable, Hashable, Codable {
     type: PlantType,
     name: String,
     location: CLLocationCoordinate2D,
+    detail_location: String,
+    plant_condition: String,
     radius: Double? = nil,
     path: [CLLocationCoordinate2D]? = nil,
     createdAt: Date,
@@ -54,6 +52,8 @@ struct PlantInstance: Identifiable, Hashable, Codable {
     self.id = id
     self.type = type
     self.name = name
+    self.detail_location = detail_location
+    self.plant_condition = plant_condition
     self.location = location
     self.createdAt = createdAt
     self.updatedAt = updatedAt
@@ -70,8 +70,11 @@ struct PlantInstance: Identifiable, Hashable, Codable {
 
   static func empty() -> PlantInstance {
     return PlantInstance(
-      type: .tree, name: "Pinus",
+      type: .tree,
+      name: "Pinus",
       location: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+      detail_location: "Depan Marketing Office",
+      plant_condition: "sehat",
       radius: 0,
       createdAt: Date(),
       updatedAt: Date())
@@ -79,13 +82,14 @@ struct PlantInstance: Identifiable, Hashable, Codable {
 }
 
 // MARK: - Codable
-
 extension PlantInstance {
   private enum CodingKeys: String, CodingKey {
     case id
     case type
     case name
     case location
+    case detail_location
+    case plant_condition
     case radius
     case path
     case createdAt
@@ -118,7 +122,8 @@ extension PlantInstance {
     let latitude = try locationContainer.decode(CLLocationDegrees.self, forKey: .lat)
     let longitude = try locationContainer.decode(CLLocationDegrees.self, forKey: .lng)
     let location = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-
+    let detail_location = try container.decode(String.self, forKey: .detail_location)
+    let plant_condition = try container.decode(String.self, forKey: .plant_condition)
     let radius = try container.decodeIfPresent(Double.self, forKey: .radius)
 
     // Decode path array if present
@@ -137,6 +142,8 @@ extension PlantInstance {
       type: type,
       name: name,
       location: location,
+      detail_location: detail_location,
+      plant_condition: plant_condition,
       radius: radius,
       path: path,
       createdAt: createdAt,
@@ -150,12 +157,14 @@ extension PlantInstance {
     try container.encode(id, forKey: .id)
     try container.encode(type, forKey: .type)
     try container.encode(name, forKey: .name)
+    try container.encode(detail_location, forKey: .detail_location)
+    try container.encode(plant_condition, forKey: .plant_condition)
 
     // Encode nested location object
     var locationContainer = container.nestedContainer(keyedBy: LocationKeys.self, forKey: .location)
     try locationContainer.encode(location.latitude, forKey: .lat)
     try locationContainer.encode(location.longitude, forKey: .lng)
-
+    
     try container.encodeIfPresent(radius, forKey: .radius)
 
     // Encode path array if present
@@ -199,6 +208,8 @@ extension PlantInstance {
     type: PlantType? = nil,
     location: CLLocationCoordinate2D? = nil,
     radius: Double? = nil,
+    detail_location: String? = nil,
+    plant_condition: String? = nil,
     path: [CLLocationCoordinate2D]? = nil
   ) -> PlantInstance {
     PlantInstance(
@@ -206,6 +217,8 @@ extension PlantInstance {
       type: type ?? self.type,
       name: name ?? self.name,
       location: location ?? self.location,
+      detail_location: self.detail_location,
+      plant_condition: self.plant_condition,
       radius: radius ?? self.radius,
       path: path ?? self.path,
       createdAt: self.createdAt,
