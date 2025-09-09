@@ -10,6 +10,7 @@ import SwiftUI
 struct AgendaView: View {
   @StateObject private var viewModel = AgendaViewModel()
   @State private var columnVisibility = NavigationSplitViewVisibility.all
+    @Environment(\.colorScheme) private var colorScheme
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
 
@@ -195,16 +196,24 @@ struct AgendaView: View {
                 Label("Denda", systemImage: "dollarsign")
               }
             } label: {
-              Image(systemName: "square.and.arrow.up")
-                .resizable()
-                .scaledToFit()
-                .frame(width: toolbarButtonSize, height: toolbarButtonSize)
+                Text("Export")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(colorScheme == .dark ? Color.gray.opacity(1) : Color.white.opacity(1))
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 1)
             }
             .foregroundColor(.accentColor)
           }
           .padding()
-          .padding(.top)
-          .padding(.horizontal)
+          .padding(.vertical, 16)
+          .padding(.horizontal, 6)
+            
+//          .padding()
+//          .padding(.top)
+//          .padding(.horizontal)
 
           Spacer()
 
