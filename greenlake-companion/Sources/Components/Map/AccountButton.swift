@@ -12,6 +12,12 @@ struct AccountButton: View {
     @State private var isExpanded = false
     @Environment(\.colorScheme) private var colorScheme
 
+    var name: String {
+        authManager.currentUser?.name ?? "Unknown"
+    }
+    var role: String {
+        authManager.currentUser?.role.capitalized ?? "Unknown"
+    }
     
     var body: some View {
 //        HStack {
@@ -33,12 +39,12 @@ struct AccountButton: View {
                                     .clipShape(Circle())
                                 
                                 VStack(alignment : .leading , spacing: 0) {
-                                    Text("Melisa Aprina")
+                                    Text(name)
                                         .font(.system(size: 16, weight: .semibold))
                                     //                                .padding(.vertical, 6)
                                     //                                .padding(.horizontal, 6)
                                         .foregroundColor(.primary)
-                                    Text("Manager")
+                                    Text(role)
                                         .font(.system(size: 16, weight: .regular))
                                         .italic()
                                     //                                .padding(.vertical, 6)
@@ -56,13 +62,13 @@ struct AccountButton: View {
                                     
                                     
                                     
-                                    Text("Melisa Aprina")
+                                    Text(name)
                                         .font(.system(size: 16, weight: .semibold))
                                     //                                .padding(.vertical, 6)
                                     //                                .padding(.horizontal, 6)
                                         .foregroundColor(.primary)
                                     
-                                    Text("Manager")
+                                    Text(role)
                                         .font(.system(size: 16, weight: .regular))
                                         .italic()
                                     //                                .padding(.vertical, 6)
@@ -104,8 +110,10 @@ struct AccountButton: View {
             //            .padding(.vertical, 8)
             .background(.ultraThinMaterial.opacity(isExpanded ? 1.0 : 0))
             .cornerRadius(20)
-        Spacer()
+            .shadow(color: isExpanded ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
+//        Spacer()
         }
+            
     }
 //}
 

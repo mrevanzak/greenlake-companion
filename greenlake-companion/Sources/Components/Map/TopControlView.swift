@@ -15,45 +15,30 @@ struct TopControlView: View {
 
   private let items = ["Pencatatan", "Ubah Peta"]
 
-  var body: some View {
-    HStack(alignment: .center) {
-//      Menu {
-//        ForEach(PlantType.allCases) { type in
-//          Button(action: { filterVM.toggle(type) }) {
-//            Label(
-//              type.displayName,
-//              systemImage: filterVM.selectedPlantTypes.contains(type)
-//                ? "checkmark.circle.fill" : "circle"
-//            )
-//          }
-//        }
-//        Divider()
-//        Button("Show All", action: { filterVM.showAll() })
-//      } label: {
-//        HStack(spacing: 8) {
-//          Image(systemName: "square.3.layers.3d.down.right")
-//          Text("Layers")
-//        }
-////        .padding(.horizontal, 12)
-////        .padding(.vertical, 10)
-//        .background(.ultraThinMaterial)
-//        .clipShape(Capsule())
-//      }
-//      .accessibilityLabel("Layer filters")
-
-      Text("Mode")
-        .foregroundColor(.primary)
-        .font(.system(size: 16, weight: .semibold))
-        .frame(height: 32)
-        .opacity(0.7)
-      expandableButton
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HStack(alignment: .top) {
+                
+                Text("Mode")
+                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(height: 32)
+                    .opacity(0.7)
+                
+                Spacer()
+                    .frame(width: 187)
+            }
+            .padding(4)
+            .padding(.leading, 12)
+            .background(Color(.systemGray5).opacity(0.3))
+            .background(.ultraThinMaterial)
+            .cornerRadius(20)
+//            .frame(width: 220, height: 44)
+//            .clipShape(Capsule())
+            
+            expandableButton
+        }
     }
-    .padding(4)
-    .padding(.leading, 12)
-    .background(Color(.systemGray5).opacity(0.3))
-    .background(.ultraThinMaterial)
-    .cornerRadius(20)
-  }
 
   private var expandableButton: some View {
     Button(action: {
@@ -98,10 +83,20 @@ struct TopControlView: View {
       }
       .padding(.horizontal, 8)
       .frame(width: 175)
-      .background(Color.white.opacity(colorScheme == .dark ? 0.1 : 1.0))
+      .background(backgroundColorForExpandableButton())
       .clipShape(RoundedRectangle(cornerRadius: 16))
+      .shadow(color: showMenu ? .black.opacity(0.3) : .clear, radius: 8, x: 0, y: 0)
+      .padding(4)
     }
   }
+    
+    private func backgroundColorForExpandableButton() -> Color {
+        if colorScheme == .dark {
+          return showMenu ? Color(.systemGray2) : Color.white.opacity(0.1)
+        } else {
+          return Color.white.opacity(1.0)
+        }
+      }
 }
 
 //#Preview {
