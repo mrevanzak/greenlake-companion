@@ -29,7 +29,7 @@ struct TaskTimelineView: View {
       } else {
         ScrollView {
           LazyVStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(timeline.reversed()), id: \.id) { (entry: TaskChangelog) in
+            ForEach(timeline, id: \.id) { (entry: TaskChangelog) in
                 HStack(alignment: .top, spacing: 16) {
                   TimelineIndicator(status: entry.toStatusEnum, isLast: entry.fromStatus?.isEmpty ?? true)
                     TimelineEntryView(entry: entry)

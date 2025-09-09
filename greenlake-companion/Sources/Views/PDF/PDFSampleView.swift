@@ -3,7 +3,7 @@ import SwiftUI
 
 struct PDFSampleView: View {
   @State private var pdfPreview: PDFDataWrapper?
-
+  
   var body: some View {
     VStack {
       Menu {
@@ -44,26 +44,26 @@ struct PDFSampleView: View {
       }
     }
   }
-
+  
   private func generateTaskChecklistPDF() {
     let reportTitle = "REKAPITULASI PEKERJAAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-
+      
       let tasksToDraw = Array(sampleTasks.prefix(5))
       pdf.drawTasks(tasks: tasksToDraw)
     }
-
+    
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
-
+  
   private func generateFinePDF() {
     let reportTitle = "LAPORAN KETERLAMBATAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-
+      
       let lateClosedTasks = sampleTasks.filter { task in
         guard let closedDate = task.dateClosed else {
           return false
@@ -71,23 +71,23 @@ struct PDFSampleView: View {
         return closedDate > task.dueDate
       }
       let tasksToDraw = Array(lateClosedTasks.prefix(10))
-
+      
       pdf.drawFineTable(finedTasks: tasksToDraw)
     }
-
+    
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
-
+  
   private func generateTaskReminder() {
     let reportTitle = "INFORMASI PEKERJAAN"
     let creator = PDFBuilder()
     let pdfData = creator.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: "Akmal", date: Date())
-
+      
       let taskToDraw = sampleTasks[Int.random(in: 1...sampleTasks.count)]
       pdf.drawTaskReminder(task: taskToDraw)
     }
-
+    
     self.pdfPreview = PDFDataWrapper(data: pdfData)
   }
 }
