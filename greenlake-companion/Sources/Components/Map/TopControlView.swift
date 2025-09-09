@@ -30,8 +30,8 @@ struct TopControlView: View {
             }
             .padding(4)
             .padding(.leading, 12)
-            .background(Color(.systemGray5).opacity(0.3))
-            .background(.ultraThinMaterial)
+//            .background(Color(.systemGray5).opacity(0.3))
+            .background(.thinMaterial)
             .cornerRadius(20)
 //            .frame(width: 220, height: 44)
 //            .clipShape(Capsule())
