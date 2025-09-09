@@ -116,30 +116,12 @@ struct TimelineEntryView: View {
       if !entry.photos.isEmpty {
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 20) {
-            ForEach(entry.photos, id: \.self) { photo in
-              if let url = URL(string: photo.imageUrl) {
-                AsyncImage(url: url) { phase in
-                  switch phase {
-                  case .empty:
-                    ProgressView()
-                      .frame(height: 200)
-                  case .success(let image):
-                    image
-                      .resizable()
-                      .scaledToFit()
-                      .frame(height: 200)
-                      .cornerRadius(10)
-                  case .failure:
-                    Image(systemName: "photo")
-                      .resizable()
-                      .scaledToFit()
-                      .foregroundColor(.gray)
-                      .frame(height: 200)
-                  @unknown default:
-                    EmptyView()
-                  }
-                }
-              }
+            ForEach(Array(entry.photos.enumerated()), id: \.element) { index, photo in
+              TappableAsyncImage(
+                photo: photo,
+                images: entry.photos,
+                selectedIndex: index
+              )
             }
           }
         }

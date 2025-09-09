@@ -1,0 +1,15 @@
+{
+  "originHash" : "f1c296148582add308702e0f63d557eda7539331626de0bc490bdc1d8f037fcb",
+  "pins" : [
+    {
+      "identity" : "alertkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mrevanzak/AlertKit",
+      "state" : {
+        "branch" : "v5",
+        "revision" : "cbff10906c775857dbf582f2dc87a8388db50c68"
+      }
+    }
+  ],
+  "version" : 3
+}

@@ -130,6 +130,8 @@ struct AgendaView: View {
                 }
               }
             }
+          }.safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 48)
           }
         }
         .toolbar(.hidden)
