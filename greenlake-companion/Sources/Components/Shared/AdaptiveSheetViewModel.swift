@@ -3,9 +3,6 @@ import SwiftUI
 /// Environment object that provides sheet details to the content
 @MainActor
 class SheetViewModel: ObservableObject {
-  enum SubmitState: Equatable {
-    case idle, submitting, success, failure(String)
-  }
   /// The current active detent
   @Published var currentDetent: SheetDetent
 
