@@ -59,11 +59,10 @@ enum SheetDetent: Hashable {
 // Enhanced configuration that supports both systems
 struct AdaptiveSheetConfiguration {
   var detents: Set<SheetDetent>
-
-  // Auto-sync presentation detents to sheet detents
-  init(detents: Set<SheetDetent>) {
-    self.detents = detents
-  }
+  var dismissThreshold: CGFloat = 150
+  var detentHopThreshold: CGFloat = 100
+  var onDragging: ((CGFloat) -> Void)? = nil
+  var onDismiss: (() -> Void)? = nil
 
   var presentationDetents: Set<PresentationDetent> {
     Set(detents.map { $0.presentationDetent })
@@ -120,6 +119,11 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
   let sheetContent: () -> SheetContent
   let configuration: AdaptiveSheetConfiguration
 
+  private func requestDismiss() {
+    configuration.onDismiss?()
+    isPresented = false
+  }
+
   init(
     isPresented: Binding<Bool>,
     sheetContent: @escaping () -> SheetContent,
@@ -143,6 +147,7 @@ struct AdaptiveSheet<SheetContent: View>: ViewModifier {
         CustomBottomSheet(
           sheetViewModel: sheetViewModel,
           configuration: configuration,
+          onRequestDismiss: requestDismiss,
           content: sheetContent
         )
         .offset(y: sheetOffset)
@@ -211,27 +216,33 @@ private struct CustomBottomSheet<Content: View>: View {
   @State private var dragOffset: CGFloat = 0
 
   let configuration: AdaptiveSheetConfiguration
+  let onRequestDismiss: () -> Void
   let content: () -> Content
 
   init(
     sheetViewModel: SheetViewModel,
     configuration: AdaptiveSheetConfiguration,
+    onRequestDismiss: @escaping () -> Void,
     content: @escaping () -> Content
   ) {
     self.sheetViewModel = sheetViewModel
     self.configuration = configuration
+    self.onRequestDismiss = onRequestDismiss
     self.content = content
   }
 
   var body: some View {
     GeometryReader { geometry in
-      VStack(spacing: 0) {
-        DragHandle()
+      ZStack(alignment: .top) {
+        NavigationStack {
+          content()
+            .scrollDisabled(sheetViewModel.isSmallest)
+            .environmentObject(sheetViewModel)
+            //          .padding(.horizontal)
+            .padding(.top, 0)
+        }
 
-        content()
-          .environmentObject(sheetViewModel)
-          //          .padding(.horizontal)
-          .padding(.top, 0)
+        DragHandle()
       }
       .frame(
         width: horizontalSizeClass == .compact ? geometry.size.width : SheetConstants.width,
@@ -260,7 +271,9 @@ private struct CustomBottomSheet<Content: View>: View {
           }
       )
       .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
-      .animation(.spring(response: 0.5, dampingFraction: 0.8), value: sheetViewModel.currentDetent)
+      .animation(
+        .spring(response: 0.5, dampingFraction: 0.8), value: sheetViewModel.currentDetent
+      )
       .onChange(of: sheetViewModel.currentDetent) { _, newDetent in
         sheetViewModel.currentDetent = newDetent
         sheetViewModel.updateCurrentDetent(newDetent)
@@ -283,6 +296,8 @@ private struct CustomBottomSheet<Content: View>: View {
     sheetViewModel.isDragging = true
     sheetViewModel.dragOffset = dragOffset
 
+    configuration.onDragging?(translation)
+
     if abs(translation) > 50 && abs(dragOffset) < 1 {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
@@ -292,6 +307,15 @@ private struct CustomBottomSheet<Content: View>: View {
     let sortedDetents = configuration.sortedDetents
 
     guard let currentIndex = sortedDetents.firstIndex(of: sheetViewModel.currentDetent) else {
+      return
+    }
+
+    // Dismiss if dragging down beyond threshold from the smallest detent
+    if translation > configuration.dismissThreshold && sheetViewModel.isSmallest {
+      withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
+        dragOffset = 0
+      }
+      onRequestDismiss()
       return
     }
 
@@ -315,7 +339,7 @@ private struct CustomBottomSheet<Content: View>: View {
     sortedDetents: [SheetDetent],
     geometry: GeometryProxy
   ) -> SheetDetent {
-    let threshold: CGFloat = 100
+    let threshold: CGFloat = configuration.detentHopThreshold
 
     // Check for threshold-based navigation
     if translation > threshold && currentIndex > 0 {

@@ -21,6 +21,13 @@ struct MapView: View {
 
   private let items = ["Pencatatan", "Label", "Label 2"]
 
+  var showingPlantDetail: Binding<Bool> {
+    Binding(
+      get: { plantManager.hasSelectedPlant },
+      set: { _ in }
+    )
+  }
+
   var body: some View {
     ZStack(alignment: .bottom) {
       // Map background
@@ -71,6 +78,22 @@ struct MapView: View {
       configuration: AdaptiveSheetConfiguration(detents: [.height(108), .large])
     ) {
       MainSheetView()
+    }
+    .adaptiveSheet(
+      isPresented: $plantManager.isCreatingPlant,
+      configuration: AdaptiveSheetConfiguration(detents: [.large])
+    ) {
+      PlantFormView(mode: .create)
+    }
+    .adaptiveSheet(
+      isPresented: showingPlantDetail,
+      configuration: AdaptiveSheetConfiguration(
+        detents: [.large],
+        onDismiss: {
+          plantManager.selectPlant(nil)
+        })
+    ) {
+      PlantDetailView()
     }
   }
 

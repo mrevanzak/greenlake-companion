@@ -150,6 +150,14 @@ struct PlantDetailView: View {
       }
       .padding()
     )
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button("Kembali") {
+          plantManager.selectPlant(nil)
+        }
+      }
+    }
+    .navigationBarTitleDisplayMode(.inline)
     .scrollContentBackground(.hidden)
     .background(.clear)
     .sheet(isPresented: $showingCreateTaskSheet) {

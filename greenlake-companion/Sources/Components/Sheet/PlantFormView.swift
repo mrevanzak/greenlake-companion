@@ -95,6 +95,13 @@ struct PlantFormView: View {
     .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
+      if mode == .create {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") {
+            plantManager.discardTemporaryPlant()
+          }
+        }
+      }
       ToolbarItem(placement: .navigationBarTrailing) {
         Button("Save") {
           onSave()

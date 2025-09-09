@@ -8,6 +8,7 @@
 import CoreLocation
 import MapKit
 import SwiftUI
+import SwiftUIX
 
 enum BottomSheetScreen {
   case main
@@ -20,6 +21,7 @@ struct MainSheetView: View {
   @EnvironmentObject private var sheetViewModel: SheetViewModel
 
   @State private var searchText = ""
+  @State private var isEditing = false
 
   @StateObject var router = Router.shared
   @StateObject private var plantManager = PlantManager.shared
@@ -39,52 +41,35 @@ struct MainSheetView: View {
   }
 
   var body: some View {
-    NavigationStack(path: $router.path) {
-      ScrollView(showsIndicators: false) {
-        VStack(alignment: .leading) {
-          Section {
-            VStack(spacing: 12) {
-              HStack {
-                Text("Pruning").font(.title3.weight(.semibold))
-                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
-                Spacer()
-                Image(systemName: "chevron.down").foregroundStyle(.secondary)
-              }
-              .padding(16)
-              .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
-
-              HStack {
-                Text("Tanaman Sakit").font(.title3.weight(.semibold))
-                Image(systemName: "triangle.fill").foregroundStyle(.orange)
-                Spacer()
-                Image(systemName: "chevron.down").foregroundStyle(.secondary)
-              }
-              .padding(16)
-              .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+    ScrollView(showsIndicators: false) {
+      LazyVStack(alignment: .leading, pinnedViews: .sectionHeaders) {
+        Section(
+          header: SearchBar("Cari tanaman atau pekerjaan", text: $searchText, isEditing: $isEditing)
+            .showsCancelButton(isEditing)
+            .padding(.top)
+            .padding(.horizontal, -8)
+        ) {
+          VStack(spacing: 12) {
+            HStack {
+              Text("Pruning").font(.title3.weight(.semibold))
+              Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+              Spacer()
+              Image(systemName: "chevron.down").foregroundStyle(.secondary)
             }
+            .padding(16)
+            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+
+            HStack {
+              Text("Tanaman Sakit").font(.title3.weight(.semibold))
+              Image(systemName: "triangle.fill").foregroundStyle(.orange)
+              Spacer()
+              Image(systemName: "chevron.down").foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
           }
         }
         .padding(.horizontal)
-      }
-      .searchable(
-        text: $searchText, placement: .navigationBarDrawer(displayMode: .always),
-        prompt: "Cari tanaman atau pekerjaan"
-      )
-      .scrollDisabled(sheetViewModel.isSmallest)
-      .frame(maxHeight: .infinity)
-      .onChange(of: plantManager.selectedPlant) {
-        onPlantChangeHandler(oldValue: $0, newValue: $1)
-      }
-      .onChange(of: plantManager.temporaryPlant) {
-        onPlantChangeHandler(oldValue: $0, newValue: $1)
-      }
-      .navigationBarTitle("Halaman Utama", displayMode: .inline)
-      .navigationDestination(item: $plantManager.temporaryPlant) { plant in
-        PlantFormView(mode: .create)
-          .onDisappear(perform: cleanup)
-      }
-      .navigationDestination(item: $plantManager.selectedPlant) { plant in
-        PlantDetailView()
       }
     }
   }
@@ -103,5 +88,3 @@ struct MainSheetView: View {
   }
 
 }
-
-
