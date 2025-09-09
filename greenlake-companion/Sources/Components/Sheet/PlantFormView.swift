@@ -93,6 +93,7 @@ struct PlantFormView: View {
     .scrollContentBackground(.hidden)
     .background(.clear)
     .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         Button("Save") {
