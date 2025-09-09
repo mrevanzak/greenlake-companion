@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct TaskDetailView: View {
+  @State private var showStatusSheet = false
   let task: LandscapingTask
   
   var body: some View {
@@ -47,11 +48,8 @@ struct TaskDetailView: View {
             .cornerRadius(10)
           }
           
-          Menu {
-            Button("Option A", action: { print("Option A selected") })
-            Button("Option B", action: { print("Option B selected") })
-            Button("Option C", action: { print("Option C selected") })
-            
+          Button {
+             showStatusSheet = true
           } label: {
             HStack{
               Text("Ubah Status")
@@ -173,5 +171,8 @@ struct TaskDetailView: View {
     }
     .padding()
     .padding(.bottom, 50)
+    .sheet(isPresented: $showStatusSheet) {
+        TaskStatusSheet(taskId: task.id)
+    }
   }
 }

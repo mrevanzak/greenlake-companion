@@ -51,6 +51,13 @@ struct CreateTaskRequest: Codable {
   }
 }
 
+/// Request model for updating ONLY the status (used with multipart: status + optional note + photos[])
+struct UpdateStatusRequest: Encodable {
+  let status: String        // required (matches form-data key "status")
+  let note: String?         // optional (matches form-data key "note")
+  // photos are sent as files in multipart with field name "photos" (handled in NetworkManager)
+}
+
 /// Response model for task creation
 struct CreateTaskResponse: Codable {
   let id: UUID
@@ -119,8 +126,8 @@ struct UpdateTaskRequest: Codable {
 struct TaskImage: Codable {
   let imageUrl: String
   let thumbnailUrl: String
-  let uploadedBy: String
-  let createdAt: Date
+  let uploadedBy: String?
+  let createdAt: Date?
 
   enum CodingKeys: String, CodingKey {
     case imageUrl
@@ -134,8 +141,8 @@ struct TaskImage: Codable {
 struct TaskResponse: Codable {
   let id: String
   let userId: Int
-  let plantName: String
-  let author: String
+  let plantName: String?
+  let author: String?
   let title: String
   let description: String?
   let area: Double?
@@ -143,7 +150,7 @@ struct TaskResponse: Codable {
   let location: String
   let status: String
   let urgency: String
-  let plantType: String
+  let plantType: String?
   let dueDate: Date
   let createdAt: Date
   let updatedAt: Date
@@ -206,7 +213,7 @@ extension TaskResponse {
 
     // Map plant type string to PlantType enum
     let mappedPlantType: PlantType
-    switch self.plantType.lowercased() {
+    switch self.plantType?.lowercased() {
     case "tree":
       mappedPlantType = .tree
     case "ground_cover":
@@ -226,7 +233,7 @@ extension TaskResponse {
       unit: unit ?? "",
       taskType: taskType,
       plantType: mappedPlantType,
-      plant_name: plantName,
+      plant_name: plantName ?? "",
       status: taskStatus,
       dueDate: dueDate,
       dateCreated: createdAt,

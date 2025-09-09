@@ -110,12 +110,8 @@ class AgendaViewModel: ObservableObject {
   private func applyFilters() {
       print("🚦 Applying filters...")
       print("🔢 Total tasks before filtering: \(tasks.count)")
-
-      // 🔍 Print current task types before filtering
       print("📦 All task types:")
       tasks.forEach { print("  - \(String(describing: $0.title)) → \($0.taskType)") }
-
-      // 🔍 Print selected task type filters
       print("✅ Filtering with selected task types: \(filterViewModel.taskType)")
 
       var processedTasks = tasks
@@ -130,8 +126,6 @@ class AgendaViewModel: ObservableObject {
       print("  - SortKey: \(filterViewModel.sortKey)")
       print("  - SortOrder: \(filterViewModel.sortOrder)")
 
-    
-    // Step 2: Enum-based filters
     processedTasks = processedTasks.filter { task in
       let typeMatch = filterViewModel.taskType.isEmpty || filterViewModel.taskType.contains(task.taskType)
       let urgencyMatch = filterViewModel.urgency.isEmpty || filterViewModel.urgency.contains(task.urgencyLabel)
@@ -146,7 +140,6 @@ class AgendaViewModel: ObservableObject {
     }
     print("✅ After enum filters: \(processedTasks.count) tasks")
     
-    // Step 3: Date range
     let isDefaultDateRange = Calendar.current.isDate(filterViewModel.startDate, inSameDayAs: filterViewModel.endDate)
     
     if filterViewModel.startDate <= filterViewModel.endDate && !isDefaultDateRange {
@@ -162,7 +155,6 @@ class AgendaViewModel: ObservableObject {
       print("📅 Date range filter skipped (default or invalid)")
     }
     
-    // Step 4: Search text
     if !searchText.isEmpty {
       processedTasks = processedTasks.filter { task in
         task.title.localizedCaseInsensitiveContains(searchText) || task.description.localizedCaseInsensitiveContains(searchText)
@@ -170,7 +162,6 @@ class AgendaViewModel: ObservableObject {
       print("🔍 After search text filter: \(processedTasks.count) tasks")
     }
     
-    // Step 5: Sorting
     print("🔃 Applying sorting by \(filterViewModel.sortKey) in \(filterViewModel.sortOrder) order")
     
     switch filterViewModel.sortKey {
@@ -194,14 +185,12 @@ class AgendaViewModel: ObservableObject {
       }
     }
     
-    // Step 6: Final result
     filteredTasks = processedTasks
     print("🎯 Final filtered task count: \(filteredTasks.count)")
     if let sample = filteredTasks.first {
       print("📌 Sample task: \(sample.title) - \(sample.status) - \(sample.urgencyLabel)")
     }
     
-    // Step 7: Handle selected task
     if let selected = selectedTask, !filteredTasks.contains(selected) {
       selectedTask = filteredTasks.first
     }
