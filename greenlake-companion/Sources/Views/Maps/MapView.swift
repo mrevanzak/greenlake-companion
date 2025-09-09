@@ -18,9 +18,7 @@ struct MapView: View {
 
   @State private var selectedItem: String = "Mode"
   @State private var showMenu = false
-    @State private var mapView: MKMapView?
-        @State private var selectedMapType: CustomMapType = .satellite
-    
+
   private let items = ["Pencatatan", "Label", "Label 2"]
 
   var body: some View {
@@ -28,38 +26,37 @@ struct MapView: View {
       // Map background
       mapContent
 
-      VStack {
+      VStack(alignment: .trailing) {
         HStack(alignment: .top) {
           AccountButton()
 
           Spacer()
 
           TopControlView()
-
         }
-    
+
         Spacer()
       }
       .padding()
       .padding(.vertical, 16)
       .padding(.horizontal, 6)
       .zIndex(1)
-        
-        HStack (alignment: .top) {
-            Spacer()
-            
-            VStack (alignment: .trailing) {
-                PlantTypeLayerFilter()
-                MapTypeControl(selectedMapType: $selectedMapType)
-                Spacer()
 
-            }
+      HStack(alignment: .top) {
+        Spacer()
+
+        VStack(alignment: .trailing) {
+          PlantTypeLayerFilter()
+          MapTypeControl()
+          Spacer()
+
         }
-        .padding()
-        .padding(.top, 70)
-        .padding(.horizontal, 6)
-        .zIndex(0)
-        
+      }
+      .padding()
+      .padding(.top, 70)
+      .padding(.horizontal, 6)
+      .zIndex(0)
+
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -80,14 +77,9 @@ struct MapView: View {
   // MARK: - View Components
 
   private var mapContent: some View {
-    MapViewRepresentable(
-      locationManager: locationManager,
-      plantManager: plantManager,
-      mapType: $selectedMapType // Pass the binding
-
-    )
-    .accessibilityHidden(true)
-    .ignoresSafeArea()
+    MapViewRepresentable()
+      .accessibilityHidden(true)
+      .ignoresSafeArea()
   }
 
   private var logoutButton: some View {
@@ -111,7 +103,7 @@ struct MapView: View {
 
 // MARK: - Preview
 
-//#Preview {
-//  MapView()
-//    .environmentObject(AuthManager.shared)
-//}
+#Preview {
+  MapView()
+    .environmentObject(AuthManager.shared)
+}
