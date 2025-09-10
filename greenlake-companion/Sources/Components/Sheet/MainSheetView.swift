@@ -14,6 +14,7 @@ import SwiftUIX
 //MARK: - Sheet Content
 
 struct MainSheetContentView: View {
+  @StateObject private var viewModel = ActiveTasksViewModel()
   private struct LandscapeInfo {
     let title: String
     let value: String
@@ -94,41 +95,56 @@ struct MainSheetContentView: View {
           .italic()
           .foregroundColor(.secondary)
 
-        ForEach(Array(activeTasks.enumerated()), id: \.offset) { index, task in
-          HStack {
-            VStack(alignment: .leading) {
-              Text(task.title)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+        Group {
+          if viewModel.isLoading {
+            ProgressView("Memuat...")
+          } else if let msg = viewModel.errorMessage {
+            Text(msg)
+              .foregroundColor(.red)
+          } else if viewModel.activeTasks.isEmpty {
+            Text("Tidak ada pekerjaan aktif.")
+              .foregroundColor(.secondary)
+          } else {
+            ForEach(viewModel.activeTasks) { task in
+              HStack {
+                VStack(alignment: .leading) {
+                  Text(task.title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
 
-              Text(task.location)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
-            }
-            Spacer()
+                  Text(task.location)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                }
+                Spacer()
 
-            VStack(alignment: .trailing) {
-              Text(task.priority)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
-              Text(task.date)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+                VStack(alignment: .trailing) {
+                  Text(task.urgencyLabel.displayName)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                  Text(dateFormatter.string(from: task.dueDate))
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                }
+              }
+              .padding(.vertical, 12)
+              .padding(.horizontal, 18)
+              .background(task.status.displayColor, in: RoundedRectangle(cornerRadius: 20))
+              .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                  .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+              )
+              .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
             }
           }
-          .padding(.vertical, 12)
-          .padding(.horizontal, 18)
-          .background(task.backgroundColor, in: RoundedRectangle(cornerRadius: 20))
-          .overlay(
-            RoundedRectangle(cornerRadius: 20)
-              .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
-          )
-          .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
         }
       }
     }
     .padding(.horizontal)
     .padding(.top, 24)
+    .task {
+      await viewModel.load()
+    }
   }
 }
 
