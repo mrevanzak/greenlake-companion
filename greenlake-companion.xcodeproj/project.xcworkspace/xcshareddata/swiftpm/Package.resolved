@@ -1,5 +1,5 @@
 {
-  "originHash" : "ec9195b2785073dbb9c328cea553ca73fc8ea5aed0b7c9dff55b22966f04ea61",
+  "originHash" : "16f4d61d0f67376d28c1d5e9323d4756e5a05773e99fe95861f853e4bf3e8bae",
   "pins" : [
     {
       "identity" : "alertkit",
@@ -16,7 +16,7 @@
       "location" : "git@github.com:mrevanzak/BottomSheet.git",
       "state" : {
         "branch" : "main",
-        "revision" : "83b44eee5ba7158aec42f7581f4f663d4e207843"
+        "revision" : "b5d31d2a90dad41424c6db4375943cb0c4cc61e9"
       }
     },
     {

@@ -18,14 +18,10 @@ struct MapView: View {
 
   @EnvironmentObject private var authManager: AuthManager
 
-  @State var bottomSheetPosition: BottomSheetPosition = .relative(0.5)
-
-  private let items = ["Pencatatan", "Label", "Label 2"]
-
   var showingPlantDetail: Binding<Bool> {
     Binding(
       get: { plantManager.hasSelectedPlant },
-      set: { _ in plantManager.selectPlant(nil) }
+      set: { _ in }
     )
   }
 
@@ -56,6 +52,20 @@ struct MapView: View {
         VStack(alignment: .trailing) {
           PlantTypeLayerFilter()
           MapTypeControl()
+
+          //                    Button(action: {
+          //                        locationManager.requestLocation()
+          //                    }) {
+          //                        Image(systemName: "location.fill")
+          //                            .font(.system(size: 20, weight: .semibold))
+          //                            .foregroundColor(.primary)
+          //                            .padding(13)
+          //                            .frame(width: 44)
+          //                            .background(.thinMaterial)
+          //                            .clipShape(Circle())
+          //                            .shadow(color: .black.opacity(0.08), radius: 14, x: 0, y: 0)
+          //                    }
+          //                    .accessibilityLabel("Recenter map on user location")
           Spacer()
 
         }

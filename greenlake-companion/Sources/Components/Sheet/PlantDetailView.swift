@@ -190,11 +190,7 @@ struct PlantDetailSheet: ViewModifier {
       .onDismiss {
         isPresented = false
       }
-      .backgroundBlurMaterial(.adaptive(.thin))
-      .enableFloatingIPadSheet(false)
-      .iPadSheetAlignment(.bottomLeading)
-      .sheetSidePadding(24)
-      .enableContentDrag()
+      .commonModifiers()
       .enableSwipeToDismiss()
       .onChange(of: isPresented) { _, newValue in
         if newValue {

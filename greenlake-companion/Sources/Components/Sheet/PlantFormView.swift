@@ -295,11 +295,7 @@ struct PlantFormSheet: ViewModifier {
       ) {
         PlantFormView(mode: .create)
       }
-      .backgroundBlurMaterial(.adaptive(.thin))
-      .enableFloatingIPadSheet(false)
-      .iPadSheetAlignment(.bottomLeading)
-      .sheetSidePadding(24)
-      .enableContentDrag()
+      .commonModifiers()
       .enableSwipeToDismiss()
       .onChange(of: isPresented) { _, newValue in
         if newValue {

@@ -14,8 +14,11 @@ struct PlantTypeLayerFilter: View {
         VStack(spacing: 4) {
             ForEach(PlantType.allCases) { type in
                 Button(action: { filterVM.toggle(type) }) {
-                    Image(systemName: iconForPlantType(type))
-                        .font(.system(size: 20, weight: .semibold))
+                    Image(iconForPlantType(type))
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 25, height: 25)
                         .foregroundColor(filterVM.selectedPlantTypes.contains(type) ? .primary : .secondary.opacity(0.5))
                         .padding(10)
                         .background(Color.clear)
@@ -33,11 +36,11 @@ struct PlantTypeLayerFilter: View {
     private func iconForPlantType(_ type: PlantType) -> String {
         switch type {
         case .tree:
-            return "tree"
+            return "TreeIcon"
         case .groundCover:
-            return "leaf"
+            return "GroundCoverIcon"
         case .bush:
-            return "leaf.circle"
+            return "BushIcon"
         }
     }
 }
