@@ -11,11 +11,6 @@ import MapKit
 import SwiftUI
 import SwiftUIX
 
-enum BottomSheetScreen {
-  case main
-  case plantDetail
-}
-
 //MARK: - Sheet Content
 
 struct MainSheetContentView: View {
@@ -132,19 +127,8 @@ struct MainSheetContentView: View {
         }
       }
     }
-  }
-
-  private struct HistoryItem {
-    let title: String
-    let date: String
-  }
-  private var historyItems: [HistoryItem] {
-    [
-      .init(title: "Pruning", date: "20 Agustus 2025"),
-      .init(title: "Perawatan rutin", date: "14 Agustus 2025"),
-      .init(title: "Pruning", date: "10 Juli 2025"),
-      .init(title: "Pruning", date: "15 Juni 2025"),
-    ]
+    .padding(.horizontal)
+    .padding(.top, 24)
   }
 }
 
@@ -160,21 +144,30 @@ struct MainSheet: ViewModifier {
         bottomSheetPosition: $bottomSheetPosition,
         switchablePositions: [
           .dynamicBottom,
-          .absolute(325),
+          .relative(0.9),
         ],
         headerContent: {
           SearchBar("Cari tanaman atau pekerjaan", text: $searchText, isEditing: $isEditing)
             .showsCancelButton(isEditing)
             .padding(.horizontal, 8)
+            .padding(.bottom, 8)
         }
       ) {
         MainSheetContentView()
       }
-      .backgroundBlurMaterial(.adaptive(.thin))
-      .enableFloatingIPadSheet(false)
+      .commonModifiers()
+  }
+}
+
+extension BottomSheet {
+  func commonModifiers() -> BottomSheet {
+    self
       .iPadSheetAlignment(.bottomLeading)
-      .sheetSidePadding(24)
       .enableContentDrag()
+      .customBackground {
+        VisualEffectBlurView(blurStyle: .systemThinMaterial)
+          .cornerRadius(20)
+      }
   }
 }
 
