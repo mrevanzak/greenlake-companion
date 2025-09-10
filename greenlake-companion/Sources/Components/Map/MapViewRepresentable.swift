@@ -12,22 +12,11 @@ import SwiftUI
 
 /// SwiftUI wrapper for MKMapView
 struct MapViewRepresentable: UIViewRepresentable {
-  @ObservedObject var locationManager: LocationManager
-  @ObservedObject var plantManager: PlantManager
+  @StateObject private var plantManager = PlantManager.shared
+  @StateObject private var displayVM = MapDisplayViewModel.shared
+
+  @EnvironmentObject var locationManager: LocationManager
   @EnvironmentObject private var filterVM: MapFilterViewModel
-
-  // MARK: - Initialization
-
-  /// Convenience initializer defaulting to showing all plant types
-  init(
-    locationManager: LocationManager,
-    plantManager: PlantManager
-  ) {
-    self._locationManager = ObservedObject(wrappedValue: locationManager)
-    self._plantManager = ObservedObject(wrappedValue: plantManager)
-  }
-
-  // MARK: - UIViewRepresentable Implementation
 
   func makeUIView(context: Context) -> MKMapView {
     let mapView = MKMapView()
@@ -65,6 +54,10 @@ struct MapViewRepresentable: UIViewRepresentable {
     //   )
     //   mapView.setRegion(region, animated: true)
     // }
+
+    if mapView.mapType != displayVM.mapType {
+      mapView.mapType = displayVM.mapType
+    }
   }
 
   func makeCoordinator() -> Coordinator {
@@ -77,30 +70,29 @@ struct MapViewRepresentable: UIViewRepresentable {
   private func configureMapAppearance(_ mapView: MKMapView) {
     mapView.showsUserLocation = true
     mapView.userTrackingMode = .none
-    mapView.mapType = .standard
+    mapView.mapType = displayVM.mapType
     mapView.showsCompass = true
-    mapView.showsScale = true
+    mapView.showsScale = false
     mapView.showsTraffic = false
 
-//      mapView.layoutMargins = .zero
-    mapView.layoutMargins = UIEdgeInsets(top: 200, left: 70, bottom: 10, right: 10)
-      
-//      addCustomCompass(to: mapView)
+    //      mapView.layoutMargins = .zero
+    mapView.layoutMargins = UIEdgeInsets(top: 370, left: 70, bottom: 10, right: 18)
 
-      
+    //      addCustomCompass(to: mapView)
+
   }
-    
-    /// Add compass with custom positioning
-//    private func addCustomCompass(to mapView: MKMapView) {
-//      let compassButton = MKCompassButton(mapView: mapView)
-//      compassButton.translatesAutoresizingMaskIntoConstraints = false
-//      mapView.addSubview(compassButton)
-//      
-//      NSLayoutConstraint.activate([
-//        compassButton.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
-//        compassButton.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-//      ])
-//    }
+
+  /// Add compass with custom positioning
+  //    private func addCustomCompass(to mapView: MKMapView) {
+  //      let compassButton = MKCompassButton(mapView: mapView)
+  //      compassButton.translatesAutoresizingMaskIntoConstraints = false
+  //      mapView.addSubview(compassButton)
+  //
+  //      NSLayoutConstraint.activate([
+  //        compassButton.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
+  //        compassButton.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+  //      ])
+  //    }
 
   /// Configure user interaction capabilities
   private func configureUserInteraction(_ mapView: MKMapView) {

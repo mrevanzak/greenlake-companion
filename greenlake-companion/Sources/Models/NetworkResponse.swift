@@ -38,6 +38,9 @@ typealias TimelinesAPIResponse = APIResponse<[TaskChangelog]>
 /// Specific response for single task endpoint
 typealias TimelineAPIResponse = APIResponse<TaskChangelog>
 
+/// Specific response when updating a task’s status
+typealias UpdateStatusAPIResponse = APIResponse<TaskResponse>
+
 /// API error response structure
 struct APIError: Codable, LocalizedError {
   let code: String

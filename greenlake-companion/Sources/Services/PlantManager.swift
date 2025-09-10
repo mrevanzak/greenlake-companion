@@ -65,6 +65,7 @@ class PlantManager: ObservableObject {
       type: .tree,
       name: "",
       location: coordinate,
+      detailLocation: "",
       radius: 5.0,  // Default radius for immediate overlay display
       createdAt: Date(),
       updatedAt: Date()
@@ -77,14 +78,17 @@ class PlantManager: ObservableObject {
   /// - Parameters:
   ///   - name: Optional name for the plant
   ///   - type: Plant type
+  ///   - detailLocation: detail location
   ///   - radius: Optional radius for tree types
   ///   - path: Optional path for non-tree types
   func updateTemporaryPlant(
-    name: String, type: PlantType, radius: Double? = nil, path: [CLLocationCoordinate2D]? = nil
+    name: String, type: PlantType, detailLocation: String,
+    radius: Double? = nil, path: [CLLocationCoordinate2D]? = nil
   ) {
     guard var tempPlant = temporaryPlant else { return }
     tempPlant.name = name
     tempPlant.type = type
+    tempPlant.detailLocation = detailLocation
     tempPlant.radius = type == .tree ? radius : nil
     tempPlant.path = type != .tree ? path : nil
     temporaryPlant = tempPlant
@@ -131,6 +135,7 @@ class PlantManager: ObservableObject {
       type: .tree,
       name: "",
       location: coordinate,
+      detailLocation: "",
       createdAt: Date(),
       updatedAt: Date()
     )

@@ -42,7 +42,7 @@ struct AgendaView: View {
               Button {
                 isFilterPresented = true
               } label: {
-                Image(systemName: "line.3.horizontal.decrease.circle")
+                Image(systemName: "line.3.horizontal.decrease")
                   .resizable()
                   .frame(width: 30, height: 30)
                   .foregroundColor(viewModel.filterViewModel.isDefaultState ? .secondary : .blue)
@@ -187,16 +187,16 @@ struct AgendaView: View {
   }
 }
 
-#Preview {
-  TabView {
-    AgendaView()
-      .tabItem {
-        Label("Tab 1", image: "map")
-      }
-
-    AgendaView()
-      .tabItem {
-        Label("Tab 2", image: "map")
-      }
-  }
-}
+//#Preview {
+//  TabView {
+//    AgendaView()
+//      .tabItem {
+//        Label("Tab 1", image: "map")
+//      }
+//
+//    AgendaView()
+//      .tabItem {
+//        Label("Tab 2", image: "map")
+//      }
+//  }
+//}

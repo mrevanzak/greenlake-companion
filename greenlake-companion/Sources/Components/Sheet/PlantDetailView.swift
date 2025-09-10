@@ -49,6 +49,7 @@ struct PlantDetailView: View {
         }
 
         Text(plant.name).font(.largeTitle).bold()
+        Text(plant.detailLocation).font(.largeTitle).bold()
       }
       .listRowSeparator(.hidden)
       .listRowBackground(Color(.systemGray6))
@@ -150,6 +151,14 @@ struct PlantDetailView: View {
       }
       .padding()
     )
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button("Kembali") {
+          plantManager.selectPlant(nil)
+        }
+      }
+    }
+    .navigationBarTitleDisplayMode(.inline)
     .scrollContentBackground(.hidden)
     .background(.clear)
     .sheet(isPresented: $showingCreateTaskSheet) {

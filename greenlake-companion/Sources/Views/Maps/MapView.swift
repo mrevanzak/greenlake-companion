@@ -21,36 +21,49 @@ struct MapView: View {
 
   private let items = ["Pencatatan", "Label", "Label 2"]
 
+  var showingPlantDetail: Binding<Bool> {
+    Binding(
+      get: { plantManager.hasSelectedPlant },
+      set: { _ in }
+    )
+  }
+
   var body: some View {
     ZStack(alignment: .bottom) {
       // Map background
       mapContent
 
-      VStack {
+      VStack(alignment: .trailing) {
         HStack(alignment: .top) {
           AccountButton()
 
           Spacer()
 
           TopControlView()
-
         }
-       
-          
-          HStack {
-              Spacer()
-              
-              PlantTypeLayerFilter()
-          }
-          
+
         Spacer()
       }
       .padding()
       .padding(.vertical, 16)
       .padding(.horizontal, 6)
-//      .padding(.top, 24)
-//      .padding(.horizontal, 22)
-      Spacer()
+      .zIndex(1)
+
+      HStack(alignment: .top) {
+        Spacer()
+
+        VStack(alignment: .trailing) {
+          PlantTypeLayerFilter()
+          MapTypeControl()
+          Spacer()
+
+        }
+      }
+      .padding()
+      .padding(.top, 70)
+      .padding(.horizontal, 6)
+      .zIndex(0)
+
     }
     .environmentObject(locationManager)
     .environmentObject(filterVM)
@@ -62,21 +75,34 @@ struct MapView: View {
     }
     .adaptiveSheet(
       isPresented: .constant(true),
-      configuration: AdaptiveSheetConfiguration(detents: [.height(108), .large])
+      configuration: AdaptiveSheetConfiguration(detents: [.height(80), .large])
     ) {
       MainSheetView()
+    }
+    .adaptiveSheet(
+      isPresented: $plantManager.isCreatingPlant,
+      configuration: AdaptiveSheetConfiguration(detents: [.large])
+    ) {
+      PlantFormView(mode: .create)
+    }
+    .adaptiveSheet(
+      isPresented: showingPlantDetail,
+      configuration: AdaptiveSheetConfiguration(
+        detents: [.large],
+        onDismiss: {
+          plantManager.selectPlant(nil)
+        })
+    ) {
+      PlantDetailView()
     }
   }
 
   // MARK: - View Components
 
   private var mapContent: some View {
-    MapViewRepresentable(
-      locationManager: locationManager,
-      plantManager: plantManager
-    )
-    .accessibilityHidden(true)
-    .ignoresSafeArea()
+    MapViewRepresentable()
+      .accessibilityHidden(true)
+      .ignoresSafeArea()
   }
 
   private var logoutButton: some View {
@@ -100,7 +126,7 @@ struct MapView: View {
 
 // MARK: - Preview
 
-//#Preview {
-//  MapView()
-//    .environmentObject(AuthManager.shared)
-//}
+#Preview {
+  MapView()
+    .environmentObject(AuthManager.shared)
+}

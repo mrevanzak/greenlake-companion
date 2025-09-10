@@ -19,6 +19,7 @@ struct PlantFormView: View {
   @StateObject private var plantManager = PlantManager.shared
 
   @State private var nameInput: String = ""
+  @State private var detailLocationInput: String = ""
   @State private var typeInput: PlantType = .tree
   @State private var radiusInput: Double = 5.0
   @State private var pathPoints: [CLLocationCoordinate2D] = []
@@ -40,6 +41,7 @@ struct PlantFormView: View {
     typeInput = plant.type
     radiusInput = plant.radius ?? 5.0
     pathPoints = plant.path ?? []
+    detailLocationInput = plant.detailLocation
 
     // Sync with PlantManager's current path points for non-tree types
     if plant.type != .tree {
@@ -65,14 +67,17 @@ struct PlantFormView: View {
     if mode == .update {
       Task {
         await plantManager.updatePlant(
-          plant.with(name: nameInput, type: typeInput, radius: radius, path: path))
+          plant.with(
+            name: nameInput, type: typeInput, radius: radius, detailLocation: detailLocationInput,
+            path: path))
       }
       return
     }
 
     // Update temporary plant with user input and confirm
     plantManager.updateTemporaryPlant(
-      name: nameInput, type: typeInput, radius: radius, path: path)
+      name: nameInput, type: typeInput, detailLocation: detailLocationInput, radius: radius,
+      path: path)
     Task {
       await plantManager.confirmTemporaryPlant()
     }
@@ -92,8 +97,16 @@ struct PlantFormView: View {
     }
     .scrollContentBackground(.hidden)
     .background(.clear)
-    .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
+    .navigationTitle(Text(mode == .create ? "Tanaman Baru" : plant.name))
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar {
+      if mode == .create {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") {
+            plantManager.discardTemporaryPlant()
+          }
+        }
+      }
       ToolbarItem(placement: .navigationBarTrailing) {
         Button("Save") {
           onSave()
@@ -142,6 +155,10 @@ struct PlantFormView: View {
         "Coordinates: \(plant.location.latitude ?? 0), \(plant.location.longitude ?? 0)")
     ) {
       TextField("Name", text: $nameInput)
+        .textInputAutocapitalization(.words)
+        .disableAutocorrection(true)
+
+      TextField("Lokasi Detail", text: $detailLocationInput)
         .textInputAutocapitalization(.words)
         .disableAutocorrection(true)
 

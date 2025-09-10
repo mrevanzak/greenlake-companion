@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct TaskDetailView: View {
+  @State private var showStatusSheet = false
   let task: LandscapingTask
   
   var body: some View {
@@ -35,34 +36,28 @@ struct TaskDetailView: View {
               Label("Pengingat", systemImage: "exclamationmark.bubble")
             }
           } label: {
-            HStack{
               Text("Bagikan")
-              Divider()
-              Image(systemName: "chevron.down")
-            }
-            .frame(height: 40)
-            .padding(.horizontal, 10)
-            .foregroundColor(.white)
-            .background(.gray)
-            .cornerRadius(10)
+                      .font(.system(size: 16, weight: .medium))
+                      .foregroundColor(.blue)
+                      .padding(.horizontal, 16)
+                      .padding(.vertical, 8)
+                      .background(.blue.opacity(0.2))
+                      .clipShape(Capsule())
+                      .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 0)
+
           }
           
-          Menu {
-            Button("Option A", action: { print("Option A selected") })
-            Button("Option B", action: { print("Option B selected") })
-            Button("Option C", action: { print("Option C selected") })
-            
+          Button {
+             showStatusSheet = true
           } label: {
-            HStack{
               Text("Ubah Status")
-              Divider()
-              Image(systemName: "chevron.down")
-            }
-            .frame(height: 40)
-            .padding(.horizontal, 10)
-            .foregroundColor(.white)
-            .background(.blue)
-            .cornerRadius(10)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.blue.opacity(0.2))
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 0)
           }
         }
         
@@ -173,5 +168,8 @@ struct TaskDetailView: View {
     }
     .padding()
     .padding(.bottom, 50)
+    .sheet(isPresented: $showStatusSheet) {
+        TaskStatusSheet(taskId: task.id)
+    }
   }
 }
