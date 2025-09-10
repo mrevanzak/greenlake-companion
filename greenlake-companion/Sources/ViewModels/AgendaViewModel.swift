@@ -20,6 +20,7 @@ class AgendaViewModel: ObservableObject {
   @Published var searchText: String = ""
   @Published var isLoading = false
   @Published var errorMessage: String?
+  @Published var pdfPreview: PDFDataWrapper?
   
   // MARK: - Private Properties
   
@@ -194,5 +195,9 @@ class AgendaViewModel: ObservableObject {
     if let selected = selectedTask, !filteredTasks.contains(selected) {
       selectedTask = filteredTasks.first
     }
+  }
+  
+  func getHeader() -> [LandscapingTask] {
+    return Array(tasks.prefix(10))
   }
 }
