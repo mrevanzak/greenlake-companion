@@ -20,7 +20,6 @@ struct PlantFormView: View {
 
   @State private var nameInput: String = ""
   @State private var detailLocationInput: String = ""
-  @State private var plantConditionInput: String = ""
   @State private var typeInput: PlantType = .tree
   @State private var radiusInput: Double = 5.0
   @State private var pathPoints: [CLLocationCoordinate2D] = []
@@ -42,8 +41,7 @@ struct PlantFormView: View {
     typeInput = plant.type
     radiusInput = plant.radius ?? 5.0
     pathPoints = plant.path ?? []
-    detailLocationInput = plant.detail_location
-    plantConditionInput = plant.plant_condition
+    detailLocationInput = plant.detailLocation
 
     // Sync with PlantManager's current path points for non-tree types
     if plant.type != .tree {
@@ -69,14 +67,17 @@ struct PlantFormView: View {
     if mode == .update {
       Task {
         await plantManager.updatePlant(
-          plant.with(name: nameInput, type: typeInput, radius: radius, detail_location: detailLocationInput, plant_condition: plantConditionInput, path: path))
+          plant.with(
+            name: nameInput, type: typeInput, radius: radius, detailLocation: detailLocationInput,
+            path: path))
       }
       return
     }
 
     // Update temporary plant with user input and confirm
     plantManager.updateTemporaryPlant(
-      name: nameInput, type: typeInput, detail_location: detailLocationInput, plant_condition: plantConditionInput, radius: radius, path: path)
+      name: nameInput, type: typeInput, detailLocation: detailLocationInput, radius: radius,
+      path: path)
     Task {
       await plantManager.confirmTemporaryPlant()
     }
@@ -96,7 +97,7 @@ struct PlantFormView: View {
     }
     .scrollContentBackground(.hidden)
     .background(.clear)
-    .navigationTitle(Text(mode == .create ? "New Plant" : plant.name))
+    .navigationTitle(Text(mode == .create ? "Tanaman Baru" : plant.name))
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if mode == .create {
@@ -156,12 +157,8 @@ struct PlantFormView: View {
       TextField("Name", text: $nameInput)
         .textInputAutocapitalization(.words)
         .disableAutocorrection(true)
-      
+
       TextField("Lokasi Detail", text: $detailLocationInput)
-        .textInputAutocapitalization(.words)
-        .disableAutocorrection(true)
-      
-      TextField("Lokasi Detail", text: $plantConditionInput)
         .textInputAutocapitalization(.words)
         .disableAutocorrection(true)
 
