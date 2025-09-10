@@ -21,7 +21,7 @@ struct MapView: View {
   var showingPlantDetail: Binding<Bool> {
     Binding(
       get: { plantManager.hasSelectedPlant },
-      set: { _ in }
+      set: { _ in plantManager.selectPlant(nil) }
     )
   }
 
