@@ -12,21 +12,37 @@ import SwiftUI
 /// A SwiftUI wrapper around `PDFView` for displaying PDF `Data`.
 struct PDFKitView: UIViewRepresentable {
   let data: Data
-
+  
+  // Create the initial PDFView
   func makeUIView(context: Context) -> PDFView {
     let pdfView = PDFView()
-    pdfView.document = PDFDocument(data: data)
-    pdfView.autoScales = true
+    pdfView.autoScales = true 
+    pdfView.backgroundColor = .clear
     return pdfView
   }
-
-  func updateUIView(_ uiView: PDFView, context: Context) {
-    // No dynamic updates needed for now
+  
+  // Update the view with new data when it changes
+  func updateUIView(_ pdfView: PDFView, context: Context) {
+    if pdfView.document?.dataRepresentation() != data {
+      pdfView.document = PDFDocument(data: data)
+      pdfView.goToFirstPage(nil)
+    }
   }
 }
 
 /// Identifiable wrapper for PDF data, handy for sheet presentations.
-struct PDFDataWrapper: Identifiable {
+struct PDFDataWrapper: Identifiable, Equatable {
   let id = UUID()
   let data: Data
+  
+  func getURL() -> URL? {
+    let tempURL = URL.temporaryDirectory.appending(path: "report-\(id.uuidString).pdf")
+    do {
+      try data.write(to: tempURL)
+      return tempURL
+    } catch {
+      print("Error saving PDF to temp file: \(error)")
+      return nil
+    }
+  }
 }

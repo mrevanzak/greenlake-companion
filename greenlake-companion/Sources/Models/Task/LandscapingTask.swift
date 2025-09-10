@@ -31,8 +31,7 @@ struct LandscapingTask: Identifiable, Hashable {
   var urgencyLabel: UrgencyLabel {
     var daysUntilDue: Int {
       let calendar = Calendar.current
-      //        let today = calendar.startOfDay(for: Date()) // Current date at midnight
-      let today = calendar.startOfDay(for: dateFormatter.date(from: "24-06-2025")!) // Debug, later use current time
+      let today = calendar.startOfDay(for: Date()) // Current date at midnight
       let due = calendar.startOfDay(for: dueDate)  // Due date at midnight
       
       // Calculate the difference in days.
