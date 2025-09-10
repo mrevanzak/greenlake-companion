@@ -52,5 +52,7 @@ struct MapTypeControl: View {
     .padding(.vertical, 4)
     .background(.thinMaterial)
     .clipShape(Capsule())
+    .shadow(color: .black.opacity(0.08), radius: 14, x: 0, y: 0)
+
   }
 }
