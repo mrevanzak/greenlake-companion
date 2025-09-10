@@ -100,7 +100,7 @@ extension View {
           .presentationDetents(configuration.presentationDetents)
           .presentationBackgroundInteraction(.enabled)
           .interactiveDismissDisabled()
-          .presentationCornerRadius(18)
+          .presentationCornerRadius(20)
           .presentationDragIndicator(.visible)
       }
     }
@@ -250,7 +250,7 @@ private struct CustomBottomSheet<Content: View>: View {
         alignment: .top
       )
       .background(Color(.systemBackground))
-      .clipShape(RoundedRectangle(cornerRadius: 18))
+      .clipShape(RoundedRectangle(cornerRadius: 20))
       .shadow(
         color: .black.opacity(0.2),
         radius: 8,
@@ -258,7 +258,7 @@ private struct CustomBottomSheet<Content: View>: View {
         y: 6
       )
       .offset(
-        x: horizontalSizeClass == .compact ? 0 : geometry.size.width * 0.05,
+        x: horizontalSizeClass == .compact ? 0 : 24,
         y: calculatedOffset(for: sheetViewModel.currentDetent, geometry: geometry) + dragOffset
       )
       .gesture(
@@ -279,7 +279,7 @@ private struct CustomBottomSheet<Content: View>: View {
         sheetViewModel.updateCurrentDetent(newDetent)
       }
     }
-    .edgesIgnoringSafeArea(.bottom)
+//    .edgesIgnoringSafeArea(.bottom)
     .onAppear {
       let firstDetent = configuration.firstDetent
       sheetViewModel.currentDetent = firstDetent
