@@ -75,7 +75,7 @@ struct MapView: View {
     }
     .adaptiveSheet(
       isPresented: .constant(true),
-      configuration: AdaptiveSheetConfiguration(detents: [.height(108), .large])
+      configuration: AdaptiveSheetConfiguration(detents: [.height(80), .large])
     ) {
       MainSheetView()
     }

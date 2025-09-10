@@ -49,6 +49,7 @@ struct PlantDetailView: View {
         }
 
         Text(plant.name).font(.largeTitle).bold()
+        Text(plant.detailLocation).font(.largeTitle).bold()
       }
       .listRowSeparator(.hidden)
       .listRowBackground(Color(.systemGray6))
