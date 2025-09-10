@@ -189,29 +189,7 @@ struct AgendaView: View {
                       
                       Spacer()
                       
-                      Menu {
-                          Button {
-                              print("Checklist")
-                          } label: {
-                              Label("Checklist", systemImage: "checklist")
-                          }
-                          
-                          Button {
-                              print("Denda")
-                          } label: {
-                              Label("Denda", systemImage: "dollarsign")
-                          }
-                      } label: {
-                          Text("Export")
-                              .font(.system(size: 16, weight: .medium))
-                              .foregroundColor(.blue)
-                              .padding(.horizontal, 16)
-                              .padding(.vertical, 8)
-                              .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color.white.opacity(1))
-                              .clipShape(Capsule())
-                              .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.08), radius: 14, x: 0, y: 0)
-                      }
-                      .foregroundColor(.accentColor)
+                      ExportButton()
                   }
                   .padding()
                   .padding(.vertical, 16)
@@ -253,16 +231,16 @@ struct AgendaView: View {
   }
 }
 
-#Preview {
-  TabView {
-    AgendaView()
-      .tabItem {
-        Label("Tab 1", image: "map")
-      }
-
-    AgendaView()
-      .tabItem {
-        Label("Tab 2", image: "map")
-      }
-  }
-}
+//#Preview {
+//  TabView {
+//    AgendaView()
+//      .tabItem {
+//        Label("Tab 1", image: "map")
+//      }
+//
+//    AgendaView()
+//      .tabItem {
+//        Label("Tab 2", image: "map")
+//      }
+//  }
+//}
