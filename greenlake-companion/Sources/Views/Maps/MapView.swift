@@ -5,8 +5,10 @@
 //  Created by AI Assistant on 21/08/25.
 //
 
+import BottomSheet
 import MapKit
 import SwiftUI
+import SwiftUIX
 
 /// Main Maps view replicating Apple Maps interface and functionality
 struct MapView: View {
@@ -16,15 +18,14 @@ struct MapView: View {
 
   @EnvironmentObject private var authManager: AuthManager
 
-  @State private var selectedItem: String = "Mode"
-  @State private var showMenu = false
+  @State var bottomSheetPosition: BottomSheetPosition = .relative(0.5)
 
   private let items = ["Pencatatan", "Label", "Label 2"]
 
   var showingPlantDetail: Binding<Bool> {
     Binding(
       get: { plantManager.hasSelectedPlant },
-      set: { _ in }
+      set: { _ in plantManager.selectPlant(nil) }
     )
   }
 
@@ -73,28 +74,9 @@ struct MapView: View {
         await plantManager.loadPlants()
       }
     }
-    .adaptiveSheet(
-      isPresented: .constant(true),
-      configuration: AdaptiveSheetConfiguration(detents: [.height(80), .large])
-    ) {
-      MainSheetView()
-    }
-    .adaptiveSheet(
-      isPresented: $plantManager.isCreatingPlant,
-      configuration: AdaptiveSheetConfiguration(detents: [.large])
-    ) {
-      PlantFormView(mode: .create)
-    }
-    .adaptiveSheet(
-      isPresented: showingPlantDetail,
-      configuration: AdaptiveSheetConfiguration(
-        detents: [.large],
-        onDismiss: {
-          plantManager.selectPlant(nil)
-        })
-    ) {
-      PlantDetailView()
-    }
+    .mainSheet()
+    .plantFormSheet(isPresented: $plantManager.isCreatingPlant)
+    .plantDetailSheet(isPresented: showingPlantDetail)
   }
 
   // MARK: - View Components
@@ -103,19 +85,6 @@ struct MapView: View {
     MapViewRepresentable()
       .accessibilityHidden(true)
       .ignoresSafeArea()
-  }
-
-  private var logoutButton: some View {
-    Button(action: {
-      authManager.logout()
-    }) {
-      Image(systemName: "rectangle.portrait.and.arrow.right")
-        .font(.title2)
-        .foregroundColor(.primary)
-        .padding(12)
-        .background(.ultraThinMaterial)
-        .clipShape(Circle())
-    }
   }
 
   private func setupInitialState() {

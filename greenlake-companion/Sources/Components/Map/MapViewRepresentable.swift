@@ -288,10 +288,12 @@ extension MapViewRepresentable {
       // Constrain region to map boundaries
       let constrainedRegion = constrainRegionToBoundaries(region)
 
+      let screenWidth = UIScreen.main.bounds.width
+
       // Center map with smooth animation
       mapView.setVisibleMapRect(
         MKMapRectForCoordinateRegion(constrainedRegion),
-        edgePadding: .init(top: 0, left: SheetConstants.width, bottom: 0, right: 0),
+        edgePadding: .init(top: 0, left: screenWidth * 0.3, bottom: 0, right: 0),
         animated: true
       )
 

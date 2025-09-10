@@ -5,6 +5,7 @@
 //  Created by Revan on 26/08/25.
 //
 
+import BottomSheet
 import CoreLocation
 import MapKit
 import SwiftUI
@@ -17,60 +18,28 @@ enum BottomSheetScreen {
 
 //MARK: - Sheet Content
 
-struct MainSheetView: View {
-  @EnvironmentObject private var sheetViewModel: SheetViewModel
-
-  @State private var searchText = ""
-  @State private var isEditing = false
-
-  @StateObject private var plantManager = PlantManager.shared
-
-  private func onPlantChangeHandler(oldValue: PlantInstance?, newValue: PlantInstance?) {
-    if newValue != nil {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-        sheetViewModel.updateCurrentDetent(.large)
-      }
-    }
-  }
-
-  private func cleanup() {
-    plantManager.selectPlant(nil)
-    plantManager.stopPathDrawing()
-    plantManager.discardTemporaryPlant()
-  }
-
+struct MainSheetContentView: View {
   var body: some View {
-    ScrollView(showsIndicators: false) {
-      LazyVStack(alignment: .leading, pinnedViews: .sectionHeaders) {
-        Section(
-          header: SearchBar("Cari tanaman atau pekerjaan", text: $searchText, isEditing: $isEditing)
-            .showsCancelButton(isEditing)
-            .padding(.top)
-            .padding(.horizontal, -8)
-        ) {
-          VStack(spacing: 12) {
-            HStack {
-              Text("Pruning").font(.title3.weight(.semibold))
-              Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
-              Spacer()
-              Image(systemName: "chevron.down").foregroundStyle(.secondary)
-            }
-            .padding(16)
-            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
-
-            HStack {
-              Text("Tanaman Sakit").font(.title3.weight(.semibold))
-              Image(systemName: "triangle.fill").foregroundStyle(.orange)
-              Spacer()
-              Image(systemName: "chevron.down").foregroundStyle(.secondary)
-            }
-            .padding(16)
-            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
-          }
-        }
-        .padding(.horizontal)
+    VStack(spacing: 12) {
+      HStack {
+        Text("Pruning").font(.title3.weight(.semibold))
+        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+        Spacer()
+        Image(systemName: "chevron.down").foregroundStyle(.secondary)
       }
+      .padding(16)
+      .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+
+      HStack {
+        Text("Tanaman Sakit").font(.title3.weight(.semibold))
+        Image(systemName: "triangle.fill").foregroundStyle(.orange)
+        Spacer()
+        Image(systemName: "chevron.down").foregroundStyle(.secondary)
+      }
+      .padding(16)
+      .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
     }
+    .padding(.horizontal)
   }
 
   private struct HistoryItem {
@@ -85,5 +54,40 @@ struct MainSheetView: View {
       .init(title: "Pruning", date: "15 Juni 2025"),
     ]
   }
+}
 
+struct MainSheet: ViewModifier {
+  @State var bottomSheetPosition: BottomSheetPosition = .dynamicBottom
+
+  @State private var searchText = ""
+  @State private var isEditing = false
+
+  func body(content: Content) -> some View {
+    content
+      .bottomSheet(
+        bottomSheetPosition: $bottomSheetPosition,
+        switchablePositions: [
+          .dynamicBottom,
+          .absolute(325),
+        ],
+        headerContent: {
+          SearchBar("Cari tanaman atau pekerjaan", text: $searchText, isEditing: $isEditing)
+            .showsCancelButton(isEditing)
+            .padding(.horizontal, 8)
+        }
+      ) {
+        MainSheetContentView()
+      }
+      .backgroundBlurMaterial(.adaptive(.thin))
+      .enableFloatingIPadSheet(false)
+      .iPadSheetAlignment(.bottomLeading)
+      .sheetSidePadding(24)
+      .enableContentDrag()
+  }
+}
+
+extension View {
+  func mainSheet() -> some View {
+    modifier(MainSheet())
+  }
 }

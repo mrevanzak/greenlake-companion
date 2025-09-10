@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C570B3922E6EE93B007D8136 /* AlertKit */; };
+		C593AA312E711D770073ED56 /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA302E711D770073ED56 /* BottomSheet */; };
+		C593AA382E71373B0073ED56 /* SwiftUINavigationTransitions in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */; };
+		C593AA3A2E71373B0073ED56 /* UIKitNavigationTransitions in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA392E71373B0073ED56 /* UIKitNavigationTransitions */; };
 		C5B23C922E703561006D6EC5 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = C5B23C912E703561006D6EC5 /* SwiftUIX */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +32,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */,
+				C593AA3A2E71373B0073ED56 /* UIKitNavigationTransitions in Frameworks */,
+				C593AA382E71373B0073ED56 /* SwiftUINavigationTransitions in Frameworks */,
+				C593AA312E711D770073ED56 /* BottomSheet in Frameworks */,
 				C5B23C922E703561006D6EC5 /* SwiftUIX in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -74,6 +80,9 @@
 			packageProductDependencies = (
 				C570B3922E6EE93B007D8136 /* AlertKit */,
 				C5B23C912E703561006D6EC5 /* SwiftUIX */,
+				C593AA302E711D770073ED56 /* BottomSheet */,
+				C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */,
+				C593AA392E71373B0073ED56 /* UIKitNavigationTransitions */,
 			);
 			productName = "greenlake-companion";
 			productReference = C5D989E92E56C324000AD3E6 /* greenlake-companion.app */;
@@ -106,6 +115,8 @@
 			packageReferences = (
 				C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */,
 				C5B23C902E703561006D6EC5 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */,
+				C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C5D989EA2E56C324000AD3E6 /* Products */;
@@ -266,7 +277,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 54XZ73U5GW;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -280,7 +291,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -303,7 +314,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 54XZ73U5GW;
+				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -317,7 +328,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -365,6 +376,22 @@
 				kind = branch;
 			};
 		};
+		C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:mrevanzak/BottomSheet.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/davdroman/swiftui-navigation-transitions";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.1;
+			};
+		};
 		C5B23C902E703561006D6EC5 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX.git";
@@ -380,6 +407,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */;
 			productName = AlertKit;
+		};
+		C593AA302E711D770073ED56 /* BottomSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */;
+			productName = BottomSheet;
+		};
+		C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */;
+			productName = SwiftUINavigationTransitions;
+		};
+		C593AA392E71373B0073ED56 /* UIKitNavigationTransitions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */;
+			productName = UIKitNavigationTransitions;
 		};
 		C5B23C912E703561006D6EC5 /* SwiftUIX */ = {
 			isa = XCSwiftPackageProductDependency;
