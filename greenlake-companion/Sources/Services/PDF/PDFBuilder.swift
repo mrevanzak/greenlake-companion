@@ -8,7 +8,6 @@
 import PDFKit
 import UIKit
 
-
 // A custom enum for image alignment for better clarity
 enum ImageAlignment {
   case left, center, right
@@ -29,7 +28,7 @@ class PDFBuilder {
   // Constants for layout
   private let margin: CGFloat = 36.0
   private let spacing: CGFloat = 12.0
-
+  
   init() {
     let pageWidth = 8.5 * 72.0
     let pageHeight = 11 * 72.0
@@ -748,5 +747,15 @@ class PDFBuilder {
           return nil
       }
       return image
+  }
+  
+  func generateTaskReminder(taskToDraw: LandscapingTask, admin: String) -> PDFDataWrapper {
+    let reportTitle = "INFORMASI PEKERJAAN"
+    let pdfData = createPDF { pdf in
+      pdf.drawHeader(title: reportTitle, sender: admin, date: Date())
+      pdf.drawTaskReminder(task: taskToDraw)
+    }
+    
+    return PDFDataWrapper(data: pdfData)
   }
 }

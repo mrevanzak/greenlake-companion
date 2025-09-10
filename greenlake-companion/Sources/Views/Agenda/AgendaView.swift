@@ -9,18 +9,18 @@ import SwiftUI
 
 struct AgendaView: View {
   @StateObject private var viewModel = AgendaViewModel()
-  @State private var columnVisibility = NavigationSplitViewVisibility.all
-    @Environment(\.colorScheme) private var colorScheme
+  @State var columnVisibility = NavigationSplitViewVisibility.all
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
 
   @State private var adjustedHeight = UIScreen.main.bounds.height + adjustY
   @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
   @State private var isContentVisible: Bool = true
-
+  
   @State private var isFilterPresented = false
 
   var body: some View {
+    // Geometry reader to detect orientation change
     GeometryReader { geometry in
       NavigationSplitView(columnVisibility: $columnVisibility) {
         VStack(spacing: 0) {
@@ -65,9 +65,9 @@ struct AgendaView: View {
               if viewModel.isLoading {
                 // Loading state
                 VStack(spacing: 16) {
-                  ProgressView("Loading tasks...")
+                  ProgressView("Menunggu...")
                     .font(.headline)
-                  Text("Please wait while we fetch your tasks")
+                  Text("Sedang memuat daftar pekerjaan.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 }
@@ -102,9 +102,9 @@ struct AgendaView: View {
                   Image(systemName: "list.bullet")
                     .font(.largeTitle)
                     .foregroundColor(.secondary)
-                  Text("No Tasks Found")
+                  Text("Hasil Filter Kosong.")
                     .font(.headline)
-                  Text("No tasks match your current filters")
+                  Text("Tidak ada pekerjaan yang sesuai dengan filter anda.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 }
@@ -164,43 +164,10 @@ struct AgendaView: View {
       }
       .frame(height: adjustedHeight, alignment: .top)
       .offset(y: -adjustY)
+      
+      // Custom Top Toolbar with Inset
       .safeAreaInset(edge: .top, spacing: 0) {
-          
-          ZStack(alignment : .topLeading) {
-              AccountButton()
-                  .zIndex(1)
-                  .padding()
-                  .padding(.vertical, 16)
-                  .padding(.horizontal, 6)
-                 
-              
-              VStack {
-                  HStack(alignment: .center) {
-                      let toolbarButtonSize = 30.0
-                      if !isLandscape {
-                          Button(action: toggleSidebar) {
-                              Image(systemName: "sidebar.left")
-                                  .resizable()
-                                  .scaledToFit()
-                                  .frame(width: toolbarButtonSize, height: toolbarButtonSize)
-                          }
-                      }
-                      //              AccountButton()
-                      
-                      Spacer()
-                      
-                      ExportButton()
-                  }
-                  .padding()
-                  .padding(.vertical, 16)
-                  .padding(.horizontal, 6)
-
-                  Spacer()
-                  Divider()
-              }
-              .frame(maxWidth: .infinity)
-              .background(.ultraThinMaterial)
-          }
+        AgendaViewToolbar(isLandscape: $isLandscape, columnVisibility: $columnVisibility)
       }
       .onChange(of: geometry.size) {
         isLandscape = isDeviceInLandscape()
@@ -212,22 +179,11 @@ struct AgendaView: View {
         }
       }
     }
-  }
-
-  private struct AgendaToolbar: View {
-    var body: some View {
-
-    }
+    .environmentObject(viewModel)
   }
 
   private func isDeviceInLandscape() -> Bool {
     return UIScreen.main.bounds.width > UIScreen.main.bounds.height
-  }
-
-  private func toggleSidebar() {
-    withAnimation {
-      columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
-    }
   }
 }
 
