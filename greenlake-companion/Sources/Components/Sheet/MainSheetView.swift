@@ -160,7 +160,7 @@ struct MainSheet: ViewModifier {
         bottomSheetPosition: $bottomSheetPosition,
         switchablePositions: [
           .dynamicBottom,
-          .relative(0.9),
+          .relative(0.95),
         ],
         headerContent: {
           SearchBar("Cari tanaman atau pekerjaan", text: $searchText, isEditing: $isEditing)
