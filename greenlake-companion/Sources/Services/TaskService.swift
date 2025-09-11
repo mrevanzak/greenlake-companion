@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 /// Protocol defining task service operations for easy testing and API integration
 protocol TaskServiceProtocol {
@@ -148,7 +149,6 @@ class TaskService: TaskServiceProtocol {
       }
   }
 
-  
   func updateTask(id: UUID, with request: UpdateTaskRequest) async throws -> TaskResponse {
     do {
       print("📋 Updating task \(id) in API...")
@@ -187,6 +187,52 @@ class TaskService: TaskServiceProtocol {
     } catch {
       print("❌ Error deleting task from API: \(error)")
       throw error
+    }
+  }
+  
+  func fetchImages(for tasks: [LandscapingTask]) async throws -> [UUID: [UIImage]] {
+    return try await withThrowingTaskGroup(of: (UUID, [UIImage]).self) { group in
+      var results: [UUID: [UIImage]] = [:]
+      
+      for task in tasks {
+        group.addTask {
+          let timeline = try await self.fetchTimeline(id: task.id)
+          var downloadedImages: [UIImage] = []
+          
+          if let photos = timeline.last?.photos {
+            for photo in photos {
+              if let image = try? await self._fetchImage(from: photo.imageUrl) {
+                downloadedImages.append(image)
+              }
+            }
+          }
+          
+          return (task.id, downloadedImages)
+        }
+      }
+      
+      for try await (taskId, images) in group {
+        results[taskId] = images
+      }
+      
+      return results
+    }
+  }
+  
+  private func _fetchImage(from urlString: String) async throws -> UIImage {
+    guard let url = URL(string: urlString) else {
+      throw PDFGenerationError.invalidImageData
+    }
+    
+    do {
+      let (data, _) = try await URLSession.shared.data(from: url)
+      if let image = UIImage(data: data) {
+        return image
+      } else {
+        throw PDFGenerationError.invalidImageData
+      }
+    } catch {
+      throw PDFGenerationError.networkError(error)
     }
   }
 }

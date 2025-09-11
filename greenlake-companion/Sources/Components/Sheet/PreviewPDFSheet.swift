@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-enum PDFReportType {
-  case taskChecklist
-  case overdueBill
-  case taskInformation
-  case report // Berita acara
-}
+//enum PDFReportType {
+//  case taskChecklist
+//  case overdueBill
+//  case taskInformation
+//  case report // Berita acara
+//}
 
 struct PreviewPDFSheet: View {
-  private let sheetMinWidth = min(UIScreen.main.bounds.width - 60, 900)
+  private let sheetMinWidth = max(UIScreen.main.bounds.width - 60, 450)
   @EnvironmentObject private var viewModel: AgendaViewModel
   
   var body: some View {
-    VStack {
+    VStack(spacing: 0) {
       HStack {
         Button("Batal") {
           viewModel.pdfPreview = nil
@@ -36,8 +36,7 @@ struct PreviewPDFSheet: View {
           print("send button")
         }
       }
-      .padding(.horizontal)
-      .padding(.bottom)
+      .padding()
       
       Divider()
       
@@ -46,26 +45,19 @@ struct PreviewPDFSheet: View {
         VStack {
           Text("Controls")
             .font(.headline)
-            .padding()
+            .padding(.top)
           
           List(1..<11) { item in
             Text("Task \(item)")
           }
+          .background(.clear)
         }
         .frame(maxWidth: sheetMinWidth * 0.34)
-        
-        Divider()
-        
+        .background(.clear)
+
         // --- Right Column ---
         VStack {
           if let currentPDF = viewModel.pdfPreview {
-              // ADD THIS LINE FOR DEBUGGING
-              Text("PDF Loaded: \(currentPDF.data.count) bytes")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-                  .padding(5)
-                  .background(Color.yellow.opacity(0.2))
-
               PDFKitView(data: currentPDF.data)
           } else {
               EmptyView()
@@ -73,6 +65,7 @@ struct PreviewPDFSheet: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.secondary)
       }
     }
     .frame(minWidth: sheetMinWidth)
