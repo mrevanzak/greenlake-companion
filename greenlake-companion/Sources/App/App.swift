@@ -9,34 +9,44 @@ import SwiftUI
 
 @main
 struct GreenlakeCompanionApp: App {
+  @State private var selectedTabIndex = 0
+
   @StateObject private var authManager = AuthManager.shared
   @StateObject private var plantManager = PlantManager.shared
 
   var showingPlantDetail: Binding<Bool> {
     Binding(
-      get: { plantManager.hasSelectedPlant },
+      get: { plantManager.hasSelectedPlant && selectedTabIndex == 0 },
       set: { _ in plantManager.selectPlant(nil) }
+    )
+  }
+
+  var showingPlantForm: Binding<Bool> {
+    Binding(
+      get: { plantManager.isCreatingPlant && selectedTabIndex == 0 },
+      set: { _ in }
     )
   }
 
   var body: some Scene {
     WindowGroup {
-      TabView {
+      TabView(selection: $selectedTabIndex) {
         MapView()
           .ignoresSafeArea(.container, edges: .top)
           .tabItem {
             Label("Peta", image: "map")
           }
+          .tag(0)
 
         AgendaView()
           .ignoresSafeArea(.container, edges: .top)
           .tabItem {
             Label("Agenda", image: "book.closed")
           }
+          .tag(1)
       }
-      .mainSheet()
       .plantDetailSheet(isPresented: showingPlantDetail)
-      .plantFormSheet(isPresented: $plantManager.isCreatingPlant)
+      .plantFormSheet(isPresented: showingPlantForm)
       .fullScreenCover(isPresented: .constant(!authManager.isAuthenticated)) {
         LoginView()
       }

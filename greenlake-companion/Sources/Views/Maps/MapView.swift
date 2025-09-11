@@ -77,6 +77,7 @@ struct MapView: View {
         await plantManager.loadPlants()
       }
     }
+    .mainSheet()
   }
 
   // MARK: - View Components
