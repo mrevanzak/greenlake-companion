@@ -101,7 +101,7 @@ struct PlantFormView: View {
           deleteSection
         }
       }
-      .navigationTitle(Text(mode == .create ? "Tanaman Baru" : plant.name))
+      .navigationTitle(mode == .create ? "Tanaman Baru" : plant.name)
       .navigationBarTitleDisplayMode(.inline)
       .scrollContentBackground(.hidden)
       .background(.clear)
@@ -122,9 +122,6 @@ struct PlantFormView: View {
       }
       .onAppear {
         initialState(plant: plant)
-      }
-      .onDisappear {
-        onDismiss()
       }
       .onChange(of: plant) { oldPlant, newPlant in
         initialState(plant: newPlant)
@@ -279,6 +276,8 @@ struct PlantFormView: View {
 struct PlantFormSheet: ViewModifier {
   let positions: [BottomSheetPosition] = [.hidden, .relative(0.5)]
 
+  @StateObject private var plantManager = PlantManager.shared
+
   @State var bottomSheetPosition: BottomSheetPosition
   @Binding var isPresented: Bool
 
@@ -294,6 +293,9 @@ struct PlantFormSheet: ViewModifier {
         switchablePositions: positions,
       ) {
         PlantFormView(mode: .create)
+      }
+      .onDismiss {
+        plantManager.discardTemporaryPlant()
       }
       .commonModifiers()
       .enableSwipeToDismiss()

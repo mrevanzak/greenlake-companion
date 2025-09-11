@@ -18,13 +18,6 @@ struct MapView: View {
 
   @EnvironmentObject private var authManager: AuthManager
 
-  var showingPlantDetail: Binding<Bool> {
-    Binding(
-      get: { plantManager.hasSelectedPlant },
-      set: { _ in plantManager.selectPlant(nil) }
-    )
-  }
-
   var body: some View {
     ZStack(alignment: .bottom) {
       // Map background
@@ -84,9 +77,6 @@ struct MapView: View {
         await plantManager.loadPlants()
       }
     }
-    .mainSheet()
-    .plantFormSheet(isPresented: $plantManager.isCreatingPlant)
-    .plantDetailSheet(isPresented: showingPlantDetail)
   }
 
   // MARK: - View Components

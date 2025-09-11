@@ -153,7 +153,7 @@ struct PlantDetailView: View {
         }
         .padding()
       )
-      .navigationBarTitleDisplayMode(.inline)
+      .hideNavigationBar()
       .navigationTransition(.slide)
       .containerBackground(.clear, for: .navigation)
       .scrollContentBackground(.hidden)
