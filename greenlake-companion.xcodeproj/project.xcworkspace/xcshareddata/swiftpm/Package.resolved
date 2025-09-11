@@ -1,5 +1,5 @@
 {
-  "originHash" : "16f4d61d0f67376d28c1d5e9323d4756e5a05773e99fe95861f853e4bf3e8bae",
+  "originHash" : "6db9f7c56137276c08e319e1c093e208dde7647c2ba6fab952ca34bcd5c00997",
   "pins" : [
     {
       "identity" : "alertkit",
@@ -13,10 +13,10 @@
     {
       "identity" : "bottomsheet",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:mrevanzak/BottomSheet.git",
+      "location" : "https://github.com/mrevanzak/BottomSheet.git",
       "state" : {
         "branch" : "main",
-        "revision" : "b5d31d2a90dad41424c6db4375943cb0c4cc61e9"
+        "revision" : "db9415abbe44dc7766bdc8d3ed89ff5ae6555547"
       }
     },
     {

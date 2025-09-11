@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = C570B3922E6EE93B007D8136 /* AlertKit */; };
-		C593AA312E711D770073ED56 /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA302E711D770073ED56 /* BottomSheet */; };
 		C593AA382E71373B0073ED56 /* SwiftUINavigationTransitions in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */; };
 		C593AA3A2E71373B0073ED56 /* UIKitNavigationTransitions in Frameworks */ = {isa = PBXBuildFile; productRef = C593AA392E71373B0073ED56 /* UIKitNavigationTransitions */; };
 		C5B23C922E703561006D6EC5 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = C5B23C912E703561006D6EC5 /* SwiftUIX */; };
+		C5DBD7072E7276A300010560 /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = C5DBD7062E7276A300010560 /* BottomSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,10 +31,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C5DBD7072E7276A300010560 /* BottomSheet in Frameworks */,
 				C570B3932E6EE93B007D8136 /* AlertKit in Frameworks */,
 				C593AA3A2E71373B0073ED56 /* UIKitNavigationTransitions in Frameworks */,
 				C593AA382E71373B0073ED56 /* SwiftUINavigationTransitions in Frameworks */,
-				C593AA312E711D770073ED56 /* BottomSheet in Frameworks */,
 				C5B23C922E703561006D6EC5 /* SwiftUIX in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,9 +80,9 @@
 			packageProductDependencies = (
 				C570B3922E6EE93B007D8136 /* AlertKit */,
 				C5B23C912E703561006D6EC5 /* SwiftUIX */,
-				C593AA302E711D770073ED56 /* BottomSheet */,
 				C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */,
 				C593AA392E71373B0073ED56 /* UIKitNavigationTransitions */,
+				C5DBD7062E7276A300010560 /* BottomSheet */,
 			);
 			productName = "greenlake-companion";
 			productReference = C5D989E92E56C324000AD3E6 /* greenlake-companion.app */;
@@ -115,8 +115,8 @@
 			packageReferences = (
 				C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */,
 				C5B23C902E703561006D6EC5 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
-				C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */,
 				C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */,
+				C5DBD7052E7276A300010560 /* XCRemoteSwiftPackageReference "BottomSheet" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C5D989EA2E56C324000AD3E6 /* Products */;
@@ -376,14 +376,6 @@
 				kind = branch;
 			};
 		};
-		C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:mrevanzak/BottomSheet.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		C593AA362E71373B0073ED56 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/davdroman/swiftui-navigation-transitions";
@@ -400,6 +392,14 @@
 				minimumVersion = 0.2.4;
 			};
 		};
+		C5DBD7052E7276A300010560 /* XCRemoteSwiftPackageReference "BottomSheet" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mrevanzak/BottomSheet.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -407,11 +407,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C570B3912E6EE93B007D8136 /* XCRemoteSwiftPackageReference "AlertKit" */;
 			productName = AlertKit;
-		};
-		C593AA302E711D770073ED56 /* BottomSheet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C593AA2F2E711D770073ED56 /* XCRemoteSwiftPackageReference "BottomSheet" */;
-			productName = BottomSheet;
 		};
 		C593AA372E71373B0073ED56 /* SwiftUINavigationTransitions */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -427,6 +422,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C5B23C902E703561006D6EC5 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
 			productName = SwiftUIX;
+		};
+		C5DBD7062E7276A300010560 /* BottomSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C5DBD7052E7276A300010560 /* XCRemoteSwiftPackageReference "BottomSheet" */;
+			productName = BottomSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
