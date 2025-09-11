@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct AgendaView: View {
-  @StateObject private var viewModel = AgendaViewModel()
+  @StateObject private var viewModel = AgendaViewModel.shared
+
   @State var columnVisibility = NavigationSplitViewVisibility.all
   private var sidebarWidth = max(UIScreen.main.bounds.width * 0.34, 350)
   private let exportButtonHeight = 50.0
@@ -179,7 +180,6 @@ struct AgendaView: View {
         }
       }
     }
-    .environmentObject(viewModel)
   }
 
   private func isDeviceInLandscape() -> Bool {
