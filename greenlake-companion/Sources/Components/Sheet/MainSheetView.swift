@@ -106,35 +106,7 @@ struct MainSheetContentView: View {
               .foregroundColor(.secondary)
           } else {
             ForEach(viewModel.activeTasks) { task in
-              HStack {
-                VStack(alignment: .leading) {
-                  Text(task.title)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-
-                  Text(task.location)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-                }
-                Spacer()
-
-                VStack(alignment: .trailing) {
-                  Text(task.urgencyLabel.displayName)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-                  Text(dateFormatter.string(from: task.dueDate))
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-                }
-              }
-              .padding(.vertical, 12)
-              .padding(.horizontal, 18)
-              .background(task.status.displayColor, in: RoundedRectangle(cornerRadius: 20))
-              .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                  .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
-              )
-              .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
+              ActiveTaskRow(task: task)
             }
           }
         }
@@ -144,6 +116,58 @@ struct MainSheetContentView: View {
     .padding(.top, 24)
     .task {
       await viewModel.load()
+    }
+  }
+}
+
+struct ActiveTaskRow: View {
+  let task: LandscapingTask
+
+  @State private var showingTaskDetailPopover = false
+
+  var body: some View {
+    HStack {
+      VStack(alignment: .leading) {
+        Text(task.title)
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+
+        Text(task.location)
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+      }
+      Spacer()
+
+      VStack(alignment: .trailing) {
+        Text(task.urgencyLabel.displayName)
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+        Text(dateFormatter.string(from: task.dueDate))
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+      }
+    }
+    .padding(.vertical, 12)
+    .padding(.horizontal, 18)
+    .background(task.status.displayColor, in: RoundedRectangle(cornerRadius: 20))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20)
+        .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+    )
+    .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      print("Task tapped: \(task.title)")
+      showingTaskDetailPopover = true
+    }
+    .popover(
+      isPresented: $showingTaskDetailPopover,
+      attachmentAnchor: .point(.trailing),
+      arrowEdge: .leading
+    ) {
+      TaskDetailView(task: task)
+        .background(Color(.systemBackground))
+        .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
     }
   }
 }
