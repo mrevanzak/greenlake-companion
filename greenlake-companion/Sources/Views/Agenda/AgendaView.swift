@@ -187,16 +187,16 @@ struct AgendaView: View {
   }
 }
 
-//#Preview {
-//  TabView {
-//    AgendaView()
-//      .tabItem {
-//        Label("Tab 1", image: "map")
-//      }
-//
-//    AgendaView()
-//      .tabItem {
-//        Label("Tab 2", image: "map")
-//      }
-//  }
-//}
+#Preview {
+  TabView {
+    AgendaView()
+      .tabItem {
+        Label("Tab 1", image: "map")
+      }
+
+    AgendaView()
+      .tabItem {
+        Label("Tab 2", image: "map")
+      }
+  }
+}
