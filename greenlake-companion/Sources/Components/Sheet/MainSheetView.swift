@@ -29,7 +29,7 @@ struct MainSheetContentView: View {
       .init(title: "Area Ground Cover", value: "2711m²"),
     ]
   }
-  
+
   private func buildCard(title: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: 0) {
       Text(title)
@@ -58,7 +58,7 @@ struct MainSheetContentView: View {
           .font(.system(size: 16, weight: .semibold))
           .italic()
           .foregroundColor(.secondary)
-        
+
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
           buildCard(title: "Total Pohon", value: plantManager.getCount(for: "tree"))
           buildCard(title: "Total Semak", value: plantManager.getCount(for: "bush"))
@@ -66,7 +66,7 @@ struct MainSheetContentView: View {
           buildCard(title: "Total Tanaman", value: plantManager.totalPlantCount)
         }
       }
-      
+
       VStack(alignment: .leading) {
         Text("Informasi Pekerjaan")
           .font(.system(size: 16, weight: .semibold))
@@ -77,7 +77,9 @@ struct MainSheetContentView: View {
           buildCard(title: "Pekerjaan Aktif", value: "\(viewModel.taskSummary?.activeTask ?? 0)")
           buildCard(title: "Diajukan", value: "\(viewModel.taskSummary?.diajukanTask ?? 0)")
           buildCard(title: "Diperiksa", value: "\(viewModel.taskSummary?.diperiksaTask ?? 0)")
-          buildCard(title: "Mendekati Deadline", value: "\(viewModel.taskSummary?.approachingDeadline ?? 0)")
+          buildCard(
+            title: "Mendekati Deadline", value: "\(viewModel.taskSummary?.approachingDeadline ?? 0)"
+          )
         }
       }
 
@@ -98,26 +100,7 @@ struct MainSheetContentView: View {
               .foregroundColor(.secondary)
           } else {
             ForEach(viewModel.activeTasks) { task in
-              HStack {
-                VStack(alignment: .leading) {
-                  Text(task.taskName)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-
-                  Text(task.status)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-                }
-                Spacer()
-              }
-              .padding(.vertical, 12)
-              .padding(.horizontal, 18)
-              .background(task.urgencyStatus.displayColor, in: RoundedRectangle(cornerRadius: 20)) // Use urgencyStatus to determine background color
-              .overlay(
-                  RoundedRectangle(cornerRadius: 20)
-                      .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
-              )
-              .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
+              ActiveTaskRow(task: task)
             }
           }
         }
@@ -129,6 +112,49 @@ struct MainSheetContentView: View {
       await viewModel.load()
       await plantManager.loadPlantCounts()
     }
+  }
+}
+
+struct ActiveTaskRow: View {
+  let task: ActiveTaskList
+
+  @State private var showingTaskDetailPopover = false
+
+  var body: some View {
+    HStack {
+      VStack(alignment: .leading) {
+        Text(task.taskName)
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+
+        Text(task.status)
+          .font(.system(size: 16, weight: .medium))
+          .foregroundColor(.white)
+      }
+      Spacer()
+    }
+    .padding(.vertical, 12)
+    .padding(.horizontal, 18)
+    .background(task.urgencyStatus.displayColor, in: RoundedRectangle(cornerRadius: 20))  // Use urgencyStatus to determine background color
+    .overlay(
+      RoundedRectangle(cornerRadius: 20)
+        .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+    )
+    .shadow(color: .black.opacity(0.2), radius: 16, x: 10, y: 10)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      print("Task tapped: \(task.title)")
+      showingTaskDetailPopover = true
+    }
+    // .popover(
+    //   isPresented: $showingTaskDetailPopover,
+    //   attachmentAnchor: .point(.trailing),
+    //   arrowEdge: .leading
+    // ) {
+    //   TaskDetailView(task: task)
+    //     .background(Color(.systemBackground))
+    //     .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
+    // }
   }
 }
 

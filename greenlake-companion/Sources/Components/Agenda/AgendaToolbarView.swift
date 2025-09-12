@@ -9,7 +9,8 @@ import SwiftUI
 import Foundation
 
 struct AgendaViewToolbar: View {
-  @EnvironmentObject private var viewModel: AgendaViewModel
+  @StateObject private var viewModel = AgendaViewModel.shared  
+
   @EnvironmentObject private var authManager: AuthManager
   var adminUsername: String {
     return authManager.currentUser?.name ?? "Admin"
@@ -21,7 +22,13 @@ struct AgendaViewToolbar: View {
   private let toolbarButtonSize = 30.0
   
   var body: some View {
-    VStack {
+    ZStack {
+      VStack {
+        Spacer()
+        Divider()
+      }
+      
+      // Sidebar Toggle
       HStack(alignment: .center) {
         if !isLandscape {
           Button(action: toggleSidebar) {
@@ -33,45 +40,36 @@ struct AgendaViewToolbar: View {
         }
         
         Spacer()
-        
-        // Export Menu
-        Menu {
-          Button {
-            Task {
-              viewModel.pdfPreview = await generateTaskChecklistPDF(tasksToDraw: viewModel.getHeader())
-            }
-          } label: {
-            Label("Checklist", systemImage: "checklist")
-          }
-          
-          Button {
-            Task {
-              viewModel.pdfPreview = await generateFinePDF(tasksToDraw: viewModel.getHeader())
-            }
-          } label: {
-            Label("Denda", systemImage: "dollarsign")
-          }
-        } label: {
-          Image(systemName: "square.and.arrow.up")
-            .resizable()
-            .scaledToFit()
-            .frame(width: toolbarButtonSize, height: toolbarButtonSize)
-        }
-        .foregroundColor(.accentColor)
       }
       .padding()
       .padding(.top)
       .padding(.horizontal)
       
-      Spacer()
-      
-      Divider()
+      // Export Menu
+      HStack(alignment: .center) {
+        Spacer()
+        
+        ExportButton(checklistAction: {
+          Task {
+            viewModel.pdfPreview = try await generateTaskChecklistPDF(tasksToDraw: viewModel.getHeader())
+          }
+        }, dendaAction: {
+          Task {
+            viewModel.pdfPreview = await generateFinePDF(tasksToDraw: viewModel.getHeader())  // TODO: Filter for only late tasks.
+          }
+        })
+        .opacity(1)
+      }
+      .padding()
+      .padding(.top)
+      .padding(.horizontal)
     }
     .frame(maxWidth: .infinity)
     .background(.ultraThinMaterial)
     
     .sheet(item: $viewModel.pdfPreview) { _ in
         PreviewPDFSheet()
+        .background(.ultraThinMaterial)
     }.presentationDetents([.large])
 
   }
@@ -82,19 +80,28 @@ struct AgendaViewToolbar: View {
     }
   }
  
-  private func generateTaskChecklistPDF(tasksToDraw: [LandscapingTask]) async -> PDFDataWrapper {
+  private func generateTaskChecklistPDF(tasksToDraw: [LandscapingTask]) async throws -> PDFDataWrapper {
     let pdfBuilder = PDFBuilder()
+    let taskService = TaskService()
     let reportTitle = "REKAPITULASI PEKERJAAN"
-    let pdfData = pdfBuilder.createPDF { pdf in
-      pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
-      pdf.drawTasks(tasks: tasksToDraw)
+    do {
+      let imagesDictionary = try await taskService.fetchImages(for: tasksToDraw)
+      
+      let pdfData = pdfBuilder.createPDF { pdf in
+        pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
+        pdf.drawTasks(tasks: tasksToDraw, images: imagesDictionary)
+      }
+      return PDFDataWrapper(data: pdfData)
+      
+    } catch {
+      throw PDFGenerationError.invalidImageData
     }
-    return PDFDataWrapper(data: pdfData)
   }
   
   private func generateFinePDF(tasksToDraw: [LandscapingTask]) async -> PDFDataWrapper {
     let pdfBuilder = PDFBuilder()
     let reportTitle = "LAPORAN KETERLAMBATAN"
+    
     let pdfData = pdfBuilder.createPDF { pdf in
       pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
       pdf.drawFineTable(finedTasks: tasksToDraw)

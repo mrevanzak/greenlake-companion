@@ -13,7 +13,6 @@ import SwiftUI
 struct PDFKitView: UIViewRepresentable {
   let data: Data
   
-  // Create the initial PDFView
   func makeUIView(context: Context) -> PDFView {
     let pdfView = PDFView()
     pdfView.autoScales = true 
@@ -21,7 +20,6 @@ struct PDFKitView: UIViewRepresentable {
     return pdfView
   }
   
-  // Update the view with new data when it changes
   func updateUIView(_ pdfView: PDFView, context: Context) {
     if pdfView.document?.dataRepresentation() != data {
       pdfView.document = PDFDocument(data: data)

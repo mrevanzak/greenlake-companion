@@ -5,79 +5,112 @@
 //  Created by Theodore Michael Budiono on 10/09/25.
 //
 
-
-//
-//  ExportButton.swift
-//  greenlake-companion
-//
-//  Created by Theodore Michael Budiono on 03/09/25.
-//
-
 import SwiftUI
 
 struct ExportButton: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var isExpanded = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isExpanded.toggle()
-                }
-            }) {
-                Text("Export")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
-                    
-            }
-            
-            if isExpanded {
-                
-                Divider()
-                    .frame(width: 120)
-                                    .padding(.horizontal, -16)
-                                    .padding(.top, 8)
-                                    
-                VStack(alignment : .leading, spacing: 12) {
-                    Button(action: {
-                        print("Checklist")
-                        isExpanded = false
-                    }) {
-                        HStack {
-//                            Image(systemName: "checklist")
-                            Text("Checklist")
-                        }
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
-                    }
-                    
-                    Button(action: {
-                        print("Denda")
-                        isExpanded = false
-                    }) {
-                        HStack {
-//                            Image(systemName: "dollarsign")
-                            Text("Denda")
-                        }
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
-                       
-                    }
-                }
-                .padding(.top, 8)
-                .transition(.opacity.combined(with: .scale))
-            }
+  @Environment(\.colorScheme) private var colorScheme
+  @State private var isExpanded = false
+  
+  let checklistAction: () -> Void
+  let dendaAction: () -> Void
+  
+  private let collapsedWidth: CGFloat = 53
+  private let collapsedHeight: CGFloat = 36
+  private let innerPadding: CGFloat = 10
+  private let expandedWidth: CGFloat = 90
+  
+  var body: some View {
+    Color.clear
+      .frame(width: collapsedWidth, height: collapsedHeight)
+      .overlay(
+        expandingButton,
+        alignment: .topTrailing
+      )
+  }
+  
+  private var expandingButton: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Button(action: {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+          isExpanded.toggle()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, isExpanded ? 10 : 8)
-        .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color.white.opacity(1))
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.08), radius: 14, x: 0, y: 0)
+      }) {
+        Text("Export")
+          .fixedSize(horizontal: true, vertical: false)
+          .frame(width: isExpanded ? expandedWidth - innerPadding : collapsedWidth - innerPadding, alignment: .leading)
+      }
+      .font(.system(size: 16, weight: .medium))
+      .foregroundColor(.blue)
+      
+      if isExpanded {
+        Divider()
+          .frame(width: expandedWidth + 32)
+          .padding(.horizontal, -16)
+          .padding(.top, 8)
         
+        VStack(alignment: .leading, spacing: 12) {
+          Button(action: {
+            checklistAction()
+            isExpanded = false
+          }) {
+            HStack {
+              Text("Checklist")
+            }
+            .foregroundColor(.primary)
+          }
+          
+          Button(action: {
+            dendaAction()
+            isExpanded = false
+          }) {
+            HStack {
+              Text("Denda")
+            }
+            .foregroundColor(.primary)
+          }
+        }
+        .font(.system(size: 16, weight: .medium))
+        .padding(.top, 8)
+        .transition(.opacity.combined(with: .scale(scale: 1.0, anchor: .topTrailing)))
+      }
     }
+    .frame(width: isExpanded ? expandedWidth : collapsedWidth, alignment: .topLeading)
+    .padding(.horizontal, 16)
+    .padding(.vertical, isExpanded ? 10 : 8)
+    .background(Color.white)
+//    .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.08), radius: 14, x: 0, y: 0)
+    .cornerRadius(20)
+    .drawingGroup()
+  }
 }
 
 #Preview {
-    ExportButton()
+    TabView {
+      VStack(spacing: 20) {
+        HStack {
+          Spacer()
+          ExportButton(
+            checklistAction: { print("Checklist button was tapped!") },
+            dendaAction: { print("Denda button was tapped!") }
+          )
+          Spacer()
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        
+        Spacer()
+      }
+      .padding()
+      .background(Color(.systemGray5))
+      .tabItem {
+        Label("Tab 1", image: "map")
+      }
+  
+      VStack {
+        Text("Hello World!")
+      }
+      .tabItem {
+        Label("Tab 2", image: "map")
+      }
+    }
 }
