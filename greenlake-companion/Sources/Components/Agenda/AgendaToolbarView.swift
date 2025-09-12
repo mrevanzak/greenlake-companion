@@ -10,10 +10,6 @@ import Foundation
 
 struct AgendaViewToolbar: View {
   @EnvironmentObject private var viewModel: AgendaViewModel
-  @EnvironmentObject private var authManager: AuthManager
-  var adminUsername: String {
-    return authManager.currentUser?.name ?? "Admin"
-  }
   
   @Binding var isLandscape: Bool
   @Binding var columnVisibility: NavigationSplitViewVisibility
@@ -50,11 +46,13 @@ struct AgendaViewToolbar: View {
         
         ExportButton(checklistAction: {
           Task {
-            viewModel.pdfPreview = try await generateTaskChecklistPDF(tasksToDraw: viewModel.getHeader())
+            //            viewModel.pdfPreview = try await generateTaskChecklistPDF(tasksToDraw: viewModel.getHeader())
+            viewModel.requestedExportType = .checklist
           }
         }, dendaAction: {
           Task {
-            viewModel.pdfPreview = await generateFinePDF(tasksToDraw: viewModel.getHeader())  // TODO: Filter for only late tasks.
+            //            viewModel.pdfPreview = await generateFinePDF(tasksToDraw: viewModel.getHeader())
+            viewModel.requestedExportType = .fine
           }
         })
         .opacity(1)
@@ -66,7 +64,7 @@ struct AgendaViewToolbar: View {
     .frame(maxWidth: .infinity)
     .background(.ultraThinMaterial)
     
-    .sheet(item: $viewModel.pdfPreview) { _ in
+    .sheet(item: $viewModel.requestedExportType) { _ in
         PreviewPDFSheet()
         .background(.ultraThinMaterial)
     }.presentationDetents([.large])
@@ -77,34 +75,5 @@ struct AgendaViewToolbar: View {
     withAnimation {
       columnVisibility = (columnVisibility == NavigationSplitViewVisibility.all) ? NavigationSplitViewVisibility.detailOnly : NavigationSplitViewVisibility.all
     }
-  }
- 
-  private func generateTaskChecklistPDF(tasksToDraw: [LandscapingTask]) async throws -> PDFDataWrapper {
-    let pdfBuilder = PDFBuilder()
-    let taskService = TaskService()
-    let reportTitle = "REKAPITULASI PEKERJAAN"
-    do {
-      let imagesDictionary = try await taskService.fetchImages(for: tasksToDraw)
-      
-      let pdfData = pdfBuilder.createPDF { pdf in
-        pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
-        pdf.drawTasks(tasks: tasksToDraw, images: imagesDictionary)
-      }
-      return PDFDataWrapper(data: pdfData)
-      
-    } catch {
-      throw PDFGenerationError.invalidImageData
-    }
-  }
-  
-  private func generateFinePDF(tasksToDraw: [LandscapingTask]) async -> PDFDataWrapper {
-    let pdfBuilder = PDFBuilder()
-    let reportTitle = "LAPORAN KETERLAMBATAN"
-    
-    let pdfData = pdfBuilder.createPDF { pdf in
-      pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
-      pdf.drawFineTable(finedTasks: tasksToDraw)
-    }
-    return PDFDataWrapper(data: pdfData)
   }
 }

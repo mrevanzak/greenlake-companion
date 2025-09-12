@@ -2,7 +2,6 @@
 //  PDFKitView.swift
 //  greenlake-companion
 //
-//  Moved to Components/PDF and trimmed to the SwiftUI representable only.
 //  Created by Savio Enoson on 02/09/25.
 //
 
