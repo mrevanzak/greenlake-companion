@@ -11,6 +11,7 @@ import Foundation
 /// Protocol defining plant service operations for easy testing and API integration
 protocol PlantServiceProtocol {
   func fetchPlants() async throws -> [PlantInstance]
+  func fetchPlantCounts() async throws -> PlantTypeCountData
   func createPlant(_ plant: PlantInstance) async throws -> PlantInstance
   func updatePlant(_ plant: PlantInstance) async throws -> PlantInstance
   func deletePlant(_ id: UUID) async throws
@@ -54,6 +55,19 @@ class PlantService: PlantServiceProtocol {
           print("   Unknown decoding error")
         }
       }
+      throw error
+    }
+  }
+  
+  func fetchPlantCounts() async throws -> PlantTypeCountData {
+    do {
+      let response: CountPlantResponse = try await networkManager.request(PlantEndpoint.countPlants)
+      print("✅ Successfully fetched plant counts from API")
+      
+      return response.data
+    }
+    catch {
+      print("❌ Error fetching plant counts from API: \(error)")
       throw error
     }
   }

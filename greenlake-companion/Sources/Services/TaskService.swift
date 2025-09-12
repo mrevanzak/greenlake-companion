@@ -26,6 +26,8 @@ protocol TaskServiceProtocol {
   /// - Returns: The task response
   func fetchTask(id: UUID) async throws -> TaskResponse
   
+  func fetchActiveTasks() async throws -> ActiveTasksData
+  
   func fetchTimeline(id: UUID) async throws -> [TaskChangelog]
   
   /// Update an existing task
@@ -124,6 +126,18 @@ class TaskService: TaskServiceProtocol {
         }
       }
       
+      throw error
+    }
+  }
+  
+  func fetchActiveTasks() async throws -> ActiveTasksData {
+    do {
+      let response: ActiveTasksAPIResponse = try await networkManager.request(
+          TaskEndpoint.fetchActiveTasks)
+      print("✅ Successfully fetched active tasks from API")
+      return response.data
+    } catch {
+      print("❌ Error fetching active tasks from API: \(error)")
       throw error
     }
   }
