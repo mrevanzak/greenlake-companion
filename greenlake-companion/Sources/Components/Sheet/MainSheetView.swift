@@ -12,9 +12,10 @@ import SwiftUI
 import SwiftUIX
 
 //MARK: - Sheet Content
-
 struct MainSheetContentView: View {
   @StateObject private var viewModel = ActiveTasksViewModel()
+  @StateObject private var plantManager = PlantManager.shared
+
   private struct LandscapeInfo {
     let title: String
     let value: String
@@ -28,31 +29,26 @@ struct MainSheetContentView: View {
       .init(title: "Area Ground Cover", value: "2711m²"),
     ]
   }
-  private struct ActiveTask {
-    let title: String
-    let location: String
-    let priority: String
-    let date: String
-    let backgroundColor: Color
-  }
 
-  private var activeTasks: [ActiveTask] {
-    [
-      .init(
-        title: "Pruning",
-        location: "C05-11",
-        priority: "Urgent",
-        date: "20 Agustus 2025",
-        backgroundColor: Color(hue: 0.0, saturation: 0.9, brightness: 1.0, opacity: 1)
-      ),
-      .init(
-        title: "Tanaman Sakit",
-        location: "C05-13",
-        priority: "Warning",
-        date: "12 Agustus 2025",
-        backgroundColor: Color(hue: 0.085, saturation: 0.9, brightness: 1.0, opacity: 1)
-      ),
-    ]
+  private func buildCard(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(title)
+        .font(.system(size: 16, weight: .medium))
+        .foregroundColor(.black)
+      Text(value)
+        .font(.system(size: 45, weight: .black))
+        .fontWidth(.compressed)
+        .foregroundColor(Color(hue: 0.09, saturation: 0, brightness: 0.2, opacity: 1))
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, 12)
+    .padding(.horizontal, 18)
+    .background(Color.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 20))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20)
+        .strokeBorder(Color.white.opacity(0.7), lineWidth: 1)
+    )
+    .shadow(color: .black.opacity(0.2), radius: 8, x: 2, y: 2)
   }
 
   var body: some View {
@@ -64,28 +60,26 @@ struct MainSheetContentView: View {
           .foregroundColor(.secondary)
 
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
-          ForEach(Array(landscapeData.enumerated()), id: \.offset) { index, info in
-            VStack(alignment: .leading, spacing: 0) {
-              Text(info.title)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
-                .padding(0)
-              Text(info.value)
-                .font(.system(size: 45, weight: .black))
-                .fontWidth(.compressed)
-                .foregroundColor(Color(hue: 0.09, saturation: 0, brightness: 0.2, opacity: 1))
-                .padding(0)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 18)
-            .background(Color.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 20))
-            .overlay(
-              RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(Color.white.opacity(0.7), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.2), radius: 8, x: 2, y: 2)
-          }
+          buildCard(title: "Total Pohon", value: plantManager.getCount(for: "tree"))
+          buildCard(title: "Total Semak", value: plantManager.getCount(for: "bush"))
+          buildCard(title: "Ground Cover", value: plantManager.getCount(for: "ground_cover"))
+          buildCard(title: "Total Tanaman", value: plantManager.totalPlantCount)
+        }
+      }
+
+      VStack(alignment: .leading) {
+        Text("Informasi Pekerjaan")
+          .font(.system(size: 16, weight: .semibold))
+          .italic()
+          .foregroundColor(.secondary)
+
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
+          buildCard(title: "Pekerjaan Aktif", value: "\(viewModel.taskSummary?.activeTask ?? 0)")
+          buildCard(title: "Diajukan", value: "\(viewModel.taskSummary?.diajukanTask ?? 0)")
+          buildCard(title: "Diperiksa", value: "\(viewModel.taskSummary?.diperiksaTask ?? 0)")
+          buildCard(
+            title: "Mendekati Deadline", value: "\(viewModel.taskSummary?.approachingDeadline ?? 0)"
+          )
         }
       }
 
@@ -116,40 +110,32 @@ struct MainSheetContentView: View {
     .padding(.top, 24)
     .task {
       await viewModel.load()
+      await plantManager.loadPlantCounts()
     }
   }
 }
 
 struct ActiveTaskRow: View {
-  let task: LandscapingTask
+  let task: ActiveTaskList
 
   @State private var showingTaskDetailPopover = false
 
   var body: some View {
     HStack {
       VStack(alignment: .leading) {
-        Text(task.title)
+        Text(task.taskName)
           .font(.system(size: 16, weight: .medium))
           .foregroundColor(.white)
 
-        Text(task.location)
+        Text(task.status)
           .font(.system(size: 16, weight: .medium))
           .foregroundColor(.white)
       }
       Spacer()
-
-      VStack(alignment: .trailing) {
-        Text(task.urgencyLabel.displayName)
-          .font(.system(size: 16, weight: .medium))
-          .foregroundColor(.white)
-        Text(dateFormatter.string(from: task.dueDate))
-          .font(.system(size: 16, weight: .medium))
-          .foregroundColor(.white)
-      }
     }
     .padding(.vertical, 12)
     .padding(.horizontal, 18)
-    .background(task.status.displayColor, in: RoundedRectangle(cornerRadius: 20))
+    .background(task.urgencyStatus.displayColor, in: RoundedRectangle(cornerRadius: 20))  // Use urgencyStatus to determine background color
     .overlay(
       RoundedRectangle(cornerRadius: 20)
         .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
@@ -160,15 +146,15 @@ struct ActiveTaskRow: View {
       print("Task tapped: \(task.title)")
       showingTaskDetailPopover = true
     }
-    .popover(
-      isPresented: $showingTaskDetailPopover,
-      attachmentAnchor: .point(.trailing),
-      arrowEdge: .leading
-    ) {
-      TaskDetailView(task: task)
-        .background(Color(.systemBackground))
-        .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
-    }
+    // .popover(
+    //   isPresented: $showingTaskDetailPopover,
+    //   attachmentAnchor: .point(.trailing),
+    //   arrowEdge: .leading
+    // ) {
+    //   TaskDetailView(task: task)
+    //     .background(Color(.systemBackground))
+    //     .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
+    // }
   }
 }
 

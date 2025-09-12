@@ -21,11 +21,15 @@ struct MessageOnlyResponse: Codable {
   let message: String
 }
 
+typealias ActiveTasksAPIResponse = APIResponse<ActiveTasksData>
+
 /// Specific response for plants endpoint
 typealias PlantsResponse = APIResponse<[PlantInstance]>
 
 /// Specific response for single plant endpoint
 typealias PlantResponse = APIResponse<PlantInstance>
+
+typealias CountPlantResponse = APIResponse<PlantTypeCountData>
 
 /// Specific response for tasks endpoint
 typealias TasksAPIResponse = APIResponse<[TaskResponse]>
