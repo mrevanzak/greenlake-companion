@@ -174,6 +174,6 @@ struct TimelineEntryView: View {
         }
       }
     }
-    .padding(.leading, 20)
+//    .padding(.leading, 20)
   }
 }
