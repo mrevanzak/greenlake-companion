@@ -116,18 +116,29 @@ struct MainSheetContentView: View {
 }
 
 struct ActiveTaskRow: View {
-  let task: ActiveTaskList
+  let task: LandscapingTask
 
   @State private var showingTaskDetailPopover = false
+
+  var background: Color {
+    switch task.status {
+    case .diperiksa:
+      return .orange
+    case .diajukan:
+      return .red
+    default:
+      return .green
+    }
+  }
 
   var body: some View {
     HStack {
       VStack(alignment: .leading) {
-        Text(task.taskName)
+        Text(task.title)
           .font(.system(size: 16, weight: .medium))
           .foregroundColor(.white)
 
-        Text(task.status)
+        Text(task.status.displayName)
           .font(.system(size: 16, weight: .medium))
           .foregroundColor(.white)
       }
@@ -135,7 +146,7 @@ struct ActiveTaskRow: View {
     }
     .padding(.vertical, 12)
     .padding(.horizontal, 18)
-    .background(task.urgencyStatus.displayColor, in: RoundedRectangle(cornerRadius: 20))  // Use urgencyStatus to determine background color
+    .background(background, in: RoundedRectangle(cornerRadius: 20))  // Use urgencyStatus to determine background color
     .overlay(
       RoundedRectangle(cornerRadius: 20)
         .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
@@ -146,15 +157,15 @@ struct ActiveTaskRow: View {
       print("Task tapped: \(task.title)")
       showingTaskDetailPopover = true
     }
-    // .popover(
-    //   isPresented: $showingTaskDetailPopover,
-    //   attachmentAnchor: .point(.trailing),
-    //   arrowEdge: .leading
-    // ) {
-    //   TaskDetailView(task: task)
-    //     .background(Color(.systemBackground))
-    //     .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
-    // }
+    .popover(
+      isPresented: $showingTaskDetailPopover,
+      attachmentAnchor: .point(.trailing),
+      arrowEdge: .leading
+    ) {
+      TaskDetailView(task: task)
+        .background(Color(.systemBackground))
+        .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
+    }
   }
 }
 

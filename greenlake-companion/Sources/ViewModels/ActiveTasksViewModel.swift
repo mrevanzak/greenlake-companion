@@ -10,7 +10,7 @@ import Foundation
 class ActiveTasksViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var errorMessage: String?
-  @Published var activeTasks: [ActiveTaskList] = []
+  @Published var activeTasks: [LandscapingTask] = []
   @Published var taskSummary: ActiveTasksData? = nil
 
   private let taskService: TaskServiceProtocol
@@ -25,9 +25,11 @@ class ActiveTasksViewModel: ObservableObject {
     defer { isLoading = false }
 
     do {
-      let response = try await taskService.fetchActiveTasks()
-      self.activeTasks = response.tasks
-      self.taskSummary = response
+      async let summary = taskService.fetchActiveTasks()
+      async let aktifTasks = taskService.fetchTasks(status: .aktif)
+      let (taskSummary, activeTasks) = try await (summary, aktifTasks)
+      self.taskSummary = taskSummary
+      self.activeTasks = activeTasks
     } catch {
       print("❌ Failed to load active tasks: \(error)")
       self.errorMessage = "Gagal memuat data."
