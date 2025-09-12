@@ -14,6 +14,7 @@ enum ImageAlignment {
 
 enum PDFGenerationError: Error {
   case invalidImageData
+  case invalidGenerationSequence
   case networkError(Error)
 }
 

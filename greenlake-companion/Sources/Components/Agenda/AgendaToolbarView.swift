@@ -51,10 +51,7 @@ struct AgendaViewToolbar: View {
 
         ExportButton(
           checklistAction: {
-            Task {
-              //            viewModel.pdfPreview = try await generateTaskChecklistPDF(tasksToDraw: viewModel.getHeader())
-              viewModel.requestedExportType = .checklist
-            }
+            viewModel.requestedExportType = .checklist
           },
           dendaAction: {
             Task {
@@ -74,7 +71,6 @@ struct AgendaViewToolbar: View {
 
     .sheet(item: $viewModel.requestedExportType) { _ in
       PreviewPDFSheet()
-        .background(.ultraThinMaterial)
     }.presentationDetents([.large])
 
   }

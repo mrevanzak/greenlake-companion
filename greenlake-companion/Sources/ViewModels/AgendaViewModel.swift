@@ -23,6 +23,7 @@ class AgendaViewModel: ObservableObject {
   @Published var errorMessage: String?
   
   @Published var requestedExportType: PDFReportType?
+  @Published var tasksToExport: [LandscapingTask]?
   
   // MARK: - Private Properties
   

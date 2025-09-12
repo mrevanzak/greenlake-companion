@@ -31,19 +31,15 @@ struct TaskDetailView: View {
           
           Menu {
             Button {
-              Task {
-                //                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task, withSignTemplate: true)
-                viewModel.requestedExportType = .report
-              }
+              viewModel.requestedExportType = .report
+              viewModel.tasksToExport = [task]
             } label: {
               Label("Berita Acara", systemImage: "text.document")
             }
             
             Button {
-              Task {
-                //                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task)
-                viewModel.requestedExportType = .information
-              }
+              viewModel.requestedExportType = .information
+              viewModel.tasksToExport = [task]
             } label: {
               Label("Pengingat", systemImage: "exclamationmark.bubble")
             }
@@ -183,10 +179,5 @@ struct TaskDetailView: View {
     .sheet(isPresented: $showStatusSheet) {
         TaskStatusSheet(taskId: task.id)
     }
-    
-    .sheet(item: $viewModel.requestedExportType) { _ in
-        PreviewPDFSheet()
-        .background(.ultraThinMaterial)
-    }.presentationDetents([.large])
   }
 }
