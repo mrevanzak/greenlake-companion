@@ -21,7 +21,9 @@ class AgendaViewModel: ObservableObject {
   @Published var searchText: String = ""
   @Published var isLoading = false
   @Published var errorMessage: String?
-  @Published var pdfPreview: PDFDataWrapper?
+  
+  @Published var requestedExportType: PDFReportType?
+  @Published var tasksToExport: [LandscapingTask]?
   
   // MARK: - Private Properties
   

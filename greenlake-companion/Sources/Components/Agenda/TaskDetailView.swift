@@ -31,17 +31,15 @@ struct TaskDetailView: View {
           
           Menu {
             Button {
-              Task {
-                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task, withSignTemplate: true)
-              }
+              viewModel.requestedExportType = .report
+              viewModel.tasksToExport = [task]
             } label: {
               Label("Berita Acara", systemImage: "text.document")
             }
             
             Button {
-              Task {
-                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task)
-              }
+              viewModel.requestedExportType = .information
+              viewModel.tasksToExport = [task]
             } label: {
               Label("Pengingat", systemImage: "exclamationmark.bubble")
             }
@@ -180,29 +178,6 @@ struct TaskDetailView: View {
     .padding(.bottom, 50)
     .sheet(isPresented: $showStatusSheet) {
         TaskStatusSheet(taskId: task.id)
-    }
-    
-    .sheet(item: $viewModel.pdfPreview) { _ in
-        PreviewPDFSheet()
-        .background(.ultraThinMaterial)
-    }.presentationDetents([.large])
-  }
-  
-  private func generateTaskReminder(taskToDraw: LandscapingTask, withSignTemplate: Bool = false) async throws -> PDFDataWrapper {
-    let pdfBuilder = PDFBuilder()
-    let taskService = TaskService()
-    let reportTitle = "INFORMASI PEKERJAAN"
-    do {
-      let imagesDictionary = try await taskService.fetchImages(for: [taskToDraw])
-      
-      let pdfData = pdfBuilder.createPDF { pdf in
-        pdf.drawHeader(title: reportTitle, sender: adminUsername, date: Date())
-        pdf.drawTaskReminder(task: taskToDraw, images: imagesDictionary, withSignTemplate: withSignTemplate)
-      }
-      return PDFDataWrapper(data: pdfData)
-      
-    } catch {
-      throw PDFGenerationError.invalidImageData
     }
   }
 }
