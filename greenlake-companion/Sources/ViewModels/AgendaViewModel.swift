@@ -11,6 +11,7 @@ import SwiftUI
 
 @MainActor
 class AgendaViewModel: ObservableObject {
+  static let shared = AgendaViewModel()
   // MARK: - Published Properties
   
   @Published var tasks: [LandscapingTask] = []
