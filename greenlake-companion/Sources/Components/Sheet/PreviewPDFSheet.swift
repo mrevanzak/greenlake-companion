@@ -15,8 +15,9 @@ import SwiftUI
 //}
 
 struct PreviewPDFSheet: View {
-  private let sheetMinWidth = UIScreen.main.bounds.width - 100
-  @EnvironmentObject private var viewModel: AgendaViewModel
+  private let sheetMinWidth = max(UIScreen.main.bounds.width - 60, 450)
+  
+  @StateObject private var viewModel = AgendaViewModel.shared
   
   var body: some View {
     VStack(spacing: 0) {

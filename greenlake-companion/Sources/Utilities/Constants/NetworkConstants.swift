@@ -50,6 +50,9 @@ protocol APIEndpoint {
 
   /// Optional query parameters for GET requests
   var queryParameters: [String: String]? { get }
+
+  /// Whether this request should show the global loading alert (default: true)
+  var showsGlobalLoading: Bool { get }
 }
 
 /// Default implementation for common endpoint properties
@@ -57,6 +60,7 @@ extension APIEndpoint {
   var headers: [String: String]? { nil }
   var body: Encodable? { nil }
   var queryParameters: [String: String]? { nil }
+  var showsGlobalLoading: Bool { true }
 }
 
 /// Plant-specific API endpoints
@@ -146,6 +150,15 @@ enum AuthEndpoint: APIEndpoint {
       return nil
     }
   }
+
+  var showsGlobalLoading: Bool {
+    switch self {
+    case .refreshToken:
+      return false
+    default:
+      return true
+    }
+  }
 }
 
 /// Task-specific API endpoints
@@ -197,6 +210,15 @@ enum TaskEndpoint: APIEndpoint {
       return nil
     default:
       return nil
+    }
+  }
+
+  var showsGlobalLoading: Bool {
+    switch self {
+    case .fetchTimeline:
+      return false
+    default:
+      return true
     }
   }
 }

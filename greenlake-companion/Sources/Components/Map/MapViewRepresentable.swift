@@ -75,25 +75,9 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsScale = false
     mapView.showsTraffic = false
 
-    //      mapView.layoutMargins = .zero
     mapView.layoutMargins = UIEdgeInsets(top: 370, left: 70, bottom: 10, right: 18)
 
-    //      addCustomCompass(to: mapView)
-
   }
-
-  /// Add compass with custom positioning
-  //    private func addCustomCompass(to mapView: MKMapView) {
-  //      let compassButton = MKCompassButton(mapView: mapView)
-  //      compassButton.translatesAutoresizingMaskIntoConstraints = false
-  //      mapView.addSubview(compassButton)
-  //
-  //      NSLayoutConstraint.activate([
-  //        compassButton.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
-  //        compassButton.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-  //      ])
-  //    }
-
   /// Configure user interaction capabilities
   private func configureUserInteraction(_ mapView: MKMapView) {
     mapView.isZoomEnabled = true
@@ -288,10 +272,12 @@ extension MapViewRepresentable {
       // Constrain region to map boundaries
       let constrainedRegion = constrainRegionToBoundaries(region)
 
+      let screenWidth = UIScreen.main.bounds.width
+
       // Center map with smooth animation
       mapView.setVisibleMapRect(
         MKMapRectForCoordinateRegion(constrainedRegion),
-        edgePadding: .init(top: 0, left: SheetConstants.width, bottom: 0, right: 0),
+        edgePadding: .init(top: 0, left: screenWidth * 0.3, bottom: 0, right: 0),
         animated: true
       )
 

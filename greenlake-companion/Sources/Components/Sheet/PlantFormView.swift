@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 28/08/25.
 //
 
+import BottomSheet
 import CoreLocation
 import SwiftUI
 
@@ -51,13 +52,17 @@ struct PlantFormView: View {
 
   private func onDelete() {
     if mode == .create {
-      plantManager.discardTemporaryPlant()
+      onDismiss()
       return
     }
 
     Task {
       await plantManager.deletePlant(plant)
     }
+  }
+
+  private func onDismiss() {
+    plantManager.discardTemporaryPlant()
   }
 
   private func onSave() {
@@ -84,64 +89,67 @@ struct PlantFormView: View {
   }
 
   var body: some View {
-    Form {
-      detailsSection
+    NavigationStack {
+      Form {
+        detailsSection
 
-      if typeInput != .tree {
-        areaDrawingSection
-      }
+        if typeInput != .tree {
+          areaDrawingSection
+        }
 
-      if mode == .update {
-        deleteSection
+        if mode == .update {
+          deleteSection
+        }
       }
-    }
-    .scrollContentBackground(.hidden)
-    .background(.clear)
-    .navigationTitle(Text(mode == .create ? "Tanaman Baru" : plant.name))
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      if mode == .create {
-        ToolbarItem(placement: .navigationBarLeading) {
-          Button("Cancel") {
-            plantManager.discardTemporaryPlant()
+      .navigationTitle(mode == .create ? "Tanaman Baru" : plant.name)
+      .navigationBarTitleDisplayMode(.inline)
+      .scrollContentBackground(.hidden)
+      .background(.clear)
+      .containerBackground(.clear, for: .navigation)
+      .toolbar {
+        if mode == .create {
+          ToolbarItem(placement: .navigationBarLeading) {
+            Button("Cancel") {
+              onDismiss()
+            }
+          }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button("Save") {
+            onSave()
           }
         }
       }
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button("Save") {
-          onSave()
-        }
+      .onAppear {
+        initialState(plant: plant)
       }
-    }
-    .onAppear {
-      initialState(plant: plant)
-    }
-    .onChange(of: plant) { oldPlant, newPlant in
-      initialState(plant: newPlant)
-    }
-    .onChange(of: typeInput) { oldType, newType in
-      if newType != .tree {
-        radiusInput = 5.0  // Reset radius for non-tree types
+      .onChange(of: plant) { oldPlant, newPlant in
+        initialState(plant: newPlant)
+      }
+      .onChange(of: typeInput) { oldType, newType in
+        if newType != .tree {
+          radiusInput = 5.0  // Reset radius for non-tree types
 
-        if plantManager.currentPathPoints.isEmpty {
-          plantManager.startPathDrawing(withInitialPoint: plant.location)
+          if plantManager.currentPathPoints.isEmpty {
+            plantManager.startPathDrawing(withInitialPoint: plant.location)
+          }
+        } else {
+          // Clear path when switching to tree type
+          plantManager.clearPath()
+          plantManager.stopPathDrawing()
+          pathPoints.removeAll()
         }
-      } else {
-        // Clear path when switching to tree type
-        plantManager.clearPath()
-        plantManager.stopPathDrawing()
-        pathPoints.removeAll()
       }
-    }
-    .onChange(of: plantManager.isDrawingPath) { oldValue, newValue in
-      // Stop drawing when switching away from non-tree types
-      if newValue && typeInput == .tree {
-        plantManager.stopPathDrawing()
+      .onChange(of: plantManager.isDrawingPath) { oldValue, newValue in
+        // Stop drawing when switching away from non-tree types
+        if newValue && typeInput == .tree {
+          plantManager.stopPathDrawing()
+        }
       }
-    }
-    .onReceive(plantManager.$currentPathPoints) { newPoints in
-      if typeInput != .tree {
-        pathPoints = newPoints
+      .onReceive(plantManager.$currentPathPoints) { newPoints in
+        if typeInput != .tree {
+          pathPoints = newPoints
+        }
       }
     }
   }
@@ -262,5 +270,46 @@ struct PlantFormView: View {
       Text("Are you sure you want to delete '\(plant.name)'? This action cannot be undone.")
     }
     .listRowBackground(Color(.systemGray6))
+  }
+}
+
+struct PlantFormSheet: ViewModifier {
+  let positions: [BottomSheetPosition] = [.hidden, .relative(0.5)]
+
+  @StateObject private var plantManager = PlantManager.shared
+
+  @State var bottomSheetPosition: BottomSheetPosition
+  @Binding var isPresented: Bool
+
+  init(isPresented: Binding<Bool>) {
+    self._isPresented = isPresented
+    self.bottomSheetPosition = self.positions[0]
+  }
+
+  func body(content: Content) -> some View {
+    content
+      .bottomSheet(
+        bottomSheetPosition: $bottomSheetPosition,
+        switchablePositions: positions,
+      ) {
+        PlantFormView(mode: .create)
+      }
+      .onDismiss {
+        plantManager.discardTemporaryPlant()
+      }
+      .commonModifiers()
+      .enableSwipeToDismiss()
+      .onChange(of: isPresented) { _, newValue in
+        if newValue {
+          bottomSheetPosition = positions[1]
+        } else {
+          bottomSheetPosition = positions[0]
+        }
+      }
+  }
+}
+extension View {
+  func plantFormSheet(isPresented: Binding<Bool>) -> some View {
+    modifier(PlantFormSheet(isPresented: isPresented))
   }
 }

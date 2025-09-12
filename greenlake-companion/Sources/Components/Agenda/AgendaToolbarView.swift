@@ -9,7 +9,8 @@ import SwiftUI
 import Foundation
 
 struct AgendaViewToolbar: View {
-  @EnvironmentObject private var viewModel: AgendaViewModel
+  @StateObject private var viewModel = AgendaViewModel.shared  
+
   @EnvironmentObject private var authManager: AuthManager
   var adminUsername: String {
     return authManager.currentUser?.name ?? "Admin"
