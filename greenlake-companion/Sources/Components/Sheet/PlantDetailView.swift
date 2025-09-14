@@ -5,19 +5,112 @@ import SwiftUINavigationTransitions
 
 struct PlantDetailView: View {
   @StateObject private var plantManager = PlantManager.shared
-
+  private var taskService = TaskService()
+  
   @State private var isExpanded = true
   @State private var showingCreateTaskSheet = false
   @State private var showForm = false
-
+  
+  @State private var activeTasks: [PlantTask] = []
+  @State private var historyTasks: [PlantTask] = []
+  @State private var isLoadingActiveTasks = false
+  @State private var isLoadingHistoryTasks = false
+  @State private var activeTasksError: Error?
+  @State private var historyTasksError: Error?
+  
+  var previewPlant: PlantInstance? = nil
+  init(previewPlant: PlantInstance? = nil) {
+    self.previewPlant = previewPlant
+  }
+  
   private func navigateToForm() {
     showForm = true
   }
-
+  
   var plant: PlantInstance {
-    return plantManager.selectedPlant ?? PlantInstance.empty()
+    previewPlant ?? plantManager.selectedPlant ?? PlantInstance.empty()
   }
-
+  
+  private func fetchTasks() async {
+    let plantId = plant.id
+    
+    guard plantId != UUID() else { return }
+    
+    isLoadingActiveTasks = true
+    do {
+      let fetchedActiveTasks = try await taskService.fetchActiveTaskByPlant(id: plantId)
+      activeTasks = fetchedActiveTasks
+      activeTasksError = nil
+    } catch {
+      activeTasksError = error
+    }
+    isLoadingActiveTasks = false
+    
+    isLoadingHistoryTasks = true
+    do {
+      let fetchedHistoryTasks = try await taskService.fetchHistoryTaskByPlant(id: plantId)
+      historyTasks = fetchedHistoryTasks
+      historyTasksError = nil
+    } catch {
+      historyTasksError = error
+    }
+    isLoadingHistoryTasks = false
+  }
+  
+  struct TaskCardView: View {
+    var task: PlantTask
+    
+    private func daysLeft(until dueDate: Date) -> Int {
+      let calendar = Calendar.current
+      let currentDate = Date()
+      let components = calendar.dateComponents([.day], from: currentDate, to: dueDate)
+      return components.day ?? 0
+    }
+    
+    private func backgroundColor(for dueDate: Date) -> Color {
+      let daysLeft = self.daysLeft(until: dueDate)
+      
+      if daysLeft < 0 {
+        return .red
+      } else if daysLeft <= 7 {
+        return .red
+      } else if daysLeft <= 14 {
+        return .orange
+      } else {
+        return .green
+      }
+    }
+    
+    var body: some View {
+      HStack {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(task.taskName)
+            .font(.headline)
+            .foregroundColor(.white)
+          
+          Text(dateFormatter.string(from: task.dueDate))
+            .font(.subheadline)
+            .foregroundColor(.white)
+        }
+        
+        Spacer()
+        
+        VStack(alignment: .trailing, spacing: 4) {
+          Text(task.urgency)
+            .font(.subheadline)
+            .foregroundColor(.white)
+          
+          Text(task.status)
+            .font(.headline)
+            .foregroundColor(.white)
+        }
+      }
+      .padding()
+      .background(self.backgroundColor(for: task.dueDate))
+      .cornerRadius(12)
+    }
+  }
+  
   var body: some View {
     NavigationStack {
       List {
@@ -38,97 +131,61 @@ struct PlantDetailView: View {
               Image(systemName: "photo").font(.system(size: 40))
                 .foregroundStyle(.secondary)
             )
-
-          Button {
-            print(
-              "Koordinat: \(plant.location.latitude ?? 0), \(plant.location.longitude ?? 0)"
-            )
-            // showingLocationSheet = true
-          } label: {
-            Label(
-              "Koordinat \(plant.location.latitude ?? 0), \(plant.location.longitude ?? 0)",
-              systemImage: "mappin.and.ellipse"
-            ).foregroundColor(.accentColor)
+          
+          Text(plant.name)
+            .font(.largeTitle)
+            .bold()
+          
+          HStack {
+            Image(systemName: "ruler")
+              .foregroundColor(.secondary)
+            Text(String(format: "%.2f", plant.radius ?? 0))
+              .font(.system(size: 16))
           }
-
-          Text(plant.name).font(.largeTitle).bold()
-          Text(plant.detailLocation ?? "").font(.largeTitle).bold()
+          
+          HStack {
+            Image(systemName: "tree")
+              .foregroundColor(.secondary)
+            Text(plant.type.displayName.capitalized)
+              .font(.system(size: 16))
+          }
         }
+        .padding(.top, 0)
         .listRowSeparator(.hidden)
-        .listRowBackground(Color(.systemGray6))
-
-        // // Action buttons
-        // VStack(spacing: 12) {
-        //   Button(action: {
-        //     showingPlantConditionSheet = true
-        //   }) {
-        //     Text("Catat Kondisi")
-        //       .font(.headline)
-        //       .foregroundStyle(.white)
-        //       .frame(maxWidth: .infinity)
-        //       .padding(.vertical, 14)
-        //   }
-        //   .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
-
-        //   Button(action: {
-
-        //   }) {
-        //     HStack {
-        //       Image(systemName: "info.circle")
-        //       Text("Detail Tanaman")
-        //         .font(.headline)
-        //     }
-        //     .foregroundStyle(.primary)
-        //     .frame(maxWidth: .infinity)
-        //     .padding(.vertical, 14)
-        //   }
-        //   .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 16))
-        // }
-        // .padding(.top, 8)
-
-        // // Add more content to demonstrate scrolling
-        // VStack(alignment: .leading, spacing: 12) {
-        //   Text("Riwayat Perawatan")
-        //     .font(.headline)
-        //     .foregroundStyle(.secondary)
-        //     .padding(.top, 16)
-
-        // ForEach(historyItems, id: \.title) { item in
-        //   HStack {
-        //     VStack(alignment: .leading, spacing: 4) {
-        //       Text(item.title)
-        //         .font(.subheadline.weight(.medium))
-        //       Text(item.date)
-        //         .font(.caption)
-        //         .foregroundStyle(.secondary)
-        //     }
-        //     Spacer()
-        //     Image(systemName: "chevron.right")
-        //       .font(.caption)
-        //       .foregroundStyle(.secondary)
-        //   }
-        //   .padding(12)
-        //   .background(Color.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
-        // }
-        // }
-
-        // Additional content to ensure scrolling is needed
-        // VStack(alignment: .leading, spacing: 12) {
-        //   Text("Catatan Tambahan")
-        //     .font(.headline)
-        //     .foregroundStyle(.secondary)
-        //     .padding(.top, 16)
-
-        //   Text(
-        //     "Tanaman ini memerlukan perawatan rutin setiap 2 minggu. Perhatikan kondisi tanah dan pastikan drainase yang baik."
-        //   )
-        //   .font(.body)
-        //   .foregroundStyle(.secondary)
-        //   .padding(12)
-        //   .background(Color.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
-        // }
+        .listRowBackground(Color(.clear))
+        
+        if !activeTasks.isEmpty {
+          Section(header: Text("Active Tasks")) {
+            ForEach(activeTasks, id: \.id) { task in
+              TaskCardView(task: task)
+            }
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color(.clear))
+          }
+        } else {
+          Section(header: Text("Pekerjaan AKtif")) {
+            Text("Tidak ada pekerjaan aktif")
+              .foregroundColor(.secondary)
+          }
+          .listRowSeparator(.hidden)
+          .listRowBackground(Color(.clear))
+        }
+        
+        if !historyTasks.isEmpty {
+          Section(header: Text("Riwayat Pekerjaan")) {
+            ForEach(historyTasks, id: \.id) { task in
+              TaskCardView(task: task)
+                .listRowBackground(Color(.clear))
+            }
+          }
+        } else {
+          Section(header: Text("History Tasks")) {
+            Text("Tidak ada riwayat pekerjaan")
+              .foregroundColor(.secondary)
+              .listRowBackground(Color(.clear))
+          }
+        }
       }
-      .listStyle(.sidebar)
       .overlay(
         VStack {
           Spacer()
@@ -151,7 +208,7 @@ struct PlantDetailView: View {
             .buttonStyle(.primary)
           }
         }
-        .padding()
+          .padding()
       )
       .hideNavigationBar()
       .navigationTransition(.slide)
@@ -164,21 +221,30 @@ struct PlantDetailView: View {
       .navigationDestination(isPresented: $showForm) {
         PlantFormView(mode: .update)
       }
+      .onChange(of: plant) { _ in
+        Task {
+          await fetchTasks()
+        }
+      }
+      // Initial fetch for tasks
+      .task {
+        await fetchTasks()
+      }
     }
   }
 }
 
 struct PlantDetailSheet: ViewModifier {
   let positions: [BottomSheetPosition] = [.hidden, .relative(0.9)]
-
+  
   @State var bottomSheetPosition: BottomSheetPosition
   @Binding var isPresented: Bool
-
+  
   init(isPresented: Binding<Bool>) {
     self._isPresented = isPresented
     self.bottomSheetPosition = self.positions[0]
   }
-
+  
   func body(content: Content) -> some View {
     content
       .bottomSheet(
@@ -201,6 +267,19 @@ struct PlantDetailSheet: ViewModifier {
       }
   }
 }
+
+#Preview {
+  PlantDetailView(previewPlant: PlantInstance(
+    id: UUID(uuidString: "3bda81e6-207e-408d-a805-ece88929057c")!,
+    type: PlantType.bush,
+    name: "Lidah Mertua",
+    location: CLLocationCoordinate2D(latitude: -6.2, longitude: 106.8),
+    detailLocation: "Ruang Tamu",
+    createdAt: Date(),
+    updatedAt: Date(),
+  ))
+}
+
 extension View {
   func plantDetailSheet(isPresented: Binding<Bool>) -> some View {
     modifier(PlantDetailSheet(isPresented: isPresented))
