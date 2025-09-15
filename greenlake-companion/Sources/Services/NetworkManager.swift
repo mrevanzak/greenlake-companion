@@ -130,6 +130,9 @@ class NetworkManager: NetworkManagerProtocol {
 
   func request<T: Codable>(_ endpoint: APIEndpoint) async throws -> T {
     let data = try await request(endpoint)
+    if let rawString = String(data: data, encoding: .utf8) {
+        print("Raw response data: \(rawString)") // This prints the raw response to the console
+    }
     return try decoder.decode(T.self, from: data)
   }
 

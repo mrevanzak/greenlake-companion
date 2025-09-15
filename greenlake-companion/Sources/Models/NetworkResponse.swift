@@ -37,6 +37,10 @@ typealias TasksAPIResponse = APIResponse<[TaskResponse]>
 /// Specific response for single task endpoint
 typealias TaskAPIResponse = APIResponse<TaskResponse>
 
+typealias ActiveTaskPlantAPIResponse = APIResponse<[PlantTask]>
+
+typealias HistoryTaskPlantAPIResponse = APIResponse<[PlantTask]>
+
 typealias TimelinesAPIResponse = APIResponse<[TaskChangelog]>
 
 /// Specific response for single task endpoint
