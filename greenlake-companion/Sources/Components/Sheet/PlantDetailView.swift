@@ -33,9 +33,10 @@ struct PlantDetailView: View {
   
   private func fetchTasks() async {
     let plantId = plant.id
-    
-    guard plantId != UUID() else { return }
-    
+
+    // Don't fetch tasks if we don't have a selected plant (using empty plant as fallback)
+    guard plantManager.selectedPlant != nil || previewPlant != nil else { return }
+
     isLoadingActiveTasks = true
     do {
       let fetchedActiveTasks = try await taskService.fetchActiveTaskByPlant(id: plantId)
