@@ -161,7 +161,7 @@ struct ActiveTaskRow: View {
     .popover(
       isPresented: $showingTaskDetailPopover,
       attachmentAnchor: .point(.trailing),
-      arrowEdge: .leading
+      arrowEdge: .none
     ) {
       TaskDetailView(task: task)
 //        .background(Color(.systemBackground))

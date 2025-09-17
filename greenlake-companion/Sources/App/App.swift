@@ -55,5 +55,19 @@ struct GreenlakeCompanionApp: App {
         authManager.loadUserFromStorage()
       }
     }.environmentObject(authManager)
+          .environmentObject(TabSelectionManager(selectedTabIndex: $selectedTabIndex))
+
   }
+}
+
+class TabSelectionManager: ObservableObject {
+    @Binding var selectedTabIndex: Int
+    
+    init(selectedTabIndex: Binding<Int>) {
+        self._selectedTabIndex = selectedTabIndex
+    }
+    
+    var isOnMapTab: Bool {
+        selectedTabIndex == 0
+    }
 }
