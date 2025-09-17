@@ -29,7 +29,7 @@ struct MapView: View {
 
           Spacer()
 
-          TopControlView()
+          // TopControlView()
         }
 
         Spacer()

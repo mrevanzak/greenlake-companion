@@ -67,6 +67,7 @@ extension APIEndpoint {
 enum PlantEndpoint: APIEndpoint {
   case fetchPlants
   case fetchPlant(id: UUID)
+  case countPlants
   case createPlant
   case updatePlant(id: UUID)
   case deletePlant(id: UUID)
@@ -77,6 +78,8 @@ enum PlantEndpoint: APIEndpoint {
       return "/plants"
     case .fetchPlant(let id):
       return "/plants/\(id)"
+    case .countPlants:
+      return "/plants/type/count"
     case .createPlant:
       return "/plants/create"
     case .updatePlant(let id):
@@ -88,7 +91,7 @@ enum PlantEndpoint: APIEndpoint {
 
   var method: HTTPMethod {
     switch self {
-    case .fetchPlants, .fetchPlant:
+    case .fetchPlants, .fetchPlant, .countPlants:
       return .GET
     case .createPlant:
       return .POST
@@ -165,8 +168,11 @@ enum AuthEndpoint: APIEndpoint {
 enum TaskEndpoint: APIEndpoint {
   case createTask
   case fetchTasks
+  case fetchActiveTasks
   case fetchTask(id: UUID)
   case fetchTimeline(id: UUID)
+  case fetchActiveTaskByPlant(id: UUID)
+  case fetchHistoryTaskByPlant(id: UUID)
   case updateTask(id: UUID)
   case updateStatus(id: UUID)
   case deleteTask(id: UUID)
@@ -177,6 +183,12 @@ enum TaskEndpoint: APIEndpoint {
       return "/tasks/create"
     case .fetchTasks:
       return "/tasks"
+    case .fetchActiveTasks:
+      return "/tasks/active"
+    case .fetchActiveTaskByPlant(let id):
+      return "/tasks/plant/\(id)/active"
+    case .fetchHistoryTaskByPlant(let id):
+      return "/tasks/plant/\(id)/history"
     case .fetchTask(let id):
       return "/tasks/\(id)"
     case .fetchTimeline(let id):
@@ -194,7 +206,7 @@ enum TaskEndpoint: APIEndpoint {
     switch self {
     case .createTask:
       return .POST
-    case .fetchTasks, .fetchTask, .fetchTimeline:
+    case .fetchTasks, .fetchActiveTasks, .fetchActiveTaskByPlant, .fetchHistoryTaskByPlant, .fetchTask, .fetchTimeline:
       return .GET
     case .updateTask, .updateStatus:
       return .PUT

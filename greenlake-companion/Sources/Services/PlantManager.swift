@@ -30,6 +30,9 @@ class PlantManager: ObservableObject {
 
   @Published var isDrawingPath = false
   @Published var currentPathPoints: [CLLocationCoordinate2D] = []
+  
+  @Published var plantCounts: [PlantTypeCount] = []
+  @Published var totalPlantCount: String = "0"
 
   // MARK: - Private Properties
 
@@ -56,6 +59,24 @@ class PlantManager: ObservableObject {
     }
 
     isLoading = false
+  }
+  
+  func loadPlantCounts() async {
+      isLoading = true
+      error = nil
+
+      do {
+          let result = try await plantService.fetchPlantCounts()
+
+          // No need for DispatchQueue.main since you're already in @MainActor
+          self.plantCounts = result.counts
+          self.totalPlantCount = result.total
+
+      } catch {
+          self.error = PlantError.loadFailed(error)
+      }
+
+      isLoading = false
   }
 
   /// Create a temporary plant at the specified coordinate
@@ -149,6 +170,10 @@ class PlantManager: ObservableObject {
     }
 
     isLoading = false
+  }
+  
+  func getCount(for type: String) -> String {
+      return plantCounts.first(where: { $0.type == type })?.count ?? "0"
   }
 
   /// Update an existing plant's properties

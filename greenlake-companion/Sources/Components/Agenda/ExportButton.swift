@@ -87,8 +87,6 @@ struct ExportButton: View {
 #Preview {
     TabView {
       VStack(spacing: 20) {
-        Text("Content Above the Button")
-        
         HStack {
           Spacer()
           ExportButton(
@@ -96,62 +94,23 @@ struct ExportButton: View {
             dendaAction: { print("Denda button was tapped!") }
           )
           Spacer()
-        }
-        .padding()
-        //.background(.ultraThinMaterial)
-        .background {
-          Capsule()
-            .fill(Color(UIColor(.systemGray4)))
-        }
-        
-        Text("Content Below the Button")
-        
-        Spacer()
-      }
-      .padding()
-      .background(Color.gray.opacity(0.1))
-      .tabItem {
-        Label("Tab 1", image: "map")
-      }
-  
-      VStack(spacing: 20) {
-        Text("Content Above the Button")
-        
-        HStack {
-          Image(systemName: "sidebar.left").font(.title2)
-          Spacer()
-          Text("Toolbar Title")
-          Spacer()
-          ExportButton(
-            checklistAction: { print("Checklist button was tapped!") },
-            dendaAction: { print("Denda button was tapped!") }
-          )
         }
         .padding()
         .background(.ultraThinMaterial)
         
-        Text("Content Below the Button")
-        
         Spacer()
       }
       .padding()
-      .background(Color.gray.opacity(0.1))
-        .tabItem {
-          Label("Tab 2", image: "map")
-        }
+      .background(Color(.systemGray5))
+      .tabItem {
+        Label("Tab 1", image: "map")
+      }
+  
+      VStack {
+        Text("Hello World!")
+      }
+      .tabItem {
+        Label("Tab 2", image: "map")
+      }
     }
 }
-
-//#Preview {
-//  TabView {
-//    AgendaView()
-//      .tabItem {
-//        Label("Tab 1", image: "map")
-//      }
-//
-//    AgendaView()
-//      .tabItem {
-//        Label("Tab 2", image: "map")
-//      }
-//  }
-//}

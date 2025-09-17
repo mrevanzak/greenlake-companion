@@ -130,6 +130,9 @@ class NetworkManager: NetworkManagerProtocol {
 
   func request<T: Codable>(_ endpoint: APIEndpoint) async throws -> T {
     let data = try await request(endpoint)
+    if let rawString = String(data: data, encoding: .utf8) {
+        print("Raw response data: \(rawString)") // This prints the raw response to the console
+    }
     return try decoder.decode(T.self, from: data)
   }
 
@@ -260,7 +263,6 @@ class NetworkManager: NetworkManagerProtocol {
         throw NetworkError.encodingError(error)
       }
     }
-
     print("➡️ Network request URL: \(request.url?.absoluteString ?? "Invalid URL")")
     print("➡️ HTTP Method: \(request.httpMethod ?? "NO METHOD")")
 

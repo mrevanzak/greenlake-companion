@@ -4,13 +4,14 @@
 //
 //  Created by AI Assistant on 09/10/25.
 //
-
 import Foundation
 
-final class ActiveTasksViewModel: ObservableObject {
-  @Published var activeTasks: [LandscapingTask] = []
+@MainActor
+class ActiveTasksViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var errorMessage: String?
+  @Published var activeTasks: [LandscapingTask] = []
+  @Published var taskSummary: ActiveTasksData? = nil
 
   private let taskService: TaskServiceProtocol
 
@@ -18,19 +19,20 @@ final class ActiveTasksViewModel: ObservableObject {
     self.taskService = taskService
   }
 
-  @MainActor
   func load() async {
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
+
     do {
-      let tasks = try await taskService.fetchTasks()
-      activeTasks =
-        tasks
-        .filter { $0.status == .aktif }
-        .sorted { $0.dateCreated > $1.dateCreated }
+      async let summary = taskService.fetchActiveTasks()
+      async let aktifTasks = taskService.fetchTasks(status: .aktif)
+      let (taskSummary, activeTasks) = try await (summary, aktifTasks)
+      self.taskSummary = taskSummary
+      self.activeTasks = activeTasks
     } catch {
-      errorMessage = error.localizedDescription
+      print("❌ Failed to load active tasks: \(error)")
+      self.errorMessage = "Gagal memuat data."
     }
   }
 }
