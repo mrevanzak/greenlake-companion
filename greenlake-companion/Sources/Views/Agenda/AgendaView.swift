@@ -17,7 +17,7 @@ struct AgendaView: View {
   @State private var adjustedHeight = UIScreen.main.bounds.height + adjustY
   @State private var isLandscape: Bool = UIScreen.main.bounds.width > UIScreen.main.bounds.height
   @State private var isContentVisible: Bool = true
-  
+
   @State private var isFilterPresented = false
 
   var body: some View {
@@ -25,41 +25,39 @@ struct AgendaView: View {
     GeometryReader { geometry in
       NavigationSplitView(columnVisibility: $columnVisibility) {
         VStack(spacing: 0) {
-          VStack(alignment: .leading, spacing: 12) {
 
-            // Search Bar
-            HStack(spacing: 10) {
-              HStack {
-                Image(systemName: "magnifyingglass")
-                  .foregroundColor(.secondary)
-                TextField("Search Tasks", text: $viewModel.searchText)
-                Image(systemName: "microphone.fill")
-                  .foregroundColor(.secondary)
-              }
-              .padding(10)
-              .background(isLandscape ? Color(.systemGray6) : Color(.systemGray4))
-              .cornerRadius(10)
-
-              Button {
-                isFilterPresented = true
-              } label: {
-                Image(systemName: "line.3.horizontal.decrease")
-                  .resizable()
-                  .frame(width: 30, height: 30)
-                  .foregroundColor(viewModel.filterViewModel.isDefaultState ? .secondary : .blue)
-              }
-              .popover(
-                isPresented: $isFilterPresented,
-                attachmentAnchor: .point(.trailing),
-                arrowEdge: .leading
-              ) {
-                FilterPopover(viewModel: viewModel.filterViewModel)
-                  .presentationCompactAdaptation(.popover)
-              }
+          // Search Bar
+          HStack(spacing: 16) {
+            HStack {
+              Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+              TextField("Search Tasks", text: $viewModel.searchText)
+              Image(systemName: "microphone.fill")
+                .foregroundColor(.secondary)
             }
-            .padding(.horizontal)
+            .padding(10)
+            .background(isLandscape ? Color(.systemGray6) : Color(.systemGray4))
+            .cornerRadius(10)
+
+            Button {
+              isFilterPresented = true
+            } label: {
+              Image(systemName: "line.3.horizontal.decrease")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 16, height: 16)
+                .foregroundColor(viewModel.filterViewModel.isDefaultState ? .secondary : .blue)
+            }
+            .popover(
+              isPresented: $isFilterPresented,
+              attachmentAnchor: .point(.trailing),
+              arrowEdge: .leading
+            ) {
+              FilterPopover(viewModel: viewModel.filterViewModel)
+                .presentationCompactAdaptation(.popover)
+            }
           }
-          .padding(.vertical)
+          .padding()
 
           ScrollView {
             LazyVStack(spacing: 0) {
@@ -165,7 +163,7 @@ struct AgendaView: View {
       }
       .frame(height: adjustedHeight, alignment: .top)
       .offset(y: -adjustY)
-      
+
       // Custom Top Toolbar with Inset
       .safeAreaInset(edge: .top, spacing: 0) {
         AgendaViewToolbar(isLandscape: $isLandscape, columnVisibility: $columnVisibility)
