@@ -160,11 +160,12 @@ struct ActiveTaskRow: View {
     .popover(
       isPresented: $showingTaskDetailPopover,
       attachmentAnchor: .point(.trailing),
-      arrowEdge: .leading
+      arrowEdge: .none
     ) {
       TaskDetailView(task: task)
-        .background(Color(.systemBackground))
-        .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
+            .background(Color(.systemBackground))
+        .frame(minWidth: UIScreen.main.bounds.width * 0.6, maxWidth: .infinity)
+        .frame(height: UIScreen.main.bounds.height * 0.85)
     }
   }
 }
@@ -212,4 +213,8 @@ extension View {
   func mainSheet() -> some View {
     modifier(MainSheet())
   }
+}
+
+#Preview {
+   MainSheetContentView()
 }

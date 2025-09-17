@@ -56,3 +56,4 @@ struct TaskPreview: View {
     .contentShape(Rectangle())
   }
 }
+
