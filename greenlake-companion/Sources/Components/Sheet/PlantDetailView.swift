@@ -33,10 +33,10 @@ struct PlantDetailView: View {
   
   private func fetchTasks() async {
     let plantId = plant.id
-
+    
     // Don't fetch tasks if we don't have a selected plant (using empty plant as fallback)
     guard plantManager.selectedPlant != nil || previewPlant != nil else { return }
-
+    
     isLoadingActiveTasks = true
     do {
       let fetchedActiveTasks = try await taskService.fetchActiveTaskByPlant(id: plantId)
@@ -68,30 +68,30 @@ struct PlantDetailView: View {
       return components.day ?? 0
     }
     
-    private func backgroundColor(for dueDate: Date) -> Color {
-      let daysLeft = self.daysLeft(until: dueDate)
-      
-      if daysLeft < 0 {
-        return .red
-      } else if daysLeft <= 7 {
-        return .red
-      } else if daysLeft <= 14 {
-        return .orange
-      } else {
-        return .green
-      }
-    }
+//    private func backgroundColor(for dueDate: Date) -> Color {
+//      let daysLeft = self.daysLeft(until: dueDate)
+//      
+//      if daysLeft < 0 {
+//        return .red
+//      } else if daysLeft <= 7 {
+//        return .red
+//      } else if daysLeft <= 14 {
+//        return .orange
+//      } else {
+//        return .green
+//      }
+//    }
     
     var body: some View {
       HStack {
         VStack(alignment: .leading, spacing: 4) {
           Text(task.taskName)
             .font(.headline)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
           
           Text(dateFormatter.string(from: task.dueDate))
             .font(.subheadline)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
         }
         
         Spacer()
@@ -99,15 +99,16 @@ struct PlantDetailView: View {
         VStack(alignment: .trailing, spacing: 4) {
           Text(task.urgency)
             .font(.subheadline)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
           
           Text(task.status)
             .font(.headline)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
         }
       }
       .padding()
-      .background(self.backgroundColor(for: task.dueDate))
+//      .background(self.backgroundColor(for: task.dueDate))
+      .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
       .cornerRadius(12)
     }
   }
@@ -186,7 +187,8 @@ struct PlantDetailView: View {
               .listRowBackground(Color(.clear))
           }
         }
-      }
+      }.padding(.bottom, 100)
+      
       .overlay(
         VStack {
           Spacer()
@@ -271,7 +273,7 @@ struct PlantDetailSheet: ViewModifier {
 
 #Preview {
   PlantDetailView(previewPlant: PlantInstance(
-    id: UUID(uuidString: "3bda81e6-207e-408d-a805-ece88929057c")!,
+    id: UUID(uuidString: "0fa8e4a6-8a02-46cd-957e-165e6fba79dd")!,
     type: PlantType.bush,
     name: "Lidah Mertua",
     location: CLLocationCoordinate2D(latitude: -6.2, longitude: 106.8),

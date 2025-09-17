@@ -192,8 +192,8 @@ extension TaskResponse {
       taskStatus = .diperiksa
     case "selesai":
       taskStatus = .selesai
-    case "terdenda":
-      taskStatus = .terdenda
+//    case "terdenda":
+//      taskStatus = .terdenda
     case "dialihkan":
       taskStatus = .dialihkan
     default:
@@ -238,7 +238,8 @@ extension TaskResponse {
       dueDate: dueDate,
       dateCreated: createdAt,
       dateModified: updatedAt,
-      dateClosed: taskStatus == .selesai || taskStatus == .terdenda ? updatedAt : nil
+      //      dateClosed: taskStatus == .selesai || taskStatus == .terdenda ? updatedAt : nil
+      dateClosed: taskStatus == .selesai ? updatedAt : nil
     )
   }
 }

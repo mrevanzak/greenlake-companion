@@ -27,7 +27,7 @@ struct TaskStatusSheet: View {
   init(
     taskId: UUID,
     service: TaskServiceProtocol = TaskService(),
-    allowedStatuses: [String] = ["Diajukan", "Aktif", "Diperiksa", "Selesai", "Terdenda", "Dialihkan"]
+    allowedStatuses: [String] = ["Diajukan", "Aktif", "Diperiksa", "Selesai", "Dialihkan"]
   ) {
     _vm = StateObject(wrappedValue: TaskStatusViewModel(taskId: taskId, service: service))
     self.allowedStatuses = allowedStatuses
