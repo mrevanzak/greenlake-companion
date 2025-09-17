@@ -281,6 +281,7 @@
 				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Green Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
@@ -319,6 +320,7 @@
 				DEVELOPMENT_TEAM = 5U7DSB32K6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Green Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses location to show you on the map and provide directions.";
