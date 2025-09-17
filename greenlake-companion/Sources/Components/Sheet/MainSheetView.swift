@@ -63,7 +63,7 @@ struct MainSheetContentView: View {
           buildCard(title: "Pohon\n", value: plantManager.getCount(for: "tree"))
           buildCard(title: "Semak\n", value: plantManager.getCount(for: "bush"))
           buildCard(title: "Ground Cover", value: plantManager.getCount(for: "ground_cover"))
-//          buildCard(title: "Total Tanaman", value: plantManager.totalPlantCount)
+          //          buildCard(title: "Total Tanaman", value: plantManager.totalPlantCount)
         }
       }
 
@@ -120,16 +120,16 @@ struct ActiveTaskRow: View {
 
   @State private var showingTaskDetailPopover = false
 
-//  var background: Color {
-//    switch task.status {
-//    case .diperiksa:
-//      return .customOrange
-//    case .diajukan:
-//      return .customRed
-//    default:
-//      return .customGreen
-//    }
-//  }
+  //  var background: Color {
+  //    switch task.status {
+  //    case .diperiksa:
+  //      return .customOrange
+  //    case .diajukan:
+  //      return .customRed
+  //    default:
+  //      return .customGreen
+  //    }
+  //  }
 
   var body: some View {
     HStack {
@@ -146,7 +146,6 @@ struct ActiveTaskRow: View {
     }
     .padding(.vertical, 12)
     .padding(.horizontal, 18)
-//    .background(background, in: RoundedRectangle(cornerRadius: 20))
     .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
     .overlay(
       RoundedRectangle(cornerRadius: 20)
@@ -161,10 +160,9 @@ struct ActiveTaskRow: View {
     .popover(
       isPresented: $showingTaskDetailPopover,
       attachmentAnchor: .point(.trailing),
-      arrowEdge: .none
+      arrowEdge: .leading
     ) {
       TaskDetailView(task: task)
-//        .background(Color(.systemBackground))
         .frame(minWidth: UIScreen.main.bounds.width * 0.45, maxWidth: .infinity)
     }
   }
@@ -201,9 +199,9 @@ struct MainSheet: ViewModifier {
 extension BottomSheet {
   func commonModifiers() -> BottomSheet {
     self
-//      .enableAppleScrollBehavior()
+      //      .enableAppleScrollBehavior()
       .iPadSheetAlignment(.bottomLeading)
-//      .enableContentDrag()
+      //      .enableContentDrag()
       .customBackground {
         VisualEffectBlurView(blurStyle: .systemThinMaterial)
           .cornerRadius(20)
@@ -216,40 +214,49 @@ extension Color {
     let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
     var int: UInt64 = 0
     Scanner(string: hex).scanHexInt64(&int)
-    
-    let a, r, g, b: UInt64
+
+    let a: UInt64
+    let r: UInt64
+    let g: UInt64
+    let b: UInt64
     switch hex.count {
     case 3:
-      (a, r, g, b) = (255,
-                      (int >> 8) * 17,
-                      (int >> 4 & 0xF) * 17,
-                      (int & 0xF) * 17)
+      (a, r, g, b) = (
+        255,
+        (int >> 8) * 17,
+        (int >> 4 & 0xF) * 17,
+        (int & 0xF) * 17
+      )
     case 6:
-      (a, r, g, b) = (255,
-                      int >> 16,
-                      int >> 8 & 0xFF,
-                      int & 0xFF)
+      (a, r, g, b) = (
+        255,
+        int >> 16,
+        int >> 8 & 0xFF,
+        int & 0xFF
+      )
     case 8:
-      (a, r, g, b) = (int >> 24,
-                      int >> 16 & 0xFF,
-                      int >> 8 & 0xFF,
-                      int & 0xFF)
+      (a, r, g, b) = (
+        int >> 24,
+        int >> 16 & 0xFF,
+        int >> 8 & 0xFF,
+        int & 0xFF
+      )
     default:
       (a, r, g, b) = (255, 0, 0, 0)
     }
-    
-    self.init(.sRGB,
-              red: Double(r) / 255,
-              green: Double(g) / 255,
-              blue: Double(b) / 255,
-              opacity: Double(a) / 255)
+
+    self.init(
+      .sRGB,
+      red: Double(r) / 255,
+      green: Double(g) / 255,
+      blue: Double(b) / 255,
+      opacity: Double(a) / 255)
   }
-  
+
   static let customGreen = Color(hex: "#4CAF50")
   static let customRed = Color(hex: "#FF5252")
   static let customOrange = Color(hex: "#E69229")
 }
-
 
 extension View {
   func mainSheet() -> some View {
