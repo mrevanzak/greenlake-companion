@@ -39,7 +39,8 @@ struct TaskDetailView: View {
                     Menu {
                         Button {
                             Task {
-                                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task, withSignTemplate: true)
+                                viewModel.requestedExportType = .report
+                                viewModel.tasksToExport = [task]
                             }
                         } label: {
                             Label("Berita Acara", systemImage: "text.document")
@@ -47,7 +48,8 @@ struct TaskDetailView: View {
                         
                         Button {
                             Task {
-                                viewModel.pdfPreview = try await generateTaskReminder(taskToDraw: task)
+                                viewModel.requestedExportType = .information
+                                viewModel.tasksToExport = [task]
                             }
                         } label: {
                             Label("Pengingat", systemImage: "exclamationmark.bubble")
